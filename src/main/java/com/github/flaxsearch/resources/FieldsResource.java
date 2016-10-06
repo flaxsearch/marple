@@ -23,12 +23,9 @@ import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 import com.github.flaxsearch.util.ReaderManager;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.LeafReaderContext;
+import org.apache.lucene.index.Fields;
 
 @Path("/fields")
 @Produces(MediaType.APPLICATION_JSON)
@@ -43,26 +40,14 @@ public class FieldsResource {
     @GET
     public List<String> getFields(@QueryParam("segment") Integer segment) throws IOException {
 
-        Set<String> fields = new TreeSet<>();
-        IndexReader reader = readerManager.getIndexReader();
+        List<String> fieldNames = new ArrayList<>();
+        Fields fields = readerManager.getFields(segment);
 
-        if (segment != null) {
-            LeafReaderContext ctx = reader.leaves().get(segment);
-            for (String field : ctx.reader().fields()) {
-                fields.add(field);
-            }
-        }
-        else {
-            for (LeafReaderContext ctx : reader.leaves()) {
-                for (String field : ctx.reader().fields()) {
-                    fields.add(field);
-                }
-            }
+        for (String field : fields) {
+            fieldNames.add(field);
         }
 
-        List<String> results = new ArrayList<>();
-        results.addAll(fields);
-        return results;
+        return fieldNames;
     }
 
 }

@@ -15,10 +15,20 @@ package com.github.flaxsearch.util;
  *   limitations under the License.
  */
 
+import java.io.IOException;
+
+import org.apache.lucene.index.Fields;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.MultiFields;
 
 public interface ReaderManager {
 
     IndexReader getIndexReader();
+
+    default Fields getFields(Integer segment) throws IOException {
+        if (segment == null)
+            return MultiFields.getFields(getIndexReader());
+        return getIndexReader().leaves().get(segment).reader().fields();
+    }
 
 }
