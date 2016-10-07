@@ -45,10 +45,20 @@ function loadFieldsData(segment, renderFunc) {
     });
 }
 
+function loadTermsData(segment, field, renderFunc) {
+    $.ajax({
+        url: "http://localhost:8080/api/terms/" + field + segmentFilter(segment),
+        dataType: 'json',
+        success: function(data) {
+            renderFunc(data);
+        }
+    });
+}
+
 var Fields = React.createClass({
     render: function() {
         var fieldtabs = this.props.fields.map(function(f, i) {
-            return (<NavItem eventKey={i}>{f.name}</NavItem>);
+            return (<NavItem eventKey={f.name}>{f.name}</NavItem>);
         });
         return (
             <Nav bsStyle="pills" stacked onSelect={this.props.onSelect}
@@ -95,7 +105,9 @@ var MarpleContent = React.createClass({
         }.bind(this))
     },
     selectField: function(fieldName) {
-        this.setState({ selectedField: fieldName });
+        loadTermsData(this.state.selectedSegment, fieldName, function(termsData) {
+            this.setState({ termsData: termsData, selectedField: fieldName});
+        }.bind(this))
     },
     render: function() {
         return (
@@ -110,10 +122,21 @@ var MarpleContent = React.createClass({
                             selected={this.state.selectedField}/>
                 </Col>
                 <Col md={6}>
-                    <FieldData field={this.state.selectedField}/>
+                    <FieldData field={this.state.selectedField} termsData={this.state.termsData}/>
                 </Col>
             </div>
         )
+    }
+});
+
+var TermsData = React.createClass({
+    render: function() {
+        var termsList = this.props.terms.map(function(term) {
+            return (<NavItem>{term}</NavItem>)
+        });
+        return (
+            <Nav>{termsList}</Nav>
+        );
     }
 });
 
@@ -123,11 +146,14 @@ var FieldData = React.createClass({
             return (<div/>)
         }
         return (
-            <Nav bsStyle="tabs" justified activeKey="terms">
-                <NavItem eventKey="terms">Terms</NavItem>
-                <NavItem eventKey="docvalues">DocValues</NavItem>
-                <NavItem eventKey="points">Points</NavItem>
-            </Nav>
+            <div>
+                <Nav bsStyle="tabs" justified activeKey="terms">
+                    <NavItem eventKey="terms">Terms</NavItem>
+                    <NavItem eventKey="docvalues">DocValues</NavItem>
+                    <NavItem eventKey="points">Points</NavItem>
+                </Nav>
+                <TermsData terms={this.props.termsData}/>
+            </div>
         );
     }
 });
