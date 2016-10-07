@@ -38,8 +38,9 @@ var Segments = React.createClass({
     render: function() {
         var segmenttab = this.props.segments.map(function(f, i) {
             var name = "Segment " + f.ord;
-            return (<Tab eventKey={i} title={name}>Segment {f.ord}</Tab>);
+            return (<Tab eventKey={i + 1} title={name}>Segment {f.ord}</Tab>);
         });
+        segmenttab.unshift(<Tab eventKey={0} title="All segments">All segments</Tab>);
         return (<Tabs position="left">{segmenttab}</Tabs>);
     }
 });
