@@ -50,7 +50,11 @@ var Fields = React.createClass({
         var fieldtabs = this.props.fields.map(function(f, i) {
             return (<NavItem eventKey={i}>{f.name}</NavItem>);
         });
-        return (<Nav bsStyle="pills" stacked>{fieldtabs}</Nav>);
+        return (
+            <Col md={2}>
+                <Nav bsStyle="pills" stacked>{fieldtabs}</Nav>
+            </Col>
+        );
     }
 });
 
