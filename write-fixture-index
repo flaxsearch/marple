@@ -1,0 +1,4 @@
+#!/bin/bash
+
+mvn exec:java -Dexec.mainClass=com.github.flaxsearch.testutil.Fixtures \
+    -Dexec.args=$1 -Dexec.classpathScope="test"
