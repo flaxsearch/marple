@@ -29,12 +29,28 @@ var MarpleNav = React.createClass({
     }
 });
 
+function segmentFilter(segment) {
+    if (segment == 0)
+        return "";
+    return "?segment=" + (segment - 1);
+}
+
+function loadFieldsData(segment, renderFunc) {
+    $.ajax({
+        url: "http://localhost:8080/api/fields" + segmentFilter(segment),
+        dataType: 'json',
+        success: function(data) {
+            renderFunc(data);
+        }
+    });
+}
+
 var Fields = React.createClass({
     render: function() {
         var fieldtabs = this.props.fields.map(function(f, i) {
-            return (<Tab eventKey={i} title={f}>{f}</Tab>);
+            return (<NavItem eventKey={i}>{f.name}</NavItem>);
         });
-        return (<Tabs position="left">{fieldtabs}</Tabs>);
+        return (<Nav bsStyle="pills" stacked>{fieldtabs}</Nav>);
     }
 });
 
@@ -45,7 +61,9 @@ var Segments = React.createClass({
             return (<NavItem eventKey={i + 1}>{name}</NavItem>);
         });
         segmenttab.unshift(<NavItem eventKey={0}>All segments</NavItem>);
-        return (<Nav bsStyle="pills" stacked onSelect={this.props.onSelect}>{segmenttab}</Nav>)
+        return (
+            <Nav bsStyle="pills" stacked onSelect={this.props.onSelect}>{segmenttab}</Nav>
+        )
     }
 });
 
@@ -61,17 +79,17 @@ var MarpleContent = React.createClass({
             url: "http://localhost:8080/api/index",
             dataType: 'json',
             success: function(data) {
-                var newState = this.state;
-                newState.indexData = data;
-                this.setState(newState);
+                this.setState({ indexData: data});
             }.bind(this)
         });
     },
     selectSegment: function(segNumber) {
-        this.state.view = (
-            <Fields segment={segNumber}/>
-        );
-        this.setState(this.state);
+        loadFieldsData(segNumber, function(fieldsData) {
+            var view = (
+                <Col md={10}><Fields fields={fieldsData}/></Col>
+            );
+            this.setState({ view: view });
+        }.bind(this))
     },
     render: function() {
         return (
