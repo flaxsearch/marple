@@ -17,9 +17,7 @@ package com.github.flaxsearch.util;
 
 import java.io.IOException;
 
-import org.apache.lucene.index.Fields;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.MultiFields;
+import org.apache.lucene.index.*;
 
 public interface ReaderManager {
 
@@ -28,7 +26,18 @@ public interface ReaderManager {
     default Fields getFields(Integer segment) throws IOException {
         if (segment == null)
             return MultiFields.getFields(getIndexReader());
-        return getIndexReader().leaves().get(segment).reader().fields();
+        return getLeafReader(segment).fields();
+    }
+
+    default FieldInfos getFieldInfos(Integer segment) throws IOException {
+        if (segment == null)
+            return MultiFields.getMergedFieldInfos(getIndexReader());
+        return getLeafReader(segment).getFieldInfos();
+    }
+
+    default LeafReader getLeafReader(Integer segment) {
+        assert segment != null;
+        return getIndexReader().leaves().get(segment).reader();
     }
 
 }

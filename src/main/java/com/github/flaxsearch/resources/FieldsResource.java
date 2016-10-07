@@ -24,8 +24,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.github.flaxsearch.api.FieldData;
 import com.github.flaxsearch.util.ReaderManager;
-import org.apache.lucene.index.Fields;
+import org.apache.lucene.index.FieldInfo;
+import org.apache.lucene.index.FieldInfos;
 
 @Path("/fields")
 @Produces(MediaType.APPLICATION_JSON)
@@ -38,16 +40,16 @@ public class FieldsResource {
     }
 
     @GET
-    public List<String> getFields(@QueryParam("segment") Integer segment) throws IOException {
+    public List<FieldData> getFields(@QueryParam("segment") Integer segment) throws IOException {
 
-        List<String> fieldNames = new ArrayList<>();
-        Fields fields = readerManager.getFields(segment);
+        List<FieldData> fieldData = new ArrayList<>();
+        FieldInfos fieldInfos = readerManager.getFieldInfos(segment);
 
-        for (String field : fields) {
-            fieldNames.add(field);
+        for (FieldInfo fieldInfo : fieldInfos) {
+            fieldData.add(new FieldData(fieldInfo));
         }
 
-        return fieldNames;
+        return fieldData;
     }
 
 }

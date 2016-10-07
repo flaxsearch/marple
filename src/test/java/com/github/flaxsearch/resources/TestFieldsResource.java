@@ -18,6 +18,7 @@ package com.github.flaxsearch.resources;
 import javax.ws.rs.core.GenericType;
 import java.util.List;
 
+import com.github.flaxsearch.api.FieldData;
 import io.dropwizard.testing.junit.ResourceTestRule;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -33,21 +34,21 @@ public class TestFieldsResource extends IndexResourceTestBase {
 
     @Test
     public void testWholeIndexFieldsQuery() {
-        List<String> fields = resource.client().target("/fields").request()
-                .get(new GenericType<List<String>>() {});
+        List<FieldData> fields = resource.client().target("/fields").request()
+                .get(new GenericType<List<FieldData>>() {});
 
-        assertThat(fields).contains("field1", "field2", "field3");
+        assertThat(fields).extracting("name").contains("field1", "field2", "field3");
     }
 
     @Test
     public void testIndividualSegmentFieldsQuery() {
-        List<String> fields = resource.client().target("/fields?segment=0").request()
-                .get(new GenericType<List<String>>() {});
-        assertThat(fields).containsOnly("field1", "field2");
+        List<FieldData> fields = resource.client().target("/fields?segment=0").request()
+                .get(new GenericType<List<FieldData>>() {});
+        assertThat(fields).extracting("name").containsOnly("field1", "field2");
 
         fields = resource.client().target("/fields?segment=1").request()
-                .get(new GenericType<List<String>>() {});
-        assertThat(fields).containsOnly("field1", "field3");
+                .get(new GenericType<List<FieldData>>() {});
+        assertThat(fields).extracting("name").containsOnly("field1", "field3");
     }
 
 }
