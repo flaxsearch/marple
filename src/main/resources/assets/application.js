@@ -18,7 +18,7 @@ var MarpleNav = React.createClass({
                     </NavBar.Brand>
                 </NavBar.Header>
                 <NavBar.Text pullRight>
-                    Exploring lucene index: {indexData.index}
+                    Exploring lucene index: {this.props.indexData.indexpath}
                 </NavBar.Text>
             </NavBar>
         )
@@ -34,9 +34,34 @@ var Fields = React.createClass({
     }
 });
 
-var MarpleContent = React.createClass({
+var Segments = React.createClass({
     render: function() {
-        return (<div><MarpleNav/><Fields fields={fieldsData}/></div>)
+        var segmenttab = this.props.segments.map(function(f, i) {
+            var name = "Segment " + f.ord;
+            return (<Tab eventKey={i} title={name}>Segment {f.ord}</Tab>);
+        });
+        return (<Tabs position="left">{segmenttab}</Tabs>);
+    }
+});
+
+var MarpleContent = React.createClass({
+    getInitialState: function() {
+        return { indexpath: "loading", generation: -1, segments: []}
+    },
+    componentDidMount: function() {
+        $.ajax({
+            url: "http://localhost:8080/api/index",
+            dataType: 'json',
+            success: function(data) {
+                this.setState(data);
+            }.bind(this)
+        });
+    },
+    render: function() {
+        return (<div>
+                    <MarpleNav indexData={this.state}/>
+                    <Segments segments={this.state.segments}/>
+                </div>)
     }
 });
 
