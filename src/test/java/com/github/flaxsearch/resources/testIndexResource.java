@@ -15,27 +15,23 @@ package com.github.flaxsearch.resources;
  *   limitations under the License.
  */
 
-import javax.ws.rs.core.GenericType;
-import java.util.List;
-
-import com.github.flaxsearch.api.SegmentData;
+import com.github.flaxsearch.api.IndexData;
 import io.dropwizard.testing.junit.ResourceTestRule;
 import org.junit.ClassRule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class TestSegmentsResource extends IndexResourceTestBase {
+public class TestIndexResource extends IndexResourceTestBase {
 
     @ClassRule
     public static final ResourceTestRule resource = ResourceTestRule.builder()
-            .addResource(new SegmentsResource(() -> reader))
+            .addResource(new IndexResource("/path/to/index", () -> reader))
             .build();
 
     @Test
-    public void testSegmentsResource() {
-        List<SegmentData> segments = resource.client().target("/segments").request()
-                .get(new GenericType<List<SegmentData>>() {});
-        assertThat(segments).hasSize(2);
+    public void testIndexResource() {
+        IndexData indexData = resource.client().target("/").request().get(IndexData.class);
+        assertThat(indexData.segments).hasSize(2);
     }
 }

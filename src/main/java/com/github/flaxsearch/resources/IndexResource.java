@@ -19,29 +19,26 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import java.util.ArrayList;
-import java.util.List;
 
-import com.github.flaxsearch.api.SegmentData;
+import java.io.IOException;
+
+import com.github.flaxsearch.api.IndexData;
 import com.github.flaxsearch.util.ReaderManager;
-import org.apache.lucene.index.LeafReaderContext;
 
-@Path("/segments")
+@Path("/")
 @Produces(MediaType.APPLICATION_JSON)
-public class SegmentsResource {
+public class IndexResource {
 
     private final ReaderManager readerManager;
+    private final String indexPath;
 
-    public SegmentsResource(ReaderManager readerManager) {
+    public IndexResource(String indexPath, ReaderManager readerManager) {
+        this.indexPath = indexPath;
         this.readerManager = readerManager;
     }
 
     @GET
-    public List<SegmentData> getSegmentData() {
-        List<SegmentData> segmentData = new ArrayList<>();
-        for (LeafReaderContext ctx : readerManager.getIndexReader().leaves()) {
-            segmentData.add(new SegmentData(ctx));
-        }
-        return segmentData;
+    public IndexData getIndexData() throws IOException {
+        return new IndexData(indexPath, readerManager);
     }
 }

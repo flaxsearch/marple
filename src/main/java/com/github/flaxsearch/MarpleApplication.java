@@ -16,7 +16,7 @@ package com.github.flaxsearch;
  */
 
 import com.github.flaxsearch.resources.FieldsResource;
-import com.github.flaxsearch.resources.SegmentsResource;
+import com.github.flaxsearch.resources.IndexResource;
 import com.github.flaxsearch.resources.TermsResource;
 import com.github.flaxsearch.util.FSReaderManager;
 import io.dropwizard.Application;
@@ -38,8 +38,8 @@ public class MarpleApplication extends Application<MarpleConfiguration> {
         environment.lifecycle().manage(df);
 
         environment.jersey().register(new FieldsResource(df));
-        environment.jersey().register(new SegmentsResource(df));
         environment.jersey().register(new TermsResource(df));
+        environment.jersey().register(new IndexResource(marpleConfiguration.getIndexPath(), df));
     }
 
     public static void main(String... args) throws Exception {
