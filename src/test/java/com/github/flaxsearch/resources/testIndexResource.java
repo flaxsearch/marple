@@ -31,7 +31,7 @@ public class TestIndexResource extends IndexResourceTestBase {
 
     @Test
     public void testIndexResource() {
-        IndexData indexData = resource.client().target("/").request().get(IndexData.class);
+        IndexData indexData = resource.client().target("/index").request().get(IndexData.class);
         assertThat(indexData.segments).hasSize(2);
     }
 }

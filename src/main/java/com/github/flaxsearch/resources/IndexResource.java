@@ -25,7 +25,7 @@ import java.io.IOException;
 import com.github.flaxsearch.api.IndexData;
 import com.github.flaxsearch.util.ReaderManager;
 
-@Path("/")
+@Path("/index")
 @Produces(MediaType.APPLICATION_JSON)
 public class IndexResource {
 
