@@ -15,6 +15,7 @@ package com.github.flaxsearch;
  *   limitations under the License.
  */
 
+import com.github.flaxsearch.resources.DocValuesResource;
 import com.github.flaxsearch.resources.FieldsResource;
 import com.github.flaxsearch.resources.IndexResource;
 import com.github.flaxsearch.resources.TermsResource;
@@ -40,6 +41,7 @@ public class MarpleApplication extends Application<MarpleConfiguration> {
         environment.jersey().register(new FieldsResource(df));
         environment.jersey().register(new TermsResource(df));
         environment.jersey().register(new IndexResource(marpleConfiguration.getIndexPath(), df));
+        environment.jersey().register(new DocValuesResource(df));
     }
 
     public static void main(String... args) throws Exception {

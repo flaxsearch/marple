@@ -20,15 +20,13 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.StringField;
-import org.apache.lucene.document.TextField;
+import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.util.BytesRef;
 
 public class Fixtures {
 
@@ -60,6 +58,7 @@ public class Fixtures {
             {
                 Document doc = new Document();
                 doc.add(new StringField("field1", "value2", Field.Store.YES));
+                doc.add(new BinaryDocValuesField("field1", new BytesRef("some bytes")));
                 doc.add(new TextField("field3", "this is some more text in a different field", Field.Store.YES));
                 writer.addDocument(doc);
             }

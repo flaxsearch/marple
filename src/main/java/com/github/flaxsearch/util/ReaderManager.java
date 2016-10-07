@@ -40,4 +40,15 @@ public interface ReaderManager {
         return getIndexReader().leaves().get(segment).reader();
     }
 
+    default BinaryDocValues getBinaryDocValues(Integer segment, String field) throws IOException {
+        if (segment == null)
+            return MultiDocValues.getBinaryValues(getIndexReader(), field);
+        return getLeafReader(segment).getBinaryDocValues(field);
+    }
+
+    default int getMaxDoc(Integer segment) {
+        if (segment == null)
+            return getIndexReader().maxDoc();
+        return getLeafReader(segment).maxDoc();
+    }
 }
