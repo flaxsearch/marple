@@ -51,9 +51,7 @@ var Fields = React.createClass({
             return (<NavItem eventKey={i}>{f.name}</NavItem>);
         });
         return (
-            <Col md={2}>
-                <Nav bsStyle="pills" stacked>{fieldtabs}</Nav>
-            </Col>
+            <Nav bsStyle="pills" stacked>{fieldtabs}</Nav>
         );
     }
 });
@@ -75,7 +73,7 @@ var MarpleContent = React.createClass({
     getInitialState: function() {
         return {
             indexData: { indexpath: "loading", generation: -1, segments: []},
-            view: (<Col md={10}>Select a segment</Col>)
+            fieldsData: []
         }
     },
     componentDidMount: function() {
@@ -89,11 +87,11 @@ var MarpleContent = React.createClass({
     },
     selectSegment: function(segNumber) {
         loadFieldsData(segNumber, function(fieldsData) {
-            var view = (
-                <Col md={10}><Fields fields={fieldsData}/></Col>
-            );
-            this.setState({ view: view });
+            this.setState({ fieldsData: fieldsData} );
         }.bind(this))
+    },
+    selectField: function(fieldName) {
+
     },
     render: function() {
         return (
@@ -102,9 +100,20 @@ var MarpleContent = React.createClass({
                 <Col md={2}>
                     <Segments segments={this.state.indexData.segments} onSelect={this.selectSegment}/>
                 </Col>
-                {this.state.view}
+                <Col md={2}>
+                    <Fields fields={this.state.fieldsData} onSelect={this.selectField}/>
+                </Col>
+                <Col md={6}>
+                    <FieldData/>
+                </Col>
             </div>
         )
+    }
+});
+
+var FieldData = React.createClass({
+    render: function() {
+        return (<h3>Field data goes here</h3>);
     }
 });
 
