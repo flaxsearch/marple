@@ -46,6 +46,30 @@ public interface ReaderManager {
         return getLeafReader(segment).getBinaryDocValues(field);
     }
 
+    default NumericDocValues getNumericDocValues(Integer segment, String field) throws IOException {
+        if (segment == null)
+            return MultiDocValues.getNumericValues(getIndexReader(), field);
+        return getLeafReader(segment).getNumericDocValues(field);
+    }
+
+    default SortedNumericDocValues getSortedNumericDocValues(Integer segment, String field) throws IOException {
+        if (segment == null)
+            return MultiDocValues.getSortedNumericValues(getIndexReader(), field);
+        return getLeafReader(segment).getSortedNumericDocValues(field);
+    }
+
+    default SortedDocValues getSortedDocValues(Integer segment, String field) throws IOException {
+        if (segment == null)
+            return MultiDocValues.getSortedValues(getIndexReader(), field);
+        return getLeafReader(segment).getSortedDocValues(field);
+    }
+
+    default SortedSetDocValues getSortedSetDocValues(Integer segment, String field) throws IOException {
+        if (segment == null)
+            return MultiDocValues.getSortedSetValues(getIndexReader(), field);
+        return getLeafReader(segment).getSortedSetDocValues(field);
+    }
+
     default int getMaxDoc(Integer segment) {
         if (segment == null)
             return getIndexReader().maxDoc();
