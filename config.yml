@@ -1,0 +1,6 @@
+logging:
+  level: INFO
+  loggers:
+    com.github.flaxsearch: DEBUG
+  appenders:
+    - type: console
