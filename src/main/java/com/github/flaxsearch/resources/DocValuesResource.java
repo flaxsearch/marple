@@ -17,6 +17,7 @@ package com.github.flaxsearch.resources;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +49,11 @@ public class DocValuesResource {
         List<String> values = new ArrayList<>(count);
         int maxDoc = readerManager.getMaxDoc(segment);
         BinaryDocValues dv = readerManager.getBinaryDocValues(segment, field);
-
+        if (dv == null) {
+            String msg = String.format("No binary doc values on field %s", field);
+            throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
+        }
+            
         for (int i = 0; i < count && i < maxDoc; i++) {
             values.add(dv.get(fromDoc + i).utf8ToString());
         }
@@ -67,6 +72,10 @@ public class DocValuesResource {
         List<String> values = new ArrayList<>(count);
         int maxDoc = readerManager.getMaxDoc(segment);
         NumericDocValues dv = readerManager.getNumericDocValues(segment, field);
+        if (dv == null) {
+            String msg = String.format("No numeric doc values on field %s", field);
+            throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
+        }
 
         for (int i = 0; i < count && i < maxDoc; i++) {
             values.add(Long.toString(dv.get(fromDoc + i)));
@@ -86,6 +95,10 @@ public class DocValuesResource {
         List<List<String>> values = new ArrayList<>(count);
         int maxDoc = readerManager.getMaxDoc(segment);
         SortedNumericDocValues dv = readerManager.getSortedNumericDocValues(segment, field);
+        if (dv == null) {
+            String msg = String.format("No sorted numeric doc values on field %s", field);
+            throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
+        }
 
         for (int i = 0; i < count && i < maxDoc; i++) {
             dv.setDocument(fromDoc + i);
@@ -110,6 +123,10 @@ public class DocValuesResource {
         List<List<String>> values = new ArrayList<>(count);
         int maxDoc = readerManager.getMaxDoc(segment);
         SortedDocValues dv = readerManager.getSortedDocValues(segment, field);
+        if (dv == null) {
+            String msg = String.format("No sorted doc values on field %s", field);
+            throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
+        }
 
         for (int i = 0; i < count && i < maxDoc; i++) {
             // TODO pull out all doc values for this doc
@@ -129,6 +146,10 @@ public class DocValuesResource {
         List<List<String>> values = new ArrayList<>(count);
         int maxDoc = readerManager.getMaxDoc(segment);
         SortedSetDocValues dv = readerManager.getSortedSetDocValues(segment, field);
+        if (dv == null) {
+            String msg = String.format("No sorted set doc values on field %s", field);
+            throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
+        }
 
         for (int i = 0; i < count && i < maxDoc; i++) {
             // TODO pull out all doc values for this doc

@@ -15,6 +15,7 @@ package com.github.flaxsearch.resources;
  *   limitations under the License.
  */
 
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.GenericType;
 import java.util.List;
 
@@ -23,6 +24,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class TestDocValuesResource extends IndexResourceTestBase {
 
@@ -37,5 +39,13 @@ public class TestDocValuesResource extends IndexResourceTestBase {
                 .get(new GenericType<List<String>>() {});
 
         assertThat(docValues).containsExactly("", "some bytes");
+
+        try {
+            resource.client().target("/docvalues/field-thats-not-there/binary").request()
+                .get(new GenericType<List<String>>() {});
+            fail("Request for binary doc values on a non-existent field should fail.");
+        } catch (NotFoundException e) {
+            // Expected: HTTP 404 Not Found 
+        }
     }
 }
