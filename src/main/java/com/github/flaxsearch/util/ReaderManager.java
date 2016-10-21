@@ -18,6 +18,7 @@ package com.github.flaxsearch.util;
 import java.io.IOException;
 
 import org.apache.lucene.index.*;
+import org.apache.lucene.util.Bits;
 
 public interface ReaderManager {
 
@@ -33,6 +34,12 @@ public interface ReaderManager {
         if (segment == null)
             return MultiFields.getMergedFieldInfos(getIndexReader());
         return getLeafReader(segment).getFieldInfos();
+    }
+
+    default Bits getLiveDocs(Integer segment) throws IOException {
+        if (segment == null)
+            return MultiFields.getLiveDocs(getIndexReader());
+        return getLeafReader(segment).getLiveDocs();
     }
 
     default LeafReader getLeafReader(Integer segment) {
