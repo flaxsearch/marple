@@ -15,6 +15,7 @@ package com.github.flaxsearch.resources;
  *   limitations under the License.
  */
 
+import com.github.flaxsearch.api.TermData;
 import io.dropwizard.testing.junit.ResourceTestRule;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -36,15 +37,18 @@ public class TestPostingsResource extends IndexResourceTestBase {
 
     @Test
     public void testWholeIndexPostings() {
-        List<Map<String,Integer>> postings = resource.client().target("/postings/field3/field").request()
-                .get(new GenericType<List<Map<String,Integer>>>(){});
+        TermData termData = resource.client().target("/postings/field3/field").request()
+                .get(new GenericType<TermData>(){});
 
-        assertThat(postings).hasSize(1);
-        assertThat(postings.get(0).get("docId")).isNotNull();
+        assertThat(termData).isNotNull();
+        assertThat(termData.term).isEqualTo("field");
+        assertThat(termData.docFreq).isEqualTo(1);
+        assertThat(termData.totalTermFreq).isEqualTo(1);
+        assertThat(termData.postings.length).isEqualTo(1);
     }
 
     @Test
-    public void testSegmentPostings() {
+    public void testNonExistent() {
         try {
             resource.client().target("/postings/field-thats-not-there/text").request()
                     .get(new GenericType<List<Map<String,Integer>>>(){});
@@ -60,11 +64,14 @@ public class TestPostingsResource extends IndexResourceTestBase {
         } catch (NotFoundException e) {
             // Expected: HTTP 404 Not Found
         }
+    }
 
+    @Test
+    public void testSegmentPostings() {
         try {
             resource.client().target("/postings/field3/field&segment=0").request()
                     .get(new GenericType<List<Map<String,Integer>>>(){});
-            fail("Request for postings on a non-existent segment should fail.");
+            fail("Request for postings on the segment that does not have field3 should fail.");
         } catch (NotFoundException e) {
             // Expected: HTTP 404 Not Found
         }

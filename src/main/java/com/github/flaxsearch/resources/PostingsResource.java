@@ -15,8 +15,12 @@ package com.github.flaxsearch.resources;
  *   limitations under the License.
  */
 
+import com.github.flaxsearch.api.TermData;
 import com.github.flaxsearch.util.ReaderManager;
-import org.apache.lucene.index.*;
+import org.apache.lucene.index.Fields;
+import org.apache.lucene.index.Terms;
+import org.apache.lucene.index.PostingsEnum;
+import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.util.Bits;
 import org.apache.lucene.util.BytesRef;
 
@@ -24,7 +28,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.*;
 
 @Path("/postings/{field}/{term}")
 @Produces(MediaType.APPLICATION_JSON)
@@ -37,10 +40,10 @@ public class PostingsResource {
     }
 
     @GET
-    public List<Map<String,Integer>> getPostings(@QueryParam("segment") Integer segment,
-                                                 @PathParam("field") String field,
-                                                 @PathParam("term") String term,
-                                                 @QueryParam("count") @DefaultValue("50") int count) throws IOException {
+    public TermData getPostings(@QueryParam("segment") Integer segment,
+                                @PathParam("field") String field,
+                                @PathParam("term") String term,
+                                @QueryParam("count") @DefaultValue("50") int count) throws IOException {
 
         Fields fields = readerManager.getFields(segment);
         Terms terms = fields.terms(field);
@@ -52,29 +55,27 @@ public class PostingsResource {
 
         TermsEnum te = terms.iterator();
 
-        if (term == null || !te.seekExact(new BytesRef(term))) {
-            String msg = String.format("No term on field %s", field);
+        assert (term != null);
+        if (!te.seekExact(new BytesRef(term))) {
+            String msg = String.format("No term %s on field %s", term, field);
             throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
         }
 
         Bits liveDocs = readerManager.getLiveDocs(segment);
-        PostingsEnum pe = te.postings(null, PostingsEnum.ALL);
+        PostingsEnum pe = te.postings(null, PostingsEnum.NONE);
 
-        List<Map<String,Integer>> postings = new ArrayList<>();
+        int docFreq = te.docFreq();
+        long totalTermFreq = te.totalTermFreq();
+
+        int size = (docFreq < count) ? docFreq : count;
+        int[] postings = new int[size];
         int docId;
-        while ((docId = pe.nextDoc()) != PostingsEnum.NO_MORE_DOCS && --count >= 0) {
+        int i = 0;
+        while ((docId = pe.nextDoc()) != PostingsEnum.NO_MORE_DOCS && i < count) {
             if (liveDocs != null && liveDocs.get(docId) == false) continue;
-            for (int i = 0; i < pe.freq(); i++) {
-                Map<String,Integer> posting = new LinkedHashMap<>();
-                posting.put("docId", docId);
-                posting.put("freq", pe.freq());
-                posting.put("position", pe.nextPosition());
-                posting.put("startOffset", pe.startOffset());
-                posting.put("endOffset", pe.endOffset());
-                postings.add(posting);
-            }
+            postings[i] = docId;
+            i++;
         }
-        return postings;
+        return new TermData(term, docFreq, totalTermFreq, postings);
     }
-
 }
