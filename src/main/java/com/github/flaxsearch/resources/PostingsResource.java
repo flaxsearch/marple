@@ -22,10 +22,11 @@ import org.apache.lucene.util.BytesRef;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.*;
 
-@Path("/postings/{field}")
+@Path("/postings/{field}/{term}")
 @Produces(MediaType.APPLICATION_JSON)
 public class PostingsResource {
 
@@ -38,22 +39,22 @@ public class PostingsResource {
     @GET
     public List<Map<String,Integer>> getPostings(@QueryParam("segment") Integer segment,
                                                  @PathParam("field") String field,
-                                                 @QueryParam("term") String term,
+                                                 @PathParam("term") String term,
                                                  @QueryParam("count") @DefaultValue("50") int count) throws IOException {
 
         Fields fields = readerManager.getFields(segment);
         Terms terms = fields.terms(field);
 
-        if (terms == null)
-            return Collections.emptyList();
+        if (terms == null) {
+            String msg = String.format("No field %s", field);
+            throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
+        }
 
         TermsEnum te = terms.iterator();
 
-        if (term != null) {
-            if (!te.seekExact(new BytesRef(term)))
-                return Collections.emptyList();
-        } else {
-            return Collections.emptyList();
+        if (term == null || !te.seekExact(new BytesRef(term))) {
+            String msg = String.format("No term on field %s", field);
+            throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
         }
 
         Bits liveDocs = readerManager.getLiveDocs(segment);

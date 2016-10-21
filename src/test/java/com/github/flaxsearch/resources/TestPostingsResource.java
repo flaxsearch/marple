@@ -19,11 +19,13 @@ import io.dropwizard.testing.junit.ResourceTestRule;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.GenericType;
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class TestPostingsResource extends IndexResourceTestBase {
 
@@ -34,7 +36,7 @@ public class TestPostingsResource extends IndexResourceTestBase {
 
     @Test
     public void testWholeIndexPostings() {
-        List<Map<String,Integer>> postings = resource.client().target("/postings/field3?term=field").request()
+        List<Map<String,Integer>> postings = resource.client().target("/postings/field3/field").request()
                 .get(new GenericType<List<Map<String,Integer>>>(){});
 
         assertThat(postings).hasSize(1);
@@ -43,9 +45,28 @@ public class TestPostingsResource extends IndexResourceTestBase {
 
     @Test
     public void testSegmentPostings() {
-        List<Map<String,Integer>> postings = resource.client().target("/postings/field3?&term=field&segment=0").request()
-                .get(new GenericType<List<Map<String,Integer>>>(){});
+        try {
+            resource.client().target("/postings/field-thats-not-there/text").request()
+                    .get(new GenericType<List<Map<String,Integer>>>(){});
+            fail("Request for postings on a non-existent field should fail.");
+        } catch (NotFoundException e) {
+            // Expected: HTTP 404 Not Found
+        }
 
-        assertThat(postings).isEmpty();
+        try {
+            resource.client().target("/postings/field3/term-thats-not-there").request()
+                    .get(new GenericType<List<Map<String,Integer>>>(){});
+            fail("Request for postings on a non-existent term should fail.");
+        } catch (NotFoundException e) {
+            // Expected: HTTP 404 Not Found
+        }
+
+        try {
+            resource.client().target("/postings/field3/field&segment=0").request()
+                    .get(new GenericType<List<Map<String,Integer>>>(){});
+            fail("Request for postings on a non-existent segment should fail.");
+        } catch (NotFoundException e) {
+            // Expected: HTTP 404 Not Found
+        }
     }
 }
