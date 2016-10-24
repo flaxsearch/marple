@@ -15,19 +15,15 @@ package com.github.flaxsearch.resources;
  *   limitations under the License.
  */
 
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import java.io.IOException;
+
 import com.github.flaxsearch.api.TermData;
 import com.github.flaxsearch.util.ReaderManager;
-import org.apache.lucene.index.Fields;
-import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.util.Bits;
-import org.apache.lucene.util.BytesRef;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.IOException;
 
 @Path("/postings/{field}/{term}")
 @Produces(MediaType.APPLICATION_JSON)
@@ -43,24 +39,9 @@ public class PostingsResource {
     public TermData getPostings(@QueryParam("segment") Integer segment,
                                 @PathParam("field") String field,
                                 @PathParam("term") String term,
-                                @QueryParam("count") @DefaultValue("50") int count) throws IOException {
+                                @QueryParam("count") @DefaultValue("2147483647") int count) throws IOException {
 
-        Fields fields = readerManager.getFields(segment);
-        Terms terms = fields.terms(field);
-
-        if (terms == null) {
-            String msg = String.format("No field %s", field);
-            throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
-        }
-
-        TermsEnum te = terms.iterator();
-
-        assert (term != null);
-        if (!te.seekExact(new BytesRef(term))) {
-            String msg = String.format("No term %s on field %s", term, field);
-            throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
-        }
-
+        TermsEnum te = readerManager.findTermPostings(segment, field, term);
         Bits liveDocs = readerManager.getLiveDocs(segment);
         PostingsEnum pe = te.postings(null, PostingsEnum.NONE);
 
@@ -78,4 +59,5 @@ public class PostingsResource {
         }
         return new TermData(term, docFreq, totalTermFreq, postings);
     }
+
 }

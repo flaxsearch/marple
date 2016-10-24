@@ -26,6 +26,8 @@ public class FieldData {
 
     public final IndexOptions indexOptions;
 
+    public final boolean hasPayloads;
+
     public final boolean hasNorms;
 
     public final DocValuesType docValuesType;
@@ -35,14 +37,15 @@ public class FieldData {
     public FieldData(@JsonProperty("name") String name,
                      @JsonProperty("indexOptions") IndexOptions indexOptions,
                      @JsonProperty("hasNorms") boolean hasNorms,
+                     @JsonProperty("hasPayloads")  boolean hasPayloads,
                      @JsonProperty("docValuesType") DocValuesType docValuesType,
-                     @JsonProperty("pointDimensionCount") int pointDimensionCount,
-                     @JsonProperty("isStored") boolean isStored) {
+                     @JsonProperty("pointDimensionCount") int pointDimensionCount) {
         this.name = name;
         this.indexOptions = indexOptions;
         this.hasNorms = hasNorms;
         this.docValuesType = docValuesType;
         this.pointDimensionCount = pointDimensionCount;
+        this.hasPayloads = hasPayloads;
     }
 
     public FieldData(FieldInfo fieldInfo) {
@@ -51,5 +54,6 @@ public class FieldData {
         this.hasNorms = fieldInfo.hasNorms();
         this.docValuesType = fieldInfo.getDocValuesType();
         this.pointDimensionCount = fieldInfo.getPointDimensionCount();
+        this.hasPayloads = fieldInfo.hasPayloads();
     }
 }

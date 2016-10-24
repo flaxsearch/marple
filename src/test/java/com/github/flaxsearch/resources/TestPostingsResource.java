@@ -15,15 +15,15 @@ package com.github.flaxsearch.resources;
  *   limitations under the License.
  */
 
-import com.github.flaxsearch.api.TermData;
-import io.dropwizard.testing.junit.ResourceTestRule;
-import org.junit.ClassRule;
-import org.junit.Test;
-
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.GenericType;
 import java.util.List;
 import java.util.Map;
+
+import com.github.flaxsearch.api.TermData;
+import io.dropwizard.testing.junit.ResourceTestRule;
+import org.junit.ClassRule;
+import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -38,7 +38,7 @@ public class TestPostingsResource extends IndexResourceTestBase {
     @Test
     public void testWholeIndexPostings() {
         TermData termData = resource.client().target("/postings/field3/field").request()
-                .get(new GenericType<TermData>(){});
+                .get(TermData.class);
 
         assertThat(termData).isNotNull();
         assertThat(termData.term).isEqualTo("field");

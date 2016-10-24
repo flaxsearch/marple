@@ -15,10 +15,13 @@ package com.github.flaxsearch.util;
  *   limitations under the License.
  */
 
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 
 import org.apache.lucene.index.*;
 import org.apache.lucene.util.Bits;
+import org.apache.lucene.util.BytesRef;
 
 public interface ReaderManager {
 
@@ -81,5 +84,26 @@ public interface ReaderManager {
         if (segment == null)
             return getIndexReader().maxDoc();
         return getLeafReader(segment).maxDoc();
+    }
+
+    default TermsEnum findTermPostings(Integer segment, String field, String term) throws IOException {
+
+        Fields fields = getFields(segment);
+        Terms terms = fields.terms(field);
+
+        if (terms == null) {
+            String msg = String.format("No field %s", field);
+            throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
+        }
+
+        TermsEnum te = terms.iterator();
+
+        assert (term != null);
+        if (!te.seekExact(new BytesRef(term))) {
+            String msg = String.format("No term %s on field %s", term, field);
+            throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
+        }
+
+        return te;
     }
 }
