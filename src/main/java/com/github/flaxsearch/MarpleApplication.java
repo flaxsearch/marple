@@ -53,6 +53,7 @@ public class MarpleApplication extends Application<MarpleConfiguration> {
         environment.jersey().register(new PostingsResource(df));
         environment.jersey().register(new PositionsResource(df));
         environment.jersey().register(new DocumentResource(df));
+        environment.jersey().register(new PointsResource(df));
         environment.jersey().register(new IndexResource(marpleConfiguration.getIndexPath(), df));
         environment.jersey().register(new DocValuesResource(df));
     }
