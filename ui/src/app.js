@@ -1,14 +1,12 @@
 import React, { Component, PropTypes } from 'react';
 import ReactDOM from 'react-dom';
 import { Navbar, Nav, NavItem, Col, Tabs, Tab } from 'react-bootstrap';
+import { MARPLE_BASE } from 'config';
 
 var indexData = { "index" : "/path/to/index" };
 var fieldsData = [
     "field1" , "field2", "field3"
 ];
-
-// FIXME for the bundled version this should be ""
-const MARPLE_ROOT = "http://localhost:8080";
 
 const MarpleNav = props => {
   return (
@@ -34,16 +32,16 @@ function segmentFilter(segment) {
 function handleError(error) {
   alert("ERROR: " + error);   // FIXME
   console.log(error.stack);
-});
+}
 
 function loadFieldsData(segment, renderFunc) {
-  fetch(MARPLE_ROOT + "/api/fields" + segmentFilter(segment))
+  fetch(MARPLE_BASE + "/api/fields" + segmentFilter(segment))
   .then(response => { renderFunc(response.json()) })
   .catch(error => { handleError(error) });
 }
 
 function loadTermsData(segment, field, renderFunc) {
-  fetch(MARPLE_ROOT + "/api/terms/" + field + segmentFilter(segment))
+  fetch(MARPLE_BASE + "/api/terms/" + field + segmentFilter(segment))
   .then(response => { renderFunc(response.json()) })
   .catch(error => { handleError(error) });
 }
@@ -59,14 +57,14 @@ const Fields = props => {
 };
 
 const Segments = props => {
-  var segmenttab = this.props.segments.map(function(f, i) {
+  var segmenttab = props.segments.map(function(f, i) {
     var name = "Segment " + f.ord;
     return (<NavItem eventKey={i + 1}>{name}</NavItem>);
   });
   segmenttab.unshift(<NavItem eventKey={0}>All segments</NavItem>);
   return (
-    <Nav bsStyle="pills" stacked onSelect={this.props.onSelect}
-         activeKey={this.props.selected}>{segmenttab}</Nav>
+    <Nav bsStyle="pills" stacked onSelect={props.onSelect}
+         activeKey={props.selected}>{segmenttab}</Nav>
   );
 };
 
@@ -85,7 +83,7 @@ class MarpleContent extends Component {
   }
 
   componentDidMount() {
-    fetch(MARPLE_ROOT + "/api/index")
+    fetch(MARPLE_BASE + "/api/index")
     .then(response => {
       this.setState({ indexData: response.json() });
     })
@@ -134,11 +132,8 @@ class MarpleContent extends Component {
   }
 }
 
-var TermsData = React.createClass({
-    render: function() {
-
 const TermsData = props => {
-  var termsList = this.props.terms.map(function(term) {
+  var termsList = props.terms.map(function(term) {
     return (<NavItem>{term}</NavItem>)
   });
   return (
@@ -147,7 +142,7 @@ const TermsData = props => {
 };
 
 const FieldData = props => {
-  if (this.props.field == undefined) {
+  if (props.field == undefined) {
       return (<div/>)
   }
   return (
@@ -157,7 +152,7 @@ const FieldData = props => {
         <NavItem eventKey="docvalues">DocValues</NavItem>
         <NavItem eventKey="points">Points</NavItem>
       </Nav>
-      <TermsData terms={this.props.termsData}/>
+      <TermsData terms={props.termsData}/>
     </div>
   );
 };

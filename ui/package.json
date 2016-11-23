@@ -4,7 +4,7 @@
   "description": "React UI for Marple",
   "main": "index.js",
   "scripts": {
-    "start": "webpack-dev-server --progress --port 8090",
+    "start": "NODE_ENV=dev webpack-dev-server --progress --port 8090",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Tom Mortimer, Alan Woodward",
