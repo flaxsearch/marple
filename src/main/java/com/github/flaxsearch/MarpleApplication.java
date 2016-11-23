@@ -15,12 +15,17 @@ package com.github.flaxsearch;
  *   limitations under the License.
  */
 
+import javax.servlet.DispatcherType;
+import javax.servlet.FilterRegistration;
+import java.util.EnumSet;
+
 import com.github.flaxsearch.resources.*;
 import com.github.flaxsearch.util.FSReaderManager;
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
 
 public class MarpleApplication extends Application<MarpleConfiguration> {
     @Override
@@ -32,6 +37,14 @@ public class MarpleApplication extends Application<MarpleConfiguration> {
     @Override
     public void run(MarpleConfiguration marpleConfiguration, Environment environment) throws Exception {
 
+        FilterRegistration.Dynamic filter = environment.servlets().addFilter("CORSFilter", CrossOriginFilter.class);
+
+        filter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), false, environment.getApplicationContext().getContextPath() + "*");
+        filter.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "GET,PUT,POST,OPTIONS");
+        filter.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
+        filter.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "X-Requested-With, Origin, Content-Type, Accept");
+        filter.setInitParameter(CrossOriginFilter.ALLOW_CREDENTIALS_PARAM, "true");
+
         FSReaderManager df = new FSReaderManager(marpleConfiguration.getIndexPath());
         environment.lifecycle().manage(df);
 
@@ -40,6 +53,7 @@ public class MarpleApplication extends Application<MarpleConfiguration> {
         environment.jersey().register(new PostingsResource(df));
         environment.jersey().register(new PositionsResource(df));
         environment.jersey().register(new DocumentResource(df));
+        environment.jersey().register(new PointsResource(df));
         environment.jersey().register(new IndexResource(marpleConfiguration.getIndexPath(), df));
         environment.jersey().register(new DocValuesResource(df));
     }
