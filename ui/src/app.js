@@ -10,45 +10,47 @@ var fieldsData = [
 
 const MarpleNav = props => {
   return (
-    <NavBar>
-      <NavBar.Header>
-        <NavBar.Brand>
+    <Navbar>
+      <Navbar.Header>
+        <Navbar.Brand>
           <a href="#">Marple</a>
-        </NavBar.Brand>
-      </NavBar.Header>
-      <NavBar.Text pullRight>
+        </Navbar.Brand>
+      </Navbar.Header>
+      <Navbar.Text pullRight>
         Exploring lucene index: {props.indexData.indexpath}
-      </NavBar.Text>
-    </NavBar>
+      </Navbar.Text>
+    </Navbar>
   );
 };
 
 function segmentFilter(segment) {
-  if (segment == 0)
+  if (segment === null)
     return "";
-  return "?segment=" + (segment - 1);
+  return "?segment=" + segment;
 }
 
-function handleError(error) {
-  alert("ERROR: " + error);   // FIXME
-  console.log(error.stack);
+function handleError(error, msg) {
+  alert("ERROR: " + error + ' (' + msg + ')');   // FIXME
 }
 
 function loadFieldsData(segment, renderFunc) {
-  fetch(MARPLE_BASE + "/api/fields" + segmentFilter(segment))
-  .then(response => { renderFunc(response.json()) })
-  .catch(error => { handleError(error) });
+  const url = MARPLE_BASE + "/api/fields" + segmentFilter(segment);
+  fetch(url)
+  .then(response => response.json())
+  .then(data => { renderFunc(data); })
+  .catch(error => { handleError(error, 'loadFieldsData'); });
 }
 
 function loadTermsData(segment, field, renderFunc) {
   fetch(MARPLE_BASE + "/api/terms/" + field + segmentFilter(segment))
-  .then(response => { renderFunc(response.json()) })
-  .catch(error => { handleError(error) });
+  .then(response => response.json())
+  .then(data => { renderFunc(data); })
+  .catch(error => { handleError(error, 'loadTermsData'); });
 }
 
 const Fields = props => {
   var fieldtabs = props.fields.map(function(f, i) {
-    return (<NavItem eventKey={f.name}>{f.name}</NavItem>);
+    return (<NavItem key={f.name}>{f.name}</NavItem>);
   });
   return (
     <Nav bsStyle="pills" stacked onSelect={props.onSelect}
@@ -59,9 +61,9 @@ const Fields = props => {
 const Segments = props => {
   var segmenttab = props.segments.map(function(f, i) {
     var name = "Segment " + f.ord;
-    return (<NavItem eventKey={i + 1}>{name}</NavItem>);
+    return <NavItem eventKey={i} key={i + 1}>{name}</NavItem>;
   });
-  segmenttab.unshift(<NavItem eventKey={0}>All segments</NavItem>);
+  segmenttab.unshift(<NavItem eventKey={null} key={0}>All segments</NavItem>);
   return (
     <Nav bsStyle="pills" stacked onSelect={props.onSelect}
          activeKey={props.selected}>{segmenttab}</Nav>
@@ -78,16 +80,18 @@ class MarpleContent extends Component {
       selectedSegment: undefined
     };
 
-    this.selectSegment = this.selectSegment.bind();
-    this.selectField = this.selectField.bind();
+    this.selectSegment = this.selectSegment.bind(this);
+    this.selectField = this.selectField.bind(this);
   }
 
   componentDidMount() {
-    fetch(MARPLE_BASE + "/api/index")
-    .then(response => {
-      this.setState({ indexData: response.json() });
+    const url = MARPLE_BASE + "/api/index";
+    fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      this.setState({ indexData: data });
     })
-    .catch(error => { handleError(error) });
+    .catch(error => { handleError(error, 'componentDidMount') });
   }
 
   selectSegment(segNumber) {
@@ -148,9 +152,9 @@ const FieldData = props => {
   return (
     <div>
       <Nav bsStyle="tabs" justified activeKey="terms">
-        <NavItem eventKey="terms">Terms</NavItem>
-        <NavItem eventKey="docvalues">DocValues</NavItem>
-        <NavItem eventKey="points">Points</NavItem>
+        <NavItem>Terms</NavItem>
+        <NavItem>DocValues</NavItem>
+        <NavItem>Points</NavItem>
       </Nav>
       <TermsData terms={props.termsData}/>
     </div>
