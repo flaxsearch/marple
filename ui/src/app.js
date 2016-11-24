@@ -50,7 +50,7 @@ function loadTermsData(segment, field, renderFunc) {
 
 const Fields = props => {
   var fieldtabs = props.fields.map(function(f, i) {
-    return (<NavItem key={f.name}>{f.name}</NavItem>);
+    return (<NavItem eventKey={f.name} key={f.name}>{f.name}</NavItem>);
   });
   return (
     <Nav bsStyle="pills" stacked onSelect={props.onSelect}
@@ -138,7 +138,7 @@ class MarpleContent extends Component {
 
 const TermsData = props => {
   var termsList = props.terms.map(function(term) {
-    return (<NavItem>{term}</NavItem>)
+    return (<NavItem key={term}>{term}</NavItem>)
   });
   return (
     <Nav>{termsList}</Nav>
@@ -152,9 +152,9 @@ const FieldData = props => {
   return (
     <div>
       <Nav bsStyle="tabs" justified activeKey="terms">
-        <NavItem>Terms</NavItem>
-        <NavItem>DocValues</NavItem>
-        <NavItem>Points</NavItem>
+        <NavItem eventKey="terms">Terms</NavItem>
+        <NavItem eventKey="docvalues">DocValues</NavItem>
+        <NavItem eventKey="points">Points</NavItem>
       </Nav>
       <TermsData terms={props.termsData}/>
     </div>
