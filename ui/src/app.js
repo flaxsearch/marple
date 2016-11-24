@@ -157,6 +157,4 @@ const FieldData = props => {
   );
 };
 
-console.log('before ReactDOM.render');
 ReactDOM.render(<MarpleContent/>, document.getElementById("content"));
-console.log('after ReactDOM.render');
