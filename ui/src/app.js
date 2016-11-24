@@ -3,10 +3,6 @@ import ReactDOM from 'react-dom';
 import { Navbar, Nav, NavItem, Col, Tabs, Tab } from 'react-bootstrap';
 import { MARPLE_BASE } from 'config';
 
-var indexData = { "index" : "/path/to/index" };
-var fieldsData = [
-    "field1" , "field2", "field3"
-];
 
 const MarpleNav = props => {
   return (
@@ -161,4 +157,6 @@ const FieldData = props => {
   );
 };
 
+console.log('before ReactDOM.render');
 ReactDOM.render(<MarpleContent/>, document.getElementById("content"));
+console.log('after ReactDOM.render');

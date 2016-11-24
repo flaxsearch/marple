@@ -30,7 +30,7 @@ import org.eclipse.jetty.servlets.CrossOriginFilter;
 public class MarpleApplication extends Application<MarpleConfiguration> {
     @Override
     public void initialize(Bootstrap<MarpleConfiguration> bootstrap) {
-        bootstrap.addBundle(new AssetsBundle("/assets", "/", "index.htm"));
+        bootstrap.addBundle(new AssetsBundle("/assets", "/", "index.html"));
         System.setProperty("dw.server.rootPath", "/api/");
     }
 
