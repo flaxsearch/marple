@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 
-import { Navbar, Nav, NavItem } from 'react-bootstrap';
+import { Navbar, Nav, NavItem, FormGroup, FormControl } from 'react-bootstrap';
 
 export const MarpleNav = props => {
   return (
@@ -23,7 +23,9 @@ export const Fields = props => {
   });
   return (
     <Nav bsStyle="pills" stacked onSelect={props.onSelect}
-       activeKey={props.selected}>{fieldtabs}</Nav>
+       activeKey={props.selected}>
+       {fieldtabs}
+    </Nav>
   );
 };
 
@@ -36,5 +38,44 @@ export const Segments = props => {
   return (
     <Nav bsStyle="pills" stacked onSelect={props.onSelect}
          activeKey={props.selected}>{segmenttab}</Nav>
+  );
+};
+
+export const TermsData = props => {
+  var termsList = props.terms.map(function(term) {
+    return (<NavItem key={term}>{term}</NavItem>)
+  });
+  const spacerStyle = {"paddingTop": "7px"};
+  return (
+    <div>
+      <form>
+          <div style={spacerStyle}></div>
+          <FormControl type="text" placeholder="Filter" value={props.termsFilter}
+            onChange={
+              e => props.setTermsFilter(e.target.value)
+
+            }
+          />
+      </form>
+
+      <Nav>{termsList}</Nav>
+    </div>
+  );
+};
+
+export const FieldData = props => {
+  if (props.field == undefined) {
+      return (<div/>)
+  }
+  return (
+    <div>
+      <Nav bsStyle="tabs" justified activeKey="terms">
+        <NavItem eventKey="terms">Terms</NavItem>
+        <NavItem eventKey="docvalues">DocValues</NavItem>
+        <NavItem eventKey="points">Points</NavItem>
+      </Nav>
+      <TermsData terms={props.termsData} termsFilter={props.termsFilter}
+        setTermsFilter={props.setTermsFilter}/>
+    </div>
   );
 };

@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Nav, NavItem, Col, Tabs, Tab } from 'react-bootstrap';
 
-import { MarpleNav, Fields, Segments } from './components';
+import { MarpleNav, Fields, Segments, FieldData, TermsData } from './components';
 import { segmentFilter, loadIndexData, loadFieldsData, loadTermsData } from './data';
 
 
@@ -17,11 +17,13 @@ class MarpleContent extends React.Component {
       indexData: { indexpath: "loading", generation: -1, segments: []},
       fieldsData: [],
       selectedField: undefined,
-      selectedSegment: undefined
+      selectedSegment: undefined,
+      termsFilter: ''
     };
 
     this.selectSegment = this.selectSegment.bind(this);
     this.selectField = this.selectField.bind(this);
+    this.setTermsFilter = this.setTermsFilter.bind(this);
   }
 
   componentDidMount() {
@@ -49,6 +51,10 @@ class MarpleContent extends React.Component {
     }, errorMsg => handleError(errorMsg));
   }
 
+  setTermsFilter(termsFilter) {
+    this.setState({ termsFilter });
+  }
+
   render() {
     return (
       <div>
@@ -65,36 +71,14 @@ class MarpleContent extends React.Component {
         </Col>
         <Col md={6}>
           <FieldData field={this.state.selectedField}
-           termsData={this.state.termsData}/>
+           termsData={this.state.termsData}
+           termsFilter={this.state.termsFilter}
+           setTermsFilter={this.setTermsFilter}
+           />
         </Col>
       </div>
     );
   }
 }
-
-const TermsData = props => {
-  var termsList = props.terms.map(function(term) {
-    return (<NavItem key={term}>{term}</NavItem>)
-  });
-  return (
-    <Nav>{termsList}</Nav>
-  );
-};
-
-const FieldData = props => {
-  if (props.field == undefined) {
-      return (<div/>)
-  }
-  return (
-    <div>
-      <Nav bsStyle="tabs" justified activeKey="terms">
-        <NavItem eventKey="terms">Terms</NavItem>
-        <NavItem eventKey="docvalues">DocValues</NavItem>
-        <NavItem eventKey="points">Points</NavItem>
-      </Nav>
-      <TermsData terms={props.termsData}/>
-    </div>
-  );
-};
 
 ReactDOM.render(<MarpleContent/>, document.getElementById("content"));
