@@ -45,17 +45,12 @@ export const TermsData = props => {
   var termsList = props.terms.map(function(term) {
     return (<NavItem key={term}>{term}</NavItem>)
   });
-  const spacerStyle = {"paddingTop": "7px"};
+  const style = {"paddingTop": "7px"};
   return (
     <div>
-      <form>
-          <div style={spacerStyle}></div>
+      <form style={style}>
           <FormControl type="text" placeholder="Filter" value={props.termsFilter}
-            onChange={
-              e => props.setTermsFilter(e.target.value)
-
-            }
-          />
+            onChange={ e => props.setTermsFilter(e.target.value) } />
       </form>
 
       <Nav>{termsList}</Nav>
