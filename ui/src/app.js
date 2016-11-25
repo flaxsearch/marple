@@ -1,72 +1,16 @@
-import React, { Component, PropTypes } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
-import { Navbar, Nav, NavItem, Col, Tabs, Tab } from 'react-bootstrap';
-import { MARPLE_BASE } from 'config';
+import { Nav, NavItem, Col, Tabs, Tab } from 'react-bootstrap';
 
+import { MarpleNav, Fields, Segments } from './components';
+import { segmentFilter, loadIndexData, loadFieldsData, loadTermsData } from './data';
 
-const MarpleNav = props => {
-  return (
-    <Navbar>
-      <Navbar.Header>
-        <Navbar.Brand>
-          <a href="#">Marple</a>
-        </Navbar.Brand>
-      </Navbar.Header>
-      <Navbar.Text pullRight>
-        Exploring lucene index: {props.indexData.indexpath}
-      </Navbar.Text>
-    </Navbar>
-  );
-};
-
-function segmentFilter(segment) {
-  if (segment === null)
-    return "";
-  return "?segment=" + segment;
-}
 
 function handleError(error, msg) {
   alert("ERROR: " + error + ' (' + msg + ')');   // FIXME
 }
 
-function loadFieldsData(segment, renderFunc) {
-  const url = MARPLE_BASE + "/api/fields" + segmentFilter(segment);
-  fetch(url)
-  .then(response => response.json())
-  .then(data => { renderFunc(data); })
-  .catch(error => { handleError(error, 'loadFieldsData'); });
-}
-
-function loadTermsData(segment, field, renderFunc) {
-  fetch(MARPLE_BASE + "/api/terms/" + field + segmentFilter(segment))
-  .then(response => response.json())
-  .then(data => { renderFunc(data); })
-  .catch(error => { handleError(error, 'loadTermsData'); });
-}
-
-const Fields = props => {
-  var fieldtabs = props.fields.map(function(f, i) {
-    return (<NavItem eventKey={f.name} key={f.name}>{f.name}</NavItem>);
-  });
-  return (
-    <Nav bsStyle="pills" stacked onSelect={props.onSelect}
-       activeKey={props.selected}>{fieldtabs}</Nav>
-  );
-};
-
-const Segments = props => {
-  var segmenttab = props.segments.map(function(f, i) {
-    var name = "Segment " + f.ord;
-    return <NavItem eventKey={i} key={i + 1}>{name}</NavItem>;
-  });
-  segmenttab.unshift(<NavItem eventKey={null} key={0}>All segments</NavItem>);
-  return (
-    <Nav bsStyle="pills" stacked onSelect={props.onSelect}
-         activeKey={props.selected}>{segmenttab}</Nav>
-  );
-};
-
-class MarpleContent extends Component {
+class MarpleContent extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -81,13 +25,9 @@ class MarpleContent extends Component {
   }
 
   componentDidMount() {
-    const url = MARPLE_BASE + "/api/index";
-    fetch(url)
-    .then(response => response.json())
-    .then(data => {
+    loadIndexData(data => {
       this.setState({ indexData: data });
-    })
-    .catch(error => { handleError(error, 'componentDidMount') });
+    }, errorMsg => handleError(errorMsg))
   }
 
   selectSegment(segNumber) {
@@ -97,7 +37,7 @@ class MarpleContent extends Component {
         selectedSegment: segNumber,
         selectedField: undefined
       });
-    });
+    }, errorMsg => handleError(errorMsg));
   }
 
   selectField(fieldName) {
@@ -106,7 +46,7 @@ class MarpleContent extends Component {
         termsData,
         selectedField: fieldName
       });
-    });
+    }, errorMsg => handleError(errorMsg));
   }
 
   render() {
