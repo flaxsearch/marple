@@ -27,6 +27,8 @@ import org.apache.lucene.index.Fields;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.util.BytesRef;
+import org.apache.lucene.util.automaton.CompiledAutomaton;
+import org.apache.lucene.util.automaton.RegExp;
 
 @Path("/terms/{field}")
 @Produces(MediaType.APPLICATION_JSON)
@@ -42,6 +44,7 @@ public class TermsResource {
     public List<String> getTerms(@QueryParam("segment") Integer segment,
                                  @PathParam("field") String field,
                                  @QueryParam("from") String startTerm,
+                                 @QueryParam("filter") String filter,
                                  @QueryParam("count") @DefaultValue("50") int count) throws IOException {
 
         Fields fields = readerManager.getFields(segment);
@@ -50,7 +53,7 @@ public class TermsResource {
         if (terms == null)
             return Collections.emptyList();
 
-        TermsEnum te = terms.iterator();
+        TermsEnum te = getTermsEnum(terms, filter);
         List<String> collected = new ArrayList<>();
 
         if (startTerm != null) {
@@ -67,6 +70,14 @@ public class TermsResource {
         while (te.next() != null && --count > 0);
 
         return collected;
+    }
+
+    private TermsEnum getTermsEnum(Terms terms, String filter) throws IOException {
+        if (filter == null)
+            return terms.iterator();
+
+        CompiledAutomaton automaton = new CompiledAutomaton(new RegExp(filter).toAutomaton());
+        return terms.intersect(automaton, null);
     }
 
 }

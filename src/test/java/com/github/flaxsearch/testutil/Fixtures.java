@@ -63,7 +63,7 @@ public class Fixtures {
                 Document doc = new Document();
                 doc.add(new StringField("field1", "value2", Field.Store.YES));
                 doc.add(new BinaryDocValuesField("field1", new BytesRef("some bytes")));
-                doc.add(new TextField("field3", "this is some more text in a different field", Field.Store.YES));
+                doc.add(new TextField("field3", "this is some more text in a different field value1 value11 value12 value21", Field.Store.YES));
                 writer.addDocument(doc);
             }
 
