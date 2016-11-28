@@ -54,20 +54,26 @@ public class TermsResource {
             return Collections.emptyList();
 
         TermsEnum te = getTermsEnum(terms, filter);
+        System.out.println("te=" + te);
         List<String> collected = new ArrayList<>();
 
+        boolean hasTerms = true;
         if (startTerm != null) {
             if (te.seekCeil(new BytesRef(startTerm)) == TermsEnum.SeekStatus.END)
                 return Collections.emptyList();
         }
         else {
-            te.next();
+            if (te.next() == null) {
+                hasTerms = false;
+            }
         }
 
-        do {
-            collected.add(te.term().utf8ToString());
+        if (hasTerms) {
+            do {
+                collected.add(te.term().utf8ToString());
+            }
+            while (te.next() != null && --count > 0);
         }
-        while (te.next() != null && --count > 0);
 
         return collected;
     }
