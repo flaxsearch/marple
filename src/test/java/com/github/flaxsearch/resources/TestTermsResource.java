@@ -55,4 +55,11 @@ public class TestTermsResource extends IndexResourceTestBase {
 
         assertThat(terms).containsExactly("value11", "value21");
     }
+
+    @Test
+    public void testTermsSingleValueFilter() {
+        List<String> terms = resource.client().target("/terms/field3?filter=value21").request()
+                .get(new GenericType<List<String>>() {});
+        assertThat(terms).containsExactly("value21");
+    }
 }
