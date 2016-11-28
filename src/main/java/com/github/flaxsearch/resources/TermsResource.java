@@ -54,6 +54,7 @@ public class TermsResource {
             return Collections.emptyList();
 
         TermsEnum te = getTermsEnum(terms, filter);
+        System.out.println("te=" + te);
         List<String> collected = new ArrayList<>();
 
         boolean hasTerms = true;
