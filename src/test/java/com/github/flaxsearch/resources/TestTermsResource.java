@@ -62,4 +62,11 @@ public class TestTermsResource extends IndexResourceTestBase {
                 .get(new GenericType<List<String>>() {});
         assertThat(terms).containsExactly("value21");
     }
+
+    @Test
+    public void testTermsNoValueFilter() {
+        List<String> terms = resource.client().target("/terms/field3?filter=nomatch").request()
+                .get(new GenericType<List<String>>() {});
+        assertThat(terms).isEmpty();
+    }
 }
