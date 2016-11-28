@@ -77,7 +77,7 @@ public class TermsResource {
             return terms.iterator();
 
         CompiledAutomaton automaton = new CompiledAutomaton(new RegExp(filter).toAutomaton());
-        return terms.intersect(automaton, null);
+        return automaton.getTermsEnum(terms);
     }
 
 }
