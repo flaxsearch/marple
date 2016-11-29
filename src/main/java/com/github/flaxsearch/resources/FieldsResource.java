@@ -22,6 +22,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import com.github.flaxsearch.api.FieldData;
@@ -49,6 +50,7 @@ public class FieldsResource {
             fieldData.add(new FieldData(fieldInfo));
         }
 
+        fieldData.sort(Comparator.comparing(o -> o.name));
         return fieldData;
     }
 

@@ -44,7 +44,7 @@ public class TestFieldsResource extends IndexResourceTestBase {
     public void testIndividualSegmentFieldsQuery() {
         List<FieldData> fields = resource.client().target("/fields?segment=0").request()
                 .get(new GenericType<List<FieldData>>() {});
-        assertThat(fields).extracting("name").containsOnly("field1", "field2", "point");
+        assertThat(fields).extracting("name").containsExactly("field1", "field2", "point");
 
         fields = resource.client().target("/fields?segment=1").request()
                 .get(new GenericType<List<FieldData>>() {});
