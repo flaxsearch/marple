@@ -11,7 +11,7 @@ export const MarpleNav = props => {
         </Navbar.Brand>
       </Navbar.Header>
       <Navbar.Text pullRight>
-        Exploring lucene index: {props.indexData.indexpath}
+        Exploring lucene index: {props.indexData.indexpath} ({props.indexData.numDocs} docs/{props.indexData.numDeletedDocs} deletions)
       </Navbar.Text>
     </Navbar>
   );
@@ -32,7 +32,8 @@ export const Fields = props => {
 export const Segments = props => {
   var segmenttab = props.segments.map(function(f, i) {
     var name = "Segment " + f.ord;
-    return <NavItem eventKey={i} key={i + 1}>{name}</NavItem>;
+    var stats = "(" + f.numDocs + " docs/" + (f.maxDoc - f.numDocs) + " dels)";
+    return <NavItem eventKey={i} key={i + 1}>{name}<br/>{stats}</NavItem>;
   });
   segmenttab.unshift(<NavItem eventKey={null} key={0}>All segments</NavItem>);
   return (
