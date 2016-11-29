@@ -43,16 +43,24 @@ class MarpleContent extends React.Component {
   }
 
   selectField(fieldName) {
-    loadTermsData(this.state.selectedSegment, fieldName, termsData => {
-      this.setState({
-        termsData,
-        selectedField: fieldName
-      });
-    }, errorMsg => handleError(errorMsg));
+    loadTermsData(this.state.selectedSegment, fieldName, '',
+      termsData => {
+        this.setState({
+          termsData,
+          selectedField: fieldName,
+          termsFilter: ''
+        });
+      },
+      errorMsg => handleError(errorMsg));
   }
 
   setTermsFilter(termsFilter) {
-    this.setState({ termsFilter });
+    loadTermsData(this.state.selectedSegment,
+      this.state.selectedField, termsFilter,
+      termsData => {
+        this.setState({ termsData, termsFilter });
+      },
+      errorMsg => handleError(errorMsg));
   }
 
   render() {
