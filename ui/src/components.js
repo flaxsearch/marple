@@ -43,12 +43,24 @@ export const Segments = props => {
 };
 
 export const TermsData = props => {
-  var termsList = props.terms.map(function(term) {
+  var termsList = props.terms.terms.map(function(term) {
     return (<NavItem key={term}>{term}</NavItem>)
   });
   const style = {"paddingTop": "7px"};
   return (
     <div>
+        <table className="table table-bordered" style={style}>
+            <tbody>
+            <tr>
+                <td>Total terms:</td><td>{props.terms.termCount}</td>
+                <td>Docs with terms:</td><td>{props.terms.docCount}</td>
+            </tr>
+            <tr>
+                <td>Min term:</td><td>{props.terms.minTerm}</td>
+                <td>Max term:</td><td>{props.terms.maxTerm}</td>
+            </tr>
+            </tbody>
+        </table>
       <form style={style} onSubmit={ e => e.preventDefault() }>
           <FormControl type="text" placeholder="Filter" value={props.termsFilter}
             onChange={ e => props.setTermsFilter(e.target.value) } />
