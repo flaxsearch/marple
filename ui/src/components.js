@@ -48,7 +48,7 @@ export const TermsData = props => {
   const style = {"paddingTop": "7px"};
   return (
     <div>
-      <form style={style}>
+      <form style={style} onSubmit={ e => e.preventDefault() }>
           <FormControl type="text" placeholder="Filter" value={props.termsFilter}
             onChange={ e => props.setTermsFilter(e.target.value) } />
       </form>
