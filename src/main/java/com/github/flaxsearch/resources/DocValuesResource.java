@@ -28,6 +28,8 @@ import org.apache.lucene.index.NumericDocValues;
 import org.apache.lucene.index.SortedDocValues;
 import org.apache.lucene.index.SortedNumericDocValues;
 import org.apache.lucene.index.SortedSetDocValues;
+import org.apache.lucene.index.TermsEnum;
+
 
 @Path("/docvalues/{field}")
 @Produces(MediaType.APPLICATION_JSON)
@@ -53,13 +55,12 @@ public class DocValuesResource {
             String msg = String.format("No binary doc values on field %s", field);
             throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
         }
-            
+
         for (int i = 0; i < count && i < maxDoc; i++) {
             values.add(dv.get(fromDoc + i).utf8ToString());
         }
 
         return values;
-
     }
 
     @Path("/numeric")
@@ -82,7 +83,6 @@ public class DocValuesResource {
         }
 
         return values;
-
     }
 
     @Path("/sortednumeric")
@@ -110,17 +110,16 @@ public class DocValuesResource {
         }
 
         return values;
-
     }
 
     @Path("/sorted")
     @GET
-    public List<List<String>> getSortedDocValues(@QueryParam("segment") Integer segment,
+    public List<String> getSortedDocValues(@QueryParam("segment") Integer segment,
                                            @PathParam("field") String field,
                                            @QueryParam("from") @DefaultValue("0") int fromDoc,
                                            @QueryParam("count") @DefaultValue("50") int count) throws IOException {
 
-        List<List<String>> values = new ArrayList<>(count);
+        List<String> values = new ArrayList<>(count);
         int maxDoc = readerManager.getMaxDoc(segment);
         SortedDocValues dv = readerManager.getSortedDocValues(segment, field);
         if (dv == null) {
@@ -129,11 +128,10 @@ public class DocValuesResource {
         }
 
         for (int i = 0; i < count && i < maxDoc; i++) {
-            // TODO pull out all doc values for this doc
+            values.add(dv.get(fromDoc + i).utf8ToString());
         }
 
         return values;
-
     }
 
     @Path("/sortedset")
@@ -152,10 +150,15 @@ public class DocValuesResource {
         }
 
         for (int i = 0; i < count && i < maxDoc; i++) {
-            // TODO pull out all doc values for this doc
+            dv.setDocument(fromDoc + i);
+            List<String> perDocValues = new ArrayList<String>((int)dv.getValueCount());
+            long ord;
+            while ((ord = dv.nextOrd()) != SortedSetDocValues.NO_MORE_ORDS) {
+                perDocValues.add(dv.lookupOrd(ord).utf8ToString());
+            }
+            values.add(perDocValues);
         }
 
         return values;
-
     }
 }
