@@ -25,6 +25,8 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.BytesRef;
+
 
 public class GutenbergIndex {
 
@@ -54,11 +56,23 @@ public class GutenbergIndex {
     }
 
     public static Document buildDocument(Path source, byte[] data) {
+        String filename = source.getFileName().toString();
+        String filepath = source.toString();
+        String fileparent = source.getParent().toString();
+
         Document document = new Document();
         document.add(new TextField("text", new String(data, Charset.defaultCharset()), Field.Store.YES));
-        document.add(new StringField("source", source.toString(), Field.Store.YES));
+        document.add(new StringField("source", filepath, Field.Store.YES));
         document.add(new IntPoint("filesize", data.length));
         document.add(new NumericDocValuesField("filesize", data.length));
+
+        document.add(new SortedDocValuesField("dv_filepath", new BytesRef(filepath)));
+        document.add(new BinaryDocValuesField("dv_filename", new BytesRef(filename)));
+        document.add(new SortedNumericDocValuesField("dv_filesize_sorted", data.length));
+        document.add(new SortedSetDocValuesField("dv_filename_set", new BytesRef(filename)));
+        document.add(new SortedSetDocValuesField("dv_filename_set", new BytesRef(filepath)));
+        document.add(new SortedSetDocValuesField("dv_filename_set", new BytesRef(fileparent)));
+
         return document;
     }
 
