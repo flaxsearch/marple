@@ -18,10 +18,12 @@ package com.github.flaxsearch.api;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Function;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.lucene.index.Terms;
+import org.apache.lucene.util.BytesRef;
 
 public class TermsData {
 
@@ -35,11 +37,11 @@ public class TermsData {
 
     public final List<String> terms;
 
-    public TermsData(Terms terms, List<String> termsList) throws IOException {
+    public TermsData(Terms terms, List<String> termsList, Function<BytesRef, String> formatter) throws IOException {
         this.termCount = terms.size();
         this.docCount = terms.getDocCount();
-        this.minTerm = terms.getMin().utf8ToString();
-        this.maxTerm = terms.getMax().utf8ToString();
+        this.minTerm = formatter.apply(terms.getMin());
+        this.maxTerm = formatter.apply(terms.getMax());
         this.terms = termsList;
     }
 

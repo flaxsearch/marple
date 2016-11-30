@@ -22,10 +22,10 @@ export function loadFieldsData(segment, onSuccess, onError) {
   .catch(error => { onError('error loading fields data: ' + error); });
 }
 
-export function loadTermsData(segment, field, termsFilter, onSuccess, onError) {
+export function loadTermsData(segment, field, termsFilter, encoding, onSuccess, onError) {
   // add a wildcard to the end of the filter
   const filter = termsFilter ? termsFilter + '.*' : '';
-  const url = MARPLE_BASE + `/api/terms/${field}?` + makeQueryStr({ segment, filter });
+  const url = MARPLE_BASE + `/api/terms/${field}?` + makeQueryStr({ segment, filter, encoding });
   console.log('FIXME url=' + url);
   fetch(url)
   .then(response => response.json())

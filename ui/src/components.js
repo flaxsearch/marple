@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 
-import { Navbar, Nav, NavItem, FormGroup, FormControl } from 'react-bootstrap';
+import { Navbar, Nav, NavItem, FormGroup, FormControl, Radio } from 'react-bootstrap';
 
 export const MarpleNav = props => {
   return (
@@ -42,6 +42,18 @@ export const Segments = props => {
   );
 };
 
+export const Encoding = props => {
+    const buttons = [ "utf8", "base64", "int", "long", "float", "double" ].map(function(encoding) {
+        return (
+            <Radio inline value={encoding} checked={props.encoding == encoding}
+                   onChange={ e => props.selectEncoding(e.target.value) }>
+            {encoding}
+            </Radio>
+        );
+    });
+    return (<FormGroup>{buttons}</FormGroup>);
+};
+
 export const TermsData = props => {
   var termsList = props.terms.terms.map(function(term) {
     return (<NavItem key={term}>{term}</NavItem>)
@@ -64,6 +76,7 @@ export const TermsData = props => {
       <form style={style} onSubmit={ e => e.preventDefault() }>
           <FormControl type="text" placeholder="Filter" value={props.termsFilter}
             onChange={ e => props.setTermsFilter(e.target.value) } />
+          <Encoding encoding={props.encoding} selectEncoding={props.selectEncoding}/>
       </form>
 
       <Nav>{termsList}</Nav>
@@ -82,8 +95,12 @@ export const FieldData = props => {
         <NavItem eventKey="docvalues">DocValues</NavItem>
         <NavItem eventKey="points">Points</NavItem>
       </Nav>
-      <TermsData terms={props.termsData} termsFilter={props.termsFilter}
-        setTermsFilter={props.setTermsFilter}/>
+      <TermsData terms={props.termsData}
+                 termsFilter={props.termsFilter}
+                 setTermsFilter={props.setTermsFilter}
+                 encoding={props.encoding}
+                 selectEncoding={props.selectEncoding}
+      />
     </div>
   );
 };

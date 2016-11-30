@@ -22,8 +22,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 import com.github.flaxsearch.api.TermsData;
+import com.github.flaxsearch.util.BytesRefUtils;
 import com.github.flaxsearch.util.ReaderManager;
 import org.apache.lucene.index.Fields;
 import org.apache.lucene.index.Terms;
@@ -47,6 +49,7 @@ public class TermsResource {
                                  @PathParam("field") String field,
                                  @QueryParam("from") String startTerm,
                                  @QueryParam("filter") String filter,
+                                 @QueryParam("encoding") @DefaultValue("utf8") String encoding,
                                  @QueryParam("count") @DefaultValue("50") int count) throws IOException {
 
         Fields fields = readerManager.getFields(segment);
@@ -57,23 +60,25 @@ public class TermsResource {
 
         TermsEnum te = getTermsEnum(terms, filter);
         List<String> collected = new ArrayList<>();
+        Function<BytesRef, String> encoder = BytesRefUtils.getEncoder(encoding);
 
         if (startTerm != null) {
-            if (te.seekCeil(new BytesRef(startTerm)) == TermsEnum.SeekStatus.END)
-                return new TermsData(terms, Collections.emptyList());
+            BytesRef start = BytesRefUtils.getDecoder(encoding).apply(startTerm);
+            if (te.seekCeil(start) == TermsEnum.SeekStatus.END)
+                return new TermsData(terms, Collections.emptyList(), encoder);
         }
         else {
             if (te.next() == null) {
-                return new TermsData(terms, Collections.emptyList());
+                return new TermsData(terms, Collections.emptyList(), encoder);
             }
         }
 
         do {
-            collected.add(te.term().utf8ToString());
+            collected.add(encoder.apply(te.term()));
         }
         while (te.next() != null && --count > 0);
 
-        return new TermsData(terms, collected);
+        return new TermsData(terms, collected, encoder);
     }
 
     private TermsEnum getTermsEnum(Terms terms, String filter) throws IOException {
