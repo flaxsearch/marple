@@ -39,6 +39,10 @@ public interface ReaderManager {
         return getLeafReader(segment).getFieldInfos();
     }
 
+    default FieldInfo getFieldInfo(Integer segment, String fieldname) throws IOException {
+        return getFieldInfos(segment).fieldInfo(fieldname);
+    }
+
     default Bits getLiveDocs(Integer segment) throws IOException {
         if (segment == null)
             return MultiFields.getLiveDocs(getIndexReader());
