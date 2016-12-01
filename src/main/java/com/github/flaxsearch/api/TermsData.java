@@ -21,6 +21,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.github.flaxsearch.util.BytesRefUtils;
 import org.apache.lucene.index.Terms;
 
 public class TermsData {
@@ -35,11 +36,11 @@ public class TermsData {
 
     public final List<String> terms;
 
-    public TermsData(Terms terms, List<String> termsList) throws IOException {
+    public TermsData(Terms terms, List<String> termsList, String encoding) throws IOException {
         this.termCount = terms.size();
         this.docCount = terms.getDocCount();
-        this.minTerm = terms.getMin().utf8ToString();
-        this.maxTerm = terms.getMax().utf8ToString();
+        this.minTerm = BytesRefUtils.encode(terms.getMin(), encoding);
+        this.maxTerm = BytesRefUtils.encode(terms.getMax(), encoding);
         this.terms = termsList;
     }
 

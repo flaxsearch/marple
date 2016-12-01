@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.github.flaxsearch.api.TermsData;
+import com.github.flaxsearch.util.BytesRefUtils;
 import com.github.flaxsearch.util.ReaderManager;
 import org.apache.lucene.index.Fields;
 import org.apache.lucene.index.Terms;
@@ -47,33 +48,39 @@ public class TermsResource {
                                  @PathParam("field") String field,
                                  @QueryParam("from") String startTerm,
                                  @QueryParam("filter") String filter,
+                                 @QueryParam("encoding") @DefaultValue("utf8") String encoding,
                                  @QueryParam("count") @DefaultValue("50") int count) throws IOException {
 
-        Fields fields = readerManager.getFields(segment);
-        Terms terms = fields.terms(field);
+        try {
+            Fields fields = readerManager.getFields(segment);
+            Terms terms = fields.terms(field);
 
-        if (terms == null)
-            throw new WebApplicationException("No such field " + field, Response.Status.NOT_FOUND);
+            if (terms == null)
+                throw new WebApplicationException("No such field " + field, Response.Status.NOT_FOUND);
 
-        TermsEnum te = getTermsEnum(terms, filter);
-        List<String> collected = new ArrayList<>();
+            TermsEnum te = getTermsEnum(terms, filter);
+            List<String> collected = new ArrayList<>();
 
-        if (startTerm != null) {
-            if (te.seekCeil(new BytesRef(startTerm)) == TermsEnum.SeekStatus.END)
-                return new TermsData(terms, Collections.emptyList());
-        }
-        else {
-            if (te.next() == null) {
-                return new TermsData(terms, Collections.emptyList());
+            if (startTerm != null) {
+                BytesRef start = BytesRefUtils.decode(startTerm, encoding);
+                if (te.seekCeil(start) == TermsEnum.SeekStatus.END)
+                    return new TermsData(terms, Collections.emptyList(), encoding);
+            } else {
+                if (te.next() == null) {
+                    return new TermsData(terms, Collections.emptyList(), encoding);
+                }
             }
-        }
 
-        do {
-            collected.add(te.term().utf8ToString());
-        }
-        while (te.next() != null && --count > 0);
+            do {
+                collected.add(BytesRefUtils.encode(te.term(), encoding));
+            }
+            while (te.next() != null && --count > 0);
 
-        return new TermsData(terms, collected);
+            return new TermsData(terms, collected, encoding);
+        }
+        catch (NumberFormatException e) {
+            throw new WebApplicationException("Field " + field + " cannot be decoded as " + encoding, Response.Status.BAD_REQUEST);
+        }
     }
 
     private TermsEnum getTermsEnum(Terms terms, String filter) throws IOException {

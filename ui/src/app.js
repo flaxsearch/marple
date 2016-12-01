@@ -18,12 +18,14 @@ class MarpleContent extends React.Component {
       fieldsData: [],
       selectedField: undefined,
       selectedSegment: undefined,
+      encoding: 'utf8',
       termsFilter: ''
     };
 
     this.selectSegment = this.selectSegment.bind(this);
     this.selectField = this.selectField.bind(this);
     this.setTermsFilter = this.setTermsFilter.bind(this);
+    this.setEncoding = this.setEncoding.bind(this);
   }
 
   componentDidMount() {
@@ -43,12 +45,13 @@ class MarpleContent extends React.Component {
   }
 
   selectField(fieldName) {
-    loadTermsData(this.state.selectedSegment, fieldName, '',
+    loadTermsData(this.state.selectedSegment, fieldName, '', "utf8",
       termsData => {
         this.setState({
           termsData,
           selectedField: fieldName,
-          termsFilter: ''
+          termsFilter: '',
+            encoding: "utf8"
         });
       },
       errorMsg => handleError(errorMsg));
@@ -56,11 +59,18 @@ class MarpleContent extends React.Component {
 
   setTermsFilter(termsFilter) {
     loadTermsData(this.state.selectedSegment,
-      this.state.selectedField, termsFilter,
+      this.state.selectedField, termsFilter, this.state.encoding,
       termsData => {
         this.setState({ termsData, termsFilter });
       },
       errorMsg => handleError(errorMsg));
+  }
+
+  setEncoding(encoding) {
+      loadTermsData(this.state.selectedSegment, this.state.selectedField, this.state.termsFilter,
+      encoding, termsData => {
+          this.setState({ termsData, encoding });
+      }, errorMsg => handleError(errorMsg));
   }
 
   render() {
@@ -79,9 +89,11 @@ class MarpleContent extends React.Component {
         </Col>
         <Col md={6}>
           <FieldData field={this.state.selectedField}
-           termsData={this.state.termsData}
-           termsFilter={this.state.termsFilter}
-           setTermsFilter={this.setTermsFilter}
+                     termsData={this.state.termsData}
+                     termsFilter={this.state.termsFilter}
+                     setTermsFilter={this.setTermsFilter}
+                     encoding={this.state.encoding}
+                     selectEncoding={this.setEncoding}
            />
         </Col>
       </div>
