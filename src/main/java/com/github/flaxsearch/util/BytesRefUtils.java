@@ -28,7 +28,17 @@ import org.apache.lucene.util.NumericUtils;
 
 public class BytesRefUtils {
 
-    public static Function<String, BytesRef> getDecoder(String type) {
+    public static String encode(BytesRef data, String encoding) {
+        Function<BytesRef, String> encoder = getEncoder(encoding);
+        return encoder.apply(data);
+    }
+
+    public static BytesRef decode(String data, String encoding) {
+        Function<String, BytesRef> decoder = getDecoder(encoding);
+        return decoder.apply(data);
+    }
+
+    private static Function<String, BytesRef> getDecoder(String type) {
         switch (type.toLowerCase(Locale.ROOT)) {
             case "base64" :
                 return s -> new BytesRef(Base64.getUrlDecoder().decode(s.getBytes(Charset.defaultCharset())));
@@ -63,7 +73,7 @@ public class BytesRefUtils {
         }
     }
 
-    public static Function<BytesRef, String> getEncoder(String type) {
+    private static Function<BytesRef, String> getEncoder(String type) {
         switch (type.toLowerCase(Locale.ROOT)) {
             case "base64" :
                 return b -> new String(Base64.getUrlEncoder().encode(b.bytes), Charset.defaultCharset());

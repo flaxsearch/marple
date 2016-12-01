@@ -22,13 +22,20 @@ export function loadFieldsData(segment, onSuccess, onError) {
   .catch(error => { onError('error loading fields data: ' + error); });
 }
 
+function checkStatus(response) {
+    if (response.status >= 200 && response.status < 300)
+        return Promise.resolve(response);
+    return response.json().then(json => Promise.reject(new Error(json.message)));
+}
+
 export function loadTermsData(segment, field, termsFilter, encoding, onSuccess, onError) {
-  // add a wildcard to the end of the filter
+    // add a wildcard to the end of the filter
   const filter = termsFilter ? termsFilter + '.*' : '';
-  const url = MARPLE_BASE + `/api/terms/${field}?` + makeQueryStr({ segment, filter, encoding });
-  console.log('FIXME url=' + url);
-  fetch(url)
-  .then(response => response.json())
-  .then(data => { onSuccess(data); })
-  .catch(error => { onError('error loading terms data: ' + error); });
+    const url = MARPLE_BASE + `/api/terms/${field}?` + makeQueryStr({ segment, filter, encoding });
+    fetch(url)
+        .then(checkStatus)
+        .then(response => response.json())
+        .then(data => { onSuccess(data); })
+        .catch(error => { onError('error loading terms data: ' + error); });
+    console.log('FIXME url=' + url);
 }

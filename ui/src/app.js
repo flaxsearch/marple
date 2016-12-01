@@ -45,12 +45,13 @@ class MarpleContent extends React.Component {
   }
 
   selectField(fieldName) {
-    loadTermsData(this.state.selectedSegment, fieldName, '', this.state.encoding,
+    loadTermsData(this.state.selectedSegment, fieldName, '', "utf8",
       termsData => {
         this.setState({
           termsData,
           selectedField: fieldName,
-          termsFilter: ''
+          termsFilter: '',
+            encoding: "utf8"
         });
       },
       errorMsg => handleError(errorMsg));
