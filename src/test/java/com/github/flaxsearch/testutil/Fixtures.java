@@ -48,8 +48,8 @@ public class Fixtures {
 
             {
                 Document doc = new Document();
-                doc.add(new StringField("field1", "value1", Field.Store.YES));
                 doc.add(new TextField("field2", "here is some text", Field.Store.YES));
+                doc.add(new StringField("field1", "value1", Field.Store.YES));
                 doc.add(new IntPoint("point", 2, 4));
                 doc.add(new IntPoint("point", 0, 1));
                 doc.add(new IntPoint("point", 2, 1));

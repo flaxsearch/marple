@@ -32,10 +32,16 @@ public class IndexData {
 
     public final List<SegmentData> segments;
 
+    public final int numDocs;
+
+    public final int numDeletedDocs;
+
     public IndexData(String indexpath, ReaderManager readerManager) throws IOException {
         this.indexpath = indexpath;
         DirectoryReader reader = (DirectoryReader) readerManager.getIndexReader();
         this.generation = reader.getIndexCommit().getGeneration();
+        this.numDocs = reader.numDocs();
+        this.numDeletedDocs = reader.numDeletedDocs();
 
         segments = new ArrayList<>();
         for (LeafReaderContext ctx : readerManager.getIndexReader().leaves()) {
@@ -45,9 +51,13 @@ public class IndexData {
 
     public IndexData(@JsonProperty("indexPath") String indexPath,
                      @JsonProperty("generation") long generation,
+                     @JsonProperty("numDocs") int numDocs,
+                     @JsonProperty("numDeletedDocs") int numDeletedDocs,
                      @JsonProperty("segments") List<SegmentData> segments) {
         this.indexpath = indexPath;
         this.generation = generation;
+        this.numDocs = numDocs;
+        this.numDeletedDocs = numDeletedDocs;
         this.segments = segments;
     }
 

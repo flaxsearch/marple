@@ -15,14 +15,15 @@ package com.github.flaxsearch.resources;
  *   limitations under the License.
  */
 
-import javax.ws.rs.core.GenericType;
-import java.util.List;
+import javax.ws.rs.NotFoundException;
 
+import com.github.flaxsearch.api.TermsData;
 import io.dropwizard.testing.junit.ResourceTestRule;
 import org.junit.ClassRule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class TestTermsResource extends IndexResourceTestBase {
 
@@ -33,40 +34,45 @@ public class TestTermsResource extends IndexResourceTestBase {
 
     @Test
     public void testWholeIndexTerms() {
-        List<String> terms = resource.client().target("/terms/field3?count=2&from=f").request()
-                .get(new GenericType<List<String>>(){});
+        TermsData terms = resource.client().target("/terms/field3?count=2&from=f").request()
+                .get(TermsData.class);
 
-        assertThat(terms).hasSize(2);
-        assertThat(terms).containsExactly("field", "more");
+        assertThat(terms.terms).hasSize(2);
+        assertThat(terms.terms).containsExactly("field", "more");
     }
 
     @Test
     public void testSegmentTerms() {
-        List<String> terms = resource.client().target("/terms/field3?count=2&from=f&segment=0").request()
-                .get(new GenericType<List<String>>(){});
+        try {
+            resource.client().target("/terms/field3?count=2&from=f&segment=0").request()
+                    .get(TermsData.class);
+            fail("Expected a 404 on non-existent field");
+        }
+        catch (NotFoundException e) {
 
-        assertThat(terms).isEmpty();
+        }
+
     }
 
     @Test
     public void testTermsFilters() {
-        List<String> terms = resource.client().target("/terms/field3?filter=value.1").request()
-                .get(new GenericType<List<String>>() {});
+        TermsData terms = resource.client().target("/terms/field3?filter=value.1").request()
+                .get(TermsData.class);
 
-        assertThat(terms).containsExactly("value11", "value21");
+        assertThat(terms.terms).containsExactly("value11", "value21");
     }
 
     @Test
     public void testTermsSingleValueFilter() {
-        List<String> terms = resource.client().target("/terms/field3?filter=value21").request()
-                .get(new GenericType<List<String>>() {});
-        assertThat(terms).containsExactly("value21");
+        TermsData terms = resource.client().target("/terms/field3?filter=value21").request()
+                .get(TermsData.class);
+        assertThat(terms.terms).containsExactly("value21");
     }
 
     @Test
     public void testTermsNoValueFilter() {
-        List<String> terms = resource.client().target("/terms/field3?filter=nomatch").request()
-                .get(new GenericType<List<String>>() {});
-        assertThat(terms).isEmpty();
+        TermsData terms = resource.client().target("/terms/field3?filter=nomatch").request()
+                .get(TermsData.class);
+        assertThat(terms.terms).isEmpty();
     }
 }

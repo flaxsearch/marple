@@ -1,93 +1,37 @@
-import React, { Component, PropTypes } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
-import { Navbar, Nav, NavItem, Col, Tabs, Tab } from 'react-bootstrap';
-import { MARPLE_BASE } from 'config';
+import { Nav, NavItem, Col, Tabs, Tab } from 'react-bootstrap';
 
+import { MarpleNav, Fields, Segments, FieldData, TermsData } from './components';
+import { segmentFilter, loadIndexData, loadFieldsData, loadTermsData } from './data';
 
-const MarpleNav = props => {
-  return (
-    <Navbar>
-      <Navbar.Header>
-        <Navbar.Brand>
-          <a href="#">Marple</a>
-        </Navbar.Brand>
-      </Navbar.Header>
-      <Navbar.Text pullRight>
-        Exploring lucene index: {props.indexData.indexpath}
-      </Navbar.Text>
-    </Navbar>
-  );
-};
-
-function segmentFilter(segment) {
-  if (segment === null)
-    return "";
-  return "?segment=" + segment;
-}
 
 function handleError(error, msg) {
   alert("ERROR: " + error + ' (' + msg + ')');   // FIXME
 }
 
-function loadFieldsData(segment, renderFunc) {
-  const url = MARPLE_BASE + "/api/fields" + segmentFilter(segment);
-  fetch(url)
-  .then(response => response.json())
-  .then(data => { renderFunc(data); })
-  .catch(error => { handleError(error, 'loadFieldsData'); });
-}
-
-function loadTermsData(segment, field, renderFunc) {
-  fetch(MARPLE_BASE + "/api/terms/" + field + segmentFilter(segment))
-  .then(response => response.json())
-  .then(data => { renderFunc(data); })
-  .catch(error => { handleError(error, 'loadTermsData'); });
-}
-
-const Fields = props => {
-  var fieldtabs = props.fields.map(function(f, i) {
-    return (<NavItem eventKey={f.name} key={f.name}>{f.name}</NavItem>);
-  });
-  return (
-    <Nav bsStyle="pills" stacked onSelect={props.onSelect}
-       activeKey={props.selected}>{fieldtabs}</Nav>
-  );
-};
-
-const Segments = props => {
-  var segmenttab = props.segments.map(function(f, i) {
-    var name = "Segment " + f.ord;
-    return <NavItem eventKey={i} key={i + 1}>{name}</NavItem>;
-  });
-  segmenttab.unshift(<NavItem eventKey={null} key={0}>All segments</NavItem>);
-  return (
-    <Nav bsStyle="pills" stacked onSelect={props.onSelect}
-         activeKey={props.selected}>{segmenttab}</Nav>
-  );
-};
-
-class MarpleContent extends Component {
+class MarpleContent extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       indexData: { indexpath: "loading", generation: -1, segments: []},
       fieldsData: [],
       selectedField: undefined,
-      selectedSegment: undefined
+      selectedSegment: undefined,
+      encoding: 'utf8',
+      termsFilter: ''
     };
 
     this.selectSegment = this.selectSegment.bind(this);
     this.selectField = this.selectField.bind(this);
+    this.setTermsFilter = this.setTermsFilter.bind(this);
+    this.setEncoding = this.setEncoding.bind(this);
   }
 
   componentDidMount() {
-    const url = MARPLE_BASE + "/api/index";
-    fetch(url)
-    .then(response => response.json())
-    .then(data => {
+    loadIndexData(data => {
       this.setState({ indexData: data });
-    })
-    .catch(error => { handleError(error, 'componentDidMount') });
+    }, errorMsg => handleError(errorMsg))
   }
 
   selectSegment(segNumber) {
@@ -97,16 +41,36 @@ class MarpleContent extends Component {
         selectedSegment: segNumber,
         selectedField: undefined
       });
-    });
+    }, errorMsg => handleError(errorMsg));
   }
 
   selectField(fieldName) {
-    loadTermsData(this.state.selectedSegment, fieldName, termsData => {
-      this.setState({
-        termsData,
-        selectedField: fieldName
-      });
-    });
+    loadTermsData(this.state.selectedSegment, fieldName, '', "utf8",
+      termsData => {
+        this.setState({
+          termsData,
+          selectedField: fieldName,
+          termsFilter: '',
+            encoding: "utf8"
+        });
+      },
+      errorMsg => handleError(errorMsg));
+  }
+
+  setTermsFilter(termsFilter) {
+    loadTermsData(this.state.selectedSegment,
+      this.state.selectedField, termsFilter, this.state.encoding,
+      termsData => {
+        this.setState({ termsData, termsFilter });
+      },
+      errorMsg => handleError(errorMsg));
+  }
+
+  setEncoding(encoding) {
+      loadTermsData(this.state.selectedSegment, this.state.selectedField, this.state.termsFilter,
+      encoding, termsData => {
+          this.setState({ termsData, encoding });
+      }, errorMsg => handleError(errorMsg));
   }
 
   render() {
@@ -125,36 +89,16 @@ class MarpleContent extends Component {
         </Col>
         <Col md={6}>
           <FieldData field={this.state.selectedField}
-           termsData={this.state.termsData}/>
+                     termsData={this.state.termsData}
+                     termsFilter={this.state.termsFilter}
+                     setTermsFilter={this.setTermsFilter}
+                     encoding={this.state.encoding}
+                     selectEncoding={this.setEncoding}
+           />
         </Col>
       </div>
     );
   }
 }
-
-const TermsData = props => {
-  var termsList = props.terms.map(function(term) {
-    return (<NavItem key={term}>{term}</NavItem>)
-  });
-  return (
-    <Nav>{termsList}</Nav>
-  );
-};
-
-const FieldData = props => {
-  if (props.field == undefined) {
-      return (<div/>)
-  }
-  return (
-    <div>
-      <Nav bsStyle="tabs" justified activeKey="terms">
-        <NavItem eventKey="terms">Terms</NavItem>
-        <NavItem eventKey="docvalues">DocValues</NavItem>
-        <NavItem eventKey="points">Points</NavItem>
-      </Nav>
-      <TermsData terms={props.termsData}/>
-    </div>
-  );
-};
 
 ReactDOM.render(<MarpleContent/>, document.getElementById("content"));
