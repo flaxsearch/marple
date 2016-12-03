@@ -18,6 +18,7 @@ package com.github.flaxsearch.resources;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.GenericType;
 import java.util.List;
+import java.util.Map;
 
 import io.dropwizard.testing.junit.ResourceTestRule;
 import org.junit.ClassRule;
@@ -25,6 +26,8 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+
+import com.github.flaxsearch.api.AnyDocValuesResponse;
 
 public class TestDocValuesResource extends IndexResourceTestBase {
 
@@ -47,5 +50,16 @@ public class TestDocValuesResource extends IndexResourceTestBase {
         } catch (NotFoundException e) {
             // Expected: HTTP 404 Not Found 
         }
+    }
+    
+    @Test
+    public void testAnyDocValues() {
+        AnyDocValuesResponse response = resource.client().target("/docvalues/field1").request()
+                .get(new GenericType<AnyDocValuesResponse>() {});
+    	assertThat(response.getType()).isEqualTo("BINARY");
+    	assertThat(response.getValues()).isInstanceOf(Map.class);
+    	Map<String,String> values = (Map<String,String>) response.getValues();
+    	assertThat(values.get("0")).isEqualTo("");
+    	assertThat(values.get("1")).isEqualTo("some bytes");
     }
 }
