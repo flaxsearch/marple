@@ -83,6 +83,7 @@ public class DocValuesResource {
             SortedDocValues dv = readerManager.getSortedDocValues(segment, field);
             Map<Integer,String> values = new HashMap<>(docset.size());
             for (int docid : docset) {
+            	System.out.println("FIXME docid=" + docid);
                 values.put(docid, dv.get(docid).utf8ToString());
             }
             response = new AnyDocValuesResponse("SORTED", values);
@@ -245,32 +246,39 @@ public class DocValuesResource {
     
     public static Set<Integer> parseDocSet(String docs, int maxDoc) {
     	Set<Integer> docset = new HashSet<>();
-    	for (String chunk : docs.split(",")) {
-    		chunk = chunk.trim();
-    		if (chunk.contains("-")) {
-    			String[] range_s = chunk.split("-");
-    			if (range_s.length != 2) {
-    				String msg = String.format("Incorrect range format \"%s\" in docs", chunk);
-    	            throw new WebApplicationException(msg, Response.Status.BAD_REQUEST);
-    			}
-    			
-    			int range_from = Integer.parseInt(range_s[0]);
-    			int range_to = Integer.parseInt(range_s[1]);
-    			if (range_from > range_to) {
-    				String msg = String.format("Incorrect range \"%s\" in docs", chunk);
-    	            throw new WebApplicationException(msg, Response.Status.BAD_REQUEST);    				
-    			}
-    			
-    			int i;
-    			for (i = range_from; i <= range_to; i++) {
-    				docset.add(i);
-    			}
-    		}
-    		else {
-    			docset.add(Integer.parseInt(chunk));
+    	if (docs == null) {
+    		// return default set
+    		for (int i = 0; i < 100 && i < maxDoc; i++) {
+    			docset.add(i);
     		}
     	}
-    	
+    	else {
+	    	for (String chunk : docs.split(",")) {
+	    		chunk = chunk.trim();
+	    		if (chunk.contains("-")) {
+	    			String[] range_s = chunk.split("-");
+	    			if (range_s.length != 2) {
+	    				String msg = String.format("Incorrect range format \"%s\" in docs", chunk);
+	    	            throw new WebApplicationException(msg, Response.Status.BAD_REQUEST);
+	    			}
+	    			
+	    			int range_from = Integer.parseInt(range_s[0]);
+	    			int range_to = Integer.parseInt(range_s[1]);
+	    			if (range_from > range_to) {
+	    				String msg = String.format("Incorrect range \"%s\" in docs", chunk);
+	    	            throw new WebApplicationException(msg, Response.Status.BAD_REQUEST);    				
+	    			}
+	    			
+	    			int i;
+	    			for (i = range_from; i <= range_to; i++) {
+	    				docset.add(i);
+	    			}
+	    		}
+	    		else {
+	    			docset.add(Integer.parseInt(chunk));
+	    		}
+	    	}
+    	}
     	return docset;
     }
 
