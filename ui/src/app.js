@@ -5,11 +5,8 @@ import { Nav, NavItem, Col, Tabs, Tab } from 'react-bootstrap';
 import FieldView from './components/fieldview';
 import { MarpleNav, Fields, Segments } from './components/misc';
 import { segmentFilter, loadIndexData, loadFieldsData } from './data';
+import { handleError } from './util';
 
-
-function handleError(error, msg) {
-  alert("ERROR: " + error + ' (' + msg + ')');   // FIXME
-}
 
 class MarpleContent extends React.Component {
   constructor(props) {
