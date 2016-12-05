@@ -10,10 +10,10 @@ To run marple, run `./run_server <path to Lucene index>`
 This is very much a work in progress, and pull requests are welcomed!
 
 Available endpoints:
-* `/index`
-* `/fields?segment=0`
-* `/terms/{field}?segment=0&count=20&from=apple`
-* `/docvalues/{field}/{type}?segment=0&from=0&count=50`
+* `/api/index`
+* `/api/fields?segment=0`
+* `/api/terms/{field}?segment=0&count=20&from=apple`
+* `/api/docvalues/{field}/{type}?segment=0&from=0&count=50`
 
 TODO:
 - postings list (`/postings/{field}/{term}`)
