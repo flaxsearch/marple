@@ -14,7 +14,7 @@ export const Encoding = props => {
         return (
             <Radio inline value={encoding} checked={props.encoding == encoding}
                    key={encoding}
-                   onChange={ e => props.selectEncoding(e.target.value) }>
+                   onChange={ e => props.setEncoding(e.target.value) }>
             {encoding}
             </Radio>
         );
@@ -22,53 +22,15 @@ export const Encoding = props => {
     return (<FormGroup>{buttons}</FormGroup>);
 };
 
-export const TermsData = props => {
-  if (props.terms == undefined) {
-    return <div/>;
-  }
-
-  var termsList = props.terms.terms.map(function(term) {
-    return (<NavItem key={term}>{term}</NavItem>)
-  });
-
-  const style = {"paddingTop": "7px"};
-  return (
-    <div>
-        <table className="table table-bordered" style={style}>
-            <tbody>
-            <tr>
-                <td>Total terms:</td><td>{props.terms.termCount}</td>
-                <td>Docs with terms:</td><td>{props.terms.docCount}</td>
-            </tr>
-            <tr>
-                <td>Min term:</td><td>{props.terms.minTerm}</td>
-                <td>Max term:</td><td>{props.terms.maxTerm}</td>
-            </tr>
-            </tbody>
-        </table>
-      <form style={style} onSubmit={ e => e.preventDefault() }>
-          <FormControl type="text" placeholder="Filter" value={props.termsFilter}
-            onChange={ e => props.setTermsFilter(e.target.value) } />
-          <Encoding encoding={props.encoding} selectEncoding={props.selectEncoding}/>
-      </form>
-
-      <Nav>{termsList}</Nav>
-    </div>
-  );
-};
-
-
-class FieldView extends React.Component {
+class TermsView extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      activePanel: 'terms',
       termsData: undefined,
       termsFilter: '',
       encoding: 'utf8'
     }
 
-    this.onSelect = this.onSelect.bind(this);
     this.setTermsFilter = this.setTermsFilter.bind(this);
     this.setEncoding = this.setEncoding.bind(this);
   }
@@ -102,11 +64,56 @@ class FieldView extends React.Component {
   }
 
   setEncoding(encoding) {
-    loadTermsData(this.state.segment, this.state.field,
+    loadTermsData(this.props.segment, this.props.field,
       this.state.termsFilter, encoding, termsData => {
         this.setState({ termsData, encoding });
       }, errorMsg => handleError(errorMsg)
     );
+  }
+
+  render() {
+    const s = this.state;
+    if (s.termsData == undefined) {
+      return <div/>;
+    }
+
+    var termsList = s.termsData.terms.map(function(term) {
+      return (<NavItem key={term}>{term}</NavItem>)
+    });
+
+    const style = {"paddingTop": "7px"};
+    return <div>
+        <table className="table table-bordered" style={style}>
+            <tbody>
+            <tr>
+                <td>Total terms:</td><td>{s.termsData.termCount}</td>
+                <td>Docs with terms:</td><td>{s.termsData.docCount}</td>
+            </tr>
+            <tr>
+                <td>Min term:</td><td>{s.termsData.minTerm}</td>
+                <td>Max term:</td><td>{s.termsData.maxTerm}</td>
+            </tr>
+            </tbody>
+        </table>
+      <form style={style} onSubmit={ e => e.preventDefault() }>
+          <FormControl type="text" placeholder="Filter" value={s.termsFilter}
+            onChange={ e => this.setTermsFilter(e.target.value) } />
+          <Encoding encoding={s.encoding} setEncoding={this.setEncoding}/>
+      </form>
+
+      <Nav>{termsList}</Nav>
+    </div>;
+  }
+}
+
+class FieldView extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      activePanel: 'terms'
+    }
+
+    this.onSelect = this.onSelect.bind(this);
   }
 
   onSelect(panel) {
@@ -119,12 +126,7 @@ class FieldView extends React.Component {
     }
     else {
       const panel = this.state.activePanel == "terms" ?
-        <TermsData terms={this.state.termsData}
-                   termsFilter={this.state.termsFilter}
-                   encoding={this.state.encoding}
-                   setTermsFilter={this.setTermsFilter}
-                   setEncoding={this.setEncoding}
-        />
+        <TermsView segment={this.props.segment} field={this.props.field} />
         : <div>{ `no panel for ${this.state.activePanel}`}</div>;
 
       return <div>
