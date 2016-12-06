@@ -26,8 +26,11 @@ class Terms extends React.Component {
       encoding: 'utf8'
     }
 
+    this.componentDidMount = this.componentDidMount.bind(this);
+    this.componentWillReceiveProps = this.componentWillReceiveProps.bind(this);
     this.setTermsFilter = this.setTermsFilter.bind(this);
     this.setEncoding = this.setEncoding.bind(this);
+    this.handleTermsError = this.handleTermsError.bind(this);
   }
 
   componentDidMount() {
@@ -35,7 +38,7 @@ class Terms extends React.Component {
       loadTermsData(this.props.segment, this.props.field,
         this.state.termsFilter, this.state.encoding, termsData => {
           this.setState({ termsData });
-        }, errorMsg => handleError(errorMsg)
+        }, this.handleTermsError
       );
     }
   }
@@ -45,7 +48,7 @@ class Terms extends React.Component {
       loadTermsData(newProps.segment, newProps.field,
         this.state.termsFilter, this.state.encoding, termsData => {
           this.setState({ termsData });
-        }, errorMsg => handleError(errorMsg)
+        }, this.handleTermsError
       );
     }
   }
@@ -54,7 +57,7 @@ class Terms extends React.Component {
     loadTermsData(this.props.segment, this.props.field,
       termsFilter, this.state.encoding, termsData => {
         this.setState({ termsData, termsFilter });
-      }, errorMsg => handleError(errorMsg)
+      }, this.handleTermsError
     );
   }
 
@@ -62,8 +65,23 @@ class Terms extends React.Component {
     loadTermsData(this.props.segment, this.props.field,
       this.state.termsFilter, encoding, termsData => {
         this.setState({ termsData, encoding });
-      }, errorMsg => handleError(errorMsg)
+      }, this.handleTermsError
     );
+  }
+
+  handleTermsError(errmsg) {
+    if (errmsg.includes('No such field')) {
+      this.setState({ termsData: {
+        termCount: '-',
+        docCount: '-',
+        minTerm: '-',
+        maxTerm: '-',
+        terms: ['[no terms]']
+      }})
+    }
+    else {
+      handleError(errmsg)
+    }
   }
 
   render() {
