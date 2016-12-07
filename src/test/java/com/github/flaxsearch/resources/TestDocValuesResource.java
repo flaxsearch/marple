@@ -62,4 +62,16 @@ public class TestDocValuesResource extends IndexResourceTestBase {
     	assertThat(values.get("0")).isEqualTo("");
     	assertThat(values.get("1")).isEqualTo("some bytes");
     }
+
+    @Test
+    public void testAnyDocValuesEncoding() {
+        AnyDocValuesResponse response = resource.client().target("/docvalues/field1?encoding=base64").request()
+                .get(new GenericType<AnyDocValuesResponse>() {});
+    	assertThat(response.getType()).isEqualTo("BINARY");
+    	assertThat(response.getValues()).isInstanceOf(Map.class);
+    	Map<String,String> values = (Map<String,String>) response.getValues();
+    	assertThat(values.get("0")).isEqualTo("");
+    	assertThat(values.get("1")).isEqualTo("c29tZSBieXRlcw==");
+    }
+
 }

@@ -28,6 +28,8 @@ import java.util.HashMap;
 
 import com.github.flaxsearch.util.ReaderManager;
 import com.github.flaxsearch.api.AnyDocValuesResponse;
+import com.github.flaxsearch.util.BytesRefUtils;
+
 import org.apache.lucene.index.BinaryDocValues;
 import org.apache.lucene.index.NumericDocValues;
 import org.apache.lucene.index.SortedDocValues;
@@ -50,6 +52,7 @@ public class DocValuesResource {
     @GET
     public AnyDocValuesResponse getAnyTypeDocValues(@QueryParam("segment") Integer segment,
                                             @PathParam("field") String field,
+                                            @QueryParam("encoding") @DefaultValue("utf8") String encoding,
                                             @QueryParam("docs") String docs)
                                             throws IOException {
     	AnyDocValuesResponse response = null;
@@ -67,7 +70,7 @@ public class DocValuesResource {
             BinaryDocValues dv = readerManager.getBinaryDocValues(segment, field);
             Map<Integer,String> values = new HashMap<>(docset.size());
             for (int docid : docset) {
-                values.put(docid, dv.get(docid).utf8ToString());
+                values.put(docid, BytesRefUtils.encode(dv.get(docid), encoding));
             }
             response = new AnyDocValuesResponse("BINARY", values);
         }
@@ -83,7 +86,7 @@ public class DocValuesResource {
             SortedDocValues dv = readerManager.getSortedDocValues(segment, field);
             Map<Integer,String> values = new HashMap<>(docset.size());
             for (int docid : docset) {
-                values.put(docid, dv.get(docid).utf8ToString());
+                values.put(docid, BytesRefUtils.encode(dv.get(docid), encoding));
             }
             response = new AnyDocValuesResponse("SORTED", values);
         }
@@ -108,7 +111,7 @@ public class DocValuesResource {
                 List<String> perDocValues = new ArrayList<String>((int)dv.getValueCount());
                 long ord;
                 while ((ord = dv.nextOrd()) != SortedSetDocValues.NO_MORE_ORDS) {
-                    perDocValues.add(dv.lookupOrd(ord).utf8ToString());
+                     perDocValues.add(BytesRefUtils.encode(dv.lookupOrd(ord), encoding));
                 }
                 values.put(docid, perDocValues);
             }
