@@ -66,60 +66,65 @@ public class DocValuesResource {
         }
 
         DocValuesType dvtype = fieldInfo.getDocValuesType();
-        if (dvtype == DocValuesType.BINARY) {
-            BinaryDocValues dv = readerManager.getBinaryDocValues(segment, field);
-            Map<Integer,String> values = new HashMap<>(docset.size());
-            for (int docid : docset) {
-                values.put(docid, BytesRefUtils.encode(dv.get(docid), encoding));
-            }
-            response = new AnyDocValuesResponse("BINARY", values);
+        try {
+	        if (dvtype == DocValuesType.BINARY) {
+	            BinaryDocValues dv = readerManager.getBinaryDocValues(segment, field);
+	            Map<Integer,String> values = new HashMap<>(docset.size());
+	            for (int docid : docset) {
+	                values.put(docid, BytesRefUtils.encode(dv.get(docid), encoding));
+	            }
+	            response = new AnyDocValuesResponse("BINARY", values);
+	        }
+	        else if (dvtype == DocValuesType.NUMERIC) {
+	            NumericDocValues dv = readerManager.getNumericDocValues(segment, field);
+	            Map<Integer,String> values = new HashMap<>(docset.size());
+	            for (int docid : docset) {
+	                values.put(docid, Long.toString(dv.get(docid)));
+	            }
+	            response = new AnyDocValuesResponse("NUMERIC", values);
+	        }
+	        else if (dvtype == DocValuesType.SORTED) {
+	            SortedDocValues dv = readerManager.getSortedDocValues(segment, field);
+	            Map<Integer,String> values = new HashMap<>(docset.size());
+	            for (int docid : docset) {
+	                values.put(docid, BytesRefUtils.encode(dv.get(docid), encoding));
+	            }
+	            response = new AnyDocValuesResponse("SORTED", values);
+	        }
+	        else if (dvtype == DocValuesType.SORTED_NUMERIC) {
+	            SortedNumericDocValues dv = readerManager.getSortedNumericDocValues(segment, field);
+	            Map<Integer,List<String>> values = new HashMap<>(docset.size());
+	            for (int docid : docset) {
+	                dv.setDocument(docid);
+	                List<String> perDocValues = new ArrayList<>(dv.count());
+	                for (int index = 0; index < dv.count(); ++index) {
+	                    perDocValues.add(Long.toString(dv.valueAt(index)));
+	                }
+	                values.put(docid, perDocValues);
+	            }
+	            response = new AnyDocValuesResponse("SORTED_NUMERIC", values);
+	        }
+	        else if (dvtype == DocValuesType.SORTED_SET) {
+	            SortedSetDocValues dv = readerManager.getSortedSetDocValues(segment, field);
+	            Map<Integer,List<String>> values = new HashMap<>(docset.size());
+	            for (int docid : docset) {
+	                dv.setDocument(docid);
+	                List<String> perDocValues = new ArrayList<String>((int)dv.getValueCount());
+	                long ord;
+	                while ((ord = dv.nextOrd()) != SortedSetDocValues.NO_MORE_ORDS) {
+	                     perDocValues.add(BytesRefUtils.encode(dv.lookupOrd(ord), encoding));
+	                }
+	                values.put(docid, perDocValues);
+	            }
+	            response = new AnyDocValuesResponse("SORTED_SET", values);
+	        }
+	        else {
+	            String msg = String.format("No doc values for field %s", field);
+	            throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
+	        }
         }
-        else if (dvtype == DocValuesType.NUMERIC) {
-            NumericDocValues dv = readerManager.getNumericDocValues(segment, field);
-            Map<Integer,String> values = new HashMap<>(docset.size());
-            for (int docid : docset) {
-                values.put(docid, Long.toString(dv.get(docid)));
-            }
-            response = new AnyDocValuesResponse("NUMERIC", values);
-        }
-        else if (dvtype == DocValuesType.SORTED) {
-            SortedDocValues dv = readerManager.getSortedDocValues(segment, field);
-            Map<Integer,String> values = new HashMap<>(docset.size());
-            for (int docid : docset) {
-                values.put(docid, BytesRefUtils.encode(dv.get(docid), encoding));
-            }
-            response = new AnyDocValuesResponse("SORTED", values);
-        }
-        else if (dvtype == DocValuesType.SORTED_NUMERIC) {
-            SortedNumericDocValues dv = readerManager.getSortedNumericDocValues(segment, field);
-            Map<Integer,List<String>> values = new HashMap<>(docset.size());
-            for (int docid : docset) {
-                dv.setDocument(docid);
-                List<String> perDocValues = new ArrayList<>(dv.count());
-                for (int index = 0; index < dv.count(); ++index) {
-                    perDocValues.add(Long.toString(dv.valueAt(index)));
-                }
-                values.put(docid, perDocValues);
-            }
-            response = new AnyDocValuesResponse("SORTED_NUMERIC", values);
-        }
-        else if (dvtype == DocValuesType.SORTED_SET) {
-            SortedSetDocValues dv = readerManager.getSortedSetDocValues(segment, field);
-            Map<Integer,List<String>> values = new HashMap<>(docset.size());
-            for (int docid : docset) {
-                dv.setDocument(docid);
-                List<String> perDocValues = new ArrayList<String>((int)dv.getValueCount());
-                long ord;
-                while ((ord = dv.nextOrd()) != SortedSetDocValues.NO_MORE_ORDS) {
-                     perDocValues.add(BytesRefUtils.encode(dv.lookupOrd(ord), encoding));
-                }
-                values.put(docid, perDocValues);
-            }
-            response = new AnyDocValuesResponse("SORTED_SET", values);
-        }
-        else {
-            String msg = String.format("No doc values for field %s", field);
-            throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
+        catch (NumberFormatException e) {
+            throw new WebApplicationException("Field " + field + " cannot be decoded as " + encoding, Response.Status.BAD_REQUEST);
         }
 
         return response;
