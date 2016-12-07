@@ -14,6 +14,9 @@ class DocValues extends React.Component {
     }
 
     this.setDocs = this.setDocs.bind(this);
+    this.componentDidMount = this.componentDidMount.bind(this);
+    this.componentWillReceiveProps = this.componentWillReceiveProps.bind(this);
+    this.handleDocValuesError = this.handleDocValuesError.bind(this);
   }
 
   componentDidMount() {
@@ -21,7 +24,7 @@ class DocValues extends React.Component {
       loadDocValues(this.props.segment, this.props.field,
         this.state.docs, docValues => {
           this.setState({ docValues });
-        }, errorMsg => handleError(errorMsg)
+        }, this.handleDocValuesError
       );
     }
   }
@@ -31,8 +34,20 @@ class DocValues extends React.Component {
       loadDocValues(newProps.segment, newProps.field,
         this.state.docs, docValues => {
           this.setState({ docValues });
-        }, errorMsg => handleError(errorMsg)
+        }, this.handleDocValuesError
       );
+    }
+  }
+
+  handleDocValuesError(errmsg) {
+    if (errmsg.includes('No doc values for')) {
+      this.setState({ docValues: {
+        type: 'NONE',
+        values: null
+      }})
+    }
+    else {
+      handleError(errmsg)
     }
   }
 
@@ -45,6 +60,10 @@ class DocValues extends React.Component {
 
     if (s.docValues == undefined) {
       return <div/>;
+    }
+
+    if (s.docValues.type == 'NONE') {
+      return <div><Nav><NavItem>[no doc values]</NavItem></Nav></div>;
     }
 
     let keys = Object.keys(s.docValues.values);
@@ -79,8 +98,24 @@ class DocValues extends React.Component {
 }
 
 const formatDocValue = (docid, docvalue, type) => {
-  // FIXME
-  const dvtext = JSON.stringify(docvalue);
+  var dvtext;
+  if (type == 'BINARY' || type == 'SORTED') {
+    dvtext = docvalue; // FIXME encoding
+  }
+  else if (type == 'SORTED_SET') {
+    dvtext = docvalue.join(', '); // FIXME encoding
+  }
+  else if (type == 'NUMERIC') {
+    dvtext = docvalue;
+  }
+  else if (type == 'SORTED_NUMERIC') {
+    dvtext = docvalue.join(', ');
+  }
+  else {
+    handleError(`unknown doc values type ${type}`);
+    return '';
+  }
+
   return `${docid}: ${dvtext}`;
 }
 

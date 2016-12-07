@@ -83,7 +83,6 @@ public class DocValuesResource {
             SortedDocValues dv = readerManager.getSortedDocValues(segment, field);
             Map<Integer,String> values = new HashMap<>(docset.size());
             for (int docid : docset) {
-            	System.out.println("FIXME docid=" + docid);
                 values.put(docid, dv.get(docid).utf8ToString());
             }
             response = new AnyDocValuesResponse("SORTED", values);
@@ -243,7 +242,7 @@ public class DocValuesResource {
 
         return values;
     }
-    
+
     public static Set<Integer> parseDocSet(String docs, int maxDoc) {
     	Set<Integer> docset = new HashSet<>();
     	if (docs == null) {
@@ -261,14 +260,14 @@ public class DocValuesResource {
 	    				String msg = String.format("Incorrect range format \"%s\" in docs", chunk);
 	    	            throw new WebApplicationException(msg, Response.Status.BAD_REQUEST);
 	    			}
-	    			
+
 	    			int range_from = Integer.parseInt(range_s[0]);
 	    			int range_to = Integer.parseInt(range_s[1]);
 	    			if (range_from > range_to) {
 	    				String msg = String.format("Incorrect range \"%s\" in docs", chunk);
-	    	            throw new WebApplicationException(msg, Response.Status.BAD_REQUEST);    				
+	    	            throw new WebApplicationException(msg, Response.Status.BAD_REQUEST);
 	    			}
-	    			
+
 	    			int i;
 	    			for (i = range_from; i <= range_to; i++) {
 	    				docset.add(i);
