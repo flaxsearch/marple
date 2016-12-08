@@ -68,7 +68,8 @@ class MarpleContent extends React.Component {
         <Col md={6}>
           <FieldView segment={s.selectedSegment}
                      field={s.selectedField}
-                     encoding={s.encoding}/>
+                     encoding={s.encoding}
+                     indexData={s.indexData}/>
         </Col>
       </div>
     );

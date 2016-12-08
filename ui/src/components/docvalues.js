@@ -2,7 +2,7 @@ import React from 'react';
 import { Nav, NavItem, FormControl } from 'react-bootstrap';
 
 import { loadDocValues } from '../data';
-import { handleError } from '../util';
+import { handleError, parseDoclist } from '../util';
 
 
 class DocValues extends React.Component {
@@ -62,6 +62,7 @@ class DocValues extends React.Component {
 
   render() {
     const s = this.state;
+    const p = this.props;
 
     if (s.docValues == undefined) {
       return <div/>;
@@ -71,11 +72,12 @@ class DocValues extends React.Component {
       return <div><Nav><NavItem>[no doc values]</NavItem></Nav></div>;
     }
 
-    let keys = Object.keys(s.docValues.values);
+    let keys;
     if (s.docs) {
-      // FIXME display doc values in order of user-entered docs
+        keys = parseDoclist(s.docs, p.indexData.numDocs);
     }
     else {
+      keys = Object.keys(s.docValues.values);
       keys.sort((a, b) => {
         const ia = parseInt(a);
         const ib = parseInt(b);
@@ -104,6 +106,10 @@ class DocValues extends React.Component {
 
 const formatDocValue = (docid, docvalue, type) => {
   var dvtext;
+  if (docvalue == undefined) {
+    return `(${docid}) [no value]`;
+  }
+
   if (type == 'BINARY' || type == 'SORTED') {
     dvtext = docvalue;
   }
