@@ -250,9 +250,10 @@ public class DocValuesResource {
 
         return values;
     }
-
+    
     public static Set<Integer> parseDocSet(String docs, int maxDoc) {
     	Set<Integer> docset = new HashSet<>();
+    	
     	if (docs == null) {
     		// return default set
     		for (int i = 0; i < 100 && i < maxDoc; i++) {
@@ -264,28 +265,46 @@ public class DocValuesResource {
 	    		chunk = chunk.trim();
 	    		if (chunk.contains("-")) {
 	    			String[] range_s = chunk.split("-");
-	    			if (range_s.length != 2) {
+	    			if (range_s.length == 1) {
+    					// handle "n-" gracefully
+	    				int num = Integer.parseInt(range_s[0]);
+	    				if (num < maxDoc) docset.add(num);
+	    			}
+	    			else if (range_s.length == 2) {
+		    			try {
+			    			int range_from = Integer.parseInt(range_s[0]);
+			    			if (range_from < maxDoc) {
+			    				if (range_s[1].equals("")) {
+			    					// handle "n-" gracefully
+			    					docset.add(range_from);
+			    				}
+			    				else {
+			    					int range_to = Math.min(Integer.parseInt(range_s[1]), maxDoc - 1);
+			    					if (range_from <= range_to) {
+			    						for (int i = range_from; i <= range_to; i++) {
+			    							docset.add(i);
+			    						}
+					    			}
+			    				}
+			    			}
+		    			} 
+		    			catch (NumberFormatException e) { }
+	    			}
+	    			else if (range_s.length > 2) {
 	    				String msg = String.format("Incorrect range format \"%s\" in docs", chunk);
 	    	            throw new WebApplicationException(msg, Response.Status.BAD_REQUEST);
 	    			}
-
-	    			int range_from = Integer.parseInt(range_s[0]);
-	    			int range_to = Integer.parseInt(range_s[1]);
-	    			if (range_from > range_to) {
-	    				String msg = String.format("Incorrect range \"%s\" in docs", chunk);
-	    	            throw new WebApplicationException(msg, Response.Status.BAD_REQUEST);
-	    			}
-
-	    			int i;
-	    			for (i = range_from; i <= range_to; i++) {
-	    				docset.add(i);
-	    			}
 	    		}
 	    		else {
-	    			docset.add(Integer.parseInt(chunk));
+	    			try {
+	    				int num = Integer.parseInt(chunk);
+	    				if (num < maxDoc) docset.add(num);
+	    			} 
+	    			catch (NumberFormatException e) { }
 	    		}
 	    	}
     	}
+    	System.out.println("FIXME " + docset);
     	return docset;
     }
 
