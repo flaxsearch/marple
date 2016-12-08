@@ -9,7 +9,7 @@ class DocValues extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      docs: undefined,
+      docs: '',
       docValues: undefined
     }
 
@@ -22,7 +22,7 @@ class DocValues extends React.Component {
   componentDidMount() {
     if (this.props.field) {
       loadDocValues(this.props.segment, this.props.field,
-        this.state.docs, docValues => {
+        this.state.docs, this.props.encoding, docValues => {
           this.setState({ docValues });
         }, this.handleDocValuesError
       );
@@ -32,7 +32,7 @@ class DocValues extends React.Component {
   componentWillReceiveProps(newProps) {
     if (newProps.field) {
       loadDocValues(newProps.segment, newProps.field,
-        this.state.docs, docValues => {
+        this.state.docs, newProps.encoding, docValues => {
           this.setState({ docValues });
         }, this.handleDocValuesError
       );
@@ -52,7 +52,12 @@ class DocValues extends React.Component {
   }
 
   setDocs(docs) {
-    console.log('FIXME');
+    docs = docs.replace(/[^\d ,\-]/, '');  // restrict input
+    loadDocValues(this.props.segment, this.props.field,
+      docs, this.props.encoding, docValues => {
+        this.setState({ docs, docValues });
+      }, this.handleDocValuesError
+    );
   }
 
   render() {
@@ -100,10 +105,10 @@ class DocValues extends React.Component {
 const formatDocValue = (docid, docvalue, type) => {
   var dvtext;
   if (type == 'BINARY' || type == 'SORTED') {
-    dvtext = docvalue; // FIXME encoding
+    dvtext = docvalue;
   }
   else if (type == 'SORTED_SET') {
-    dvtext = docvalue.join(', '); // FIXME encoding
+    dvtext = docvalue.join(', ');
   }
   else if (type == 'NUMERIC') {
     dvtext = docvalue;
@@ -116,7 +121,7 @@ const formatDocValue = (docid, docvalue, type) => {
     return '';
   }
 
-  return `${docid}: ${dvtext}`;
+  return `(${docid}) ${dvtext}`;
 }
 
 

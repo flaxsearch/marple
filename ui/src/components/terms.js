@@ -4,39 +4,24 @@ import { loadTermsData } from '../data';
 import { handleError } from '../util';
 
 
-export const Encoding = props => {
-    const buttons = [ "utf8", "base64", "int", "long", "float", "double" ].map(function(encoding) {
-        return (
-            <Radio inline value={encoding} checked={props.encoding == encoding}
-                   key={encoding}
-                   onChange={ e => props.setEncoding(e.target.value) }>
-            {encoding}
-            </Radio>
-        );
-    });
-    return (<FormGroup>{buttons}</FormGroup>);
-};
-
 class Terms extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       termsData: undefined,
-      termsFilter: '',
-      encoding: 'utf8'
+      termsFilter: ''
     }
 
     this.componentDidMount = this.componentDidMount.bind(this);
     this.componentWillReceiveProps = this.componentWillReceiveProps.bind(this);
     this.setTermsFilter = this.setTermsFilter.bind(this);
-    this.setEncoding = this.setEncoding.bind(this);
     this.handleTermsError = this.handleTermsError.bind(this);
   }
 
   componentDidMount() {
     if (this.props.field) {
       loadTermsData(this.props.segment, this.props.field,
-        this.state.termsFilter, this.state.encoding, termsData => {
+        this.state.termsFilter, this.props.encoding, termsData => {
           this.setState({ termsData });
         }, this.handleTermsError
       );
@@ -46,7 +31,7 @@ class Terms extends React.Component {
   componentWillReceiveProps(newProps) {
     if (newProps.field) {
       loadTermsData(newProps.segment, newProps.field,
-        this.state.termsFilter, this.state.encoding, termsData => {
+        this.state.termsFilter, newProps.encoding, termsData => {
           this.setState({ termsData });
         }, this.handleTermsError
       );
@@ -55,16 +40,8 @@ class Terms extends React.Component {
 
   setTermsFilter(termsFilter) {
     loadTermsData(this.props.segment, this.props.field,
-      termsFilter, this.state.encoding, termsData => {
+      termsFilter, this.props.encoding, termsData => {
         this.setState({ termsData, termsFilter });
-      }, this.handleTermsError
-    );
-  }
-
-  setEncoding(encoding) {
-    loadTermsData(this.props.segment, this.props.field,
-      this.state.termsFilter, encoding, termsData => {
-        this.setState({ termsData, encoding });
       }, this.handleTermsError
     );
   }
@@ -111,7 +88,6 @@ class Terms extends React.Component {
       <form style={style} onSubmit={ e => e.preventDefault() }>
           <FormControl type="text" placeholder="Filter" value={s.termsFilter}
             onChange={ e => this.setTermsFilter(e.target.value) } />
-          <Encoding encoding={s.encoding} setEncoding={this.setEncoding}/>
       </form>
 
       <Nav>{termsList}</Nav>

@@ -22,14 +22,16 @@ class FieldView extends React.Component {
 
   render() {
     const s = this.state;
-    if (this.props.field == undefined) {
+    const p = this.props;
+
+    if (p.field == undefined) {
       return <div/>;
     }
     else {
       const panel = s.activePanel == "terms" ?
-        <Terms segment={this.props.segment} field={this.props.field} />
+          <Terms segment={p.segment} field={p.field} encoding={p.encoding}/>
         : s.activePanel == "docvalues" ?
-        <DocValues segment={this.props.segment} field={this.props.field} />
+          <DocValues segment={p.segment} field={p.field} encoding={p.encoding}/>
         : <div>{ `no panel for ${s.activePanel}`}</div>;
 
       return <div>

@@ -37,12 +37,13 @@ export function loadTermsData(segment, field, termsFilter, encoding, onSuccess, 
   .then(response => response.json())
   .then(data => { onSuccess(data); })
   .catch(error => {
-    onError('error loading terms data: ' + error); 
+    onError('error loading terms data: ' + error);
   });
 }
 
-export function loadDocValues(segment, field, docs, onSuccess, onError) {
-  const url = MARPLE_BASE + `/api/docvalues/${field}`+ makeQueryStr({ docs });
+export function loadDocValues(segment, field, docs, encoding, onSuccess, onError) {
+  const url = MARPLE_BASE + `/api/docvalues/${field}?`+ makeQueryStr({ docs, encoding });
+  console.log('FIXME url=' + url);
   fetch(url)
   .then(checkStatus)
   .then(response => response.json())
