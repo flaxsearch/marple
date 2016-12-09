@@ -22,31 +22,50 @@ export function loadFieldsData(segment, onSuccess, onError) {
   .catch(error => { onError('error loading fields data: ' + error); });
 }
 
-function checkStatus(response) {
-  if (response.status >= 200 && response.status < 300)
-    return Promise.resolve(response);
-  return response.json().then(json => Promise.reject(new Error(json.message)));
-}
-
 export function loadTermsData(segment, field, termsFilter, encoding, onSuccess, onError) {
     // add a wildcard to the end of the filter
   const filter = termsFilter ? termsFilter + '.*' : '';
   const url = MARPLE_BASE + `/api/terms/${field}?` + makeQueryStr({ segment, filter, encoding });
   fetch(url)
-  .then(checkStatus)
   .then(response => response.json())
-  .then(data => { onSuccess(data); })
+  .then(body => {
+    // this relies on the error response containing the 'code' property
+    if (body.code) {
+      if (body.code == 400 && body.message.includes('cannot be decoded as')) {
+        // cope with encoding error by defaulting to utf8
+        loadTermsData(segment, field, termsFilter, 'utf8', onSuccess, onError);
+      }
+      else {
+        onError(body.message);
+      }
+    }
+    else {
+      onSuccess(body);
+    }
+  })
   .catch(error => {
-    onError('error loading terms data: ' + error);
+    onError(error);
   });
 }
 
 export function loadDocValues(segment, field, docs, encoding, onSuccess, onError) {
   const url = MARPLE_BASE + `/api/docvalues/${field}?`+ makeQueryStr({ docs, encoding });
-  console.log('FIXME url=' + url);
   fetch(url)
-  .then(checkStatus)
   .then(response => response.json())
-  .then(data => { onSuccess(data); })
+  .then(body => {
+    // this relies on the error response containing the 'code' property
+    if (body.code) {
+      if (body.code == 400 && body.message.includes('cannot be decoded as')) {
+        // cope with encoding error by defaulting to utf8
+        loadDocValues(segment, field, docs, 'utf8', onSuccess, onError);
+      }
+      else {
+        onError(body.message);
+      }
+    }
+    else {
+      onSuccess(body);
+    }
+  })
   .catch(error => { onError('error loading docvalues: ' + error); });
 }
