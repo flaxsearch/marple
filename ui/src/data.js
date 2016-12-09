@@ -1,7 +1,8 @@
 import { MARPLE_BASE } from 'config';
 
 function makeQueryStr(params) {
-  return Object.keys(params).filter(k => params[k]).map(
+  const filt = k => params[k] || params[k] === 0;   // allows 0s into params
+  return Object.keys(params).filter(filt).map(
       k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])
   ).join('&');
 }
@@ -15,7 +16,6 @@ export function loadIndexData(onSuccess, onError) {
 
 export function loadFieldsData(segment, onSuccess, onError) {
   const url = MARPLE_BASE + "/api/fields?" + makeQueryStr({ segment });
-  console.log('FIXME url=' + url);
   fetch(url)
   .then(response => response.json())
   .then(data => { onSuccess(data); })
@@ -49,7 +49,7 @@ export function loadTermsData(segment, field, termsFilter, encoding, onSuccess, 
 }
 
 export function loadDocValues(segment, field, docs, encoding, onSuccess, onError) {
-  const url = MARPLE_BASE + `/api/docvalues/${field}?`+ makeQueryStr({ docs, encoding });
+  const url = MARPLE_BASE + `/api/docvalues/${field}?`+ makeQueryStr({ segment, docs, encoding });
   fetch(url)
   .then(response => response.json())
   .then(body => {
