@@ -65,6 +65,9 @@ public class GutenbergIndex {
         document.add(new StringField("source", filepath, Field.Store.YES));
         document.add(new IntPoint("filesize", data.length));
         document.add(new NumericDocValuesField("filesize", data.length));
+        
+        document.add(new LegacyIntField("filesize_lint", data.length, Field.Store.YES));
+        document.add(new LegacyDoubleField("filesize_ldouble", (double) data.length, Field.Store.YES)); 
 
         document.add(new SortedDocValuesField("dv_filepath", new BytesRef(filepath)));
         document.add(new BinaryDocValuesField("dv_filename", new BytesRef(filename)));
@@ -72,6 +75,7 @@ public class GutenbergIndex {
         document.add(new SortedSetDocValuesField("dv_filename_set", new BytesRef(filename)));
         document.add(new SortedSetDocValuesField("dv_filename_set", new BytesRef(filepath)));
         document.add(new SortedSetDocValuesField("dv_filename_set", new BytesRef(fileparent)));
+
 
         return document;
     }
