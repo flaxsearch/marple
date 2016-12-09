@@ -28,6 +28,8 @@ import java.util.HashMap;
 
 import com.github.flaxsearch.util.ReaderManager;
 import com.github.flaxsearch.api.AnyDocValuesResponse;
+import com.github.flaxsearch.util.BytesRefUtils;
+
 import org.apache.lucene.index.BinaryDocValues;
 import org.apache.lucene.index.NumericDocValues;
 import org.apache.lucene.index.SortedDocValues;
@@ -50,6 +52,7 @@ public class DocValuesResource {
     @GET
     public AnyDocValuesResponse getAnyTypeDocValues(@QueryParam("segment") Integer segment,
                                             @PathParam("field") String field,
+                                            @QueryParam("encoding") @DefaultValue("utf8") String encoding,
                                             @QueryParam("docs") String docs)
                                             throws IOException {
     	AnyDocValuesResponse response = null;
@@ -63,61 +66,65 @@ public class DocValuesResource {
         }
 
         DocValuesType dvtype = fieldInfo.getDocValuesType();
-        if (dvtype == DocValuesType.BINARY) {
-            BinaryDocValues dv = readerManager.getBinaryDocValues(segment, field);
-            Map<Integer,String> values = new HashMap<>(docset.size());
-            for (int docid : docset) {
-                values.put(docid, dv.get(docid).utf8ToString());
-            }
-            response = new AnyDocValuesResponse("BINARY", values);
+        try {
+	        if (dvtype == DocValuesType.BINARY) {
+	            BinaryDocValues dv = readerManager.getBinaryDocValues(segment, field);
+	            Map<Integer,String> values = new HashMap<>(docset.size());
+	            for (int docid : docset) {
+	                values.put(docid, BytesRefUtils.encode(dv.get(docid), encoding));
+	            }
+	            response = new AnyDocValuesResponse("BINARY", values);
+	        }
+	        else if (dvtype == DocValuesType.NUMERIC) {
+	            NumericDocValues dv = readerManager.getNumericDocValues(segment, field);
+	            Map<Integer,String> values = new HashMap<>(docset.size());
+	            for (int docid : docset) {
+	                values.put(docid, Long.toString(dv.get(docid)));
+	            }
+	            response = new AnyDocValuesResponse("NUMERIC", values);
+	        }
+	        else if (dvtype == DocValuesType.SORTED) {
+	            SortedDocValues dv = readerManager.getSortedDocValues(segment, field);
+	            Map<Integer,String> values = new HashMap<>(docset.size());
+	            for (int docid : docset) {
+	                values.put(docid, BytesRefUtils.encode(dv.get(docid), encoding));
+	            }
+	            response = new AnyDocValuesResponse("SORTED", values);
+	        }
+	        else if (dvtype == DocValuesType.SORTED_NUMERIC) {
+	            SortedNumericDocValues dv = readerManager.getSortedNumericDocValues(segment, field);
+	            Map<Integer,List<String>> values = new HashMap<>(docset.size());
+	            for (int docid : docset) {
+	                dv.setDocument(docid);
+	                List<String> perDocValues = new ArrayList<>(dv.count());
+	                for (int index = 0; index < dv.count(); ++index) {
+	                    perDocValues.add(Long.toString(dv.valueAt(index)));
+	                }
+	                values.put(docid, perDocValues);
+	            }
+	            response = new AnyDocValuesResponse("SORTED_NUMERIC", values);
+	        }
+	        else if (dvtype == DocValuesType.SORTED_SET) {
+	            SortedSetDocValues dv = readerManager.getSortedSetDocValues(segment, field);
+	            Map<Integer,List<String>> values = new HashMap<>(docset.size());
+	            for (int docid : docset) {
+	                dv.setDocument(docid);
+	                List<String> perDocValues = new ArrayList<String>((int)dv.getValueCount());
+	                long ord;
+	                while ((ord = dv.nextOrd()) != SortedSetDocValues.NO_MORE_ORDS) {
+	                     perDocValues.add(BytesRefUtils.encode(dv.lookupOrd(ord), encoding));
+	                }
+	                values.put(docid, perDocValues);
+	            }
+	            response = new AnyDocValuesResponse("SORTED_SET", values);
+	        }
+	        else {
+	            String msg = String.format("No doc values for field %s", field);
+	            throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
+	        }
         }
-        else if (dvtype == DocValuesType.NUMERIC) {
-            NumericDocValues dv = readerManager.getNumericDocValues(segment, field);
-            Map<Integer,String> values = new HashMap<>(docset.size());
-            for (int docid : docset) {
-                values.put(docid, Long.toString(dv.get(docid)));
-            }
-            response = new AnyDocValuesResponse("NUMERIC", values);
-        }
-        else if (dvtype == DocValuesType.SORTED) {
-            SortedDocValues dv = readerManager.getSortedDocValues(segment, field);
-            Map<Integer,String> values = new HashMap<>(docset.size());
-            for (int docid : docset) {
-            	System.out.println("FIXME docid=" + docid);
-                values.put(docid, dv.get(docid).utf8ToString());
-            }
-            response = new AnyDocValuesResponse("SORTED", values);
-        }
-        else if (dvtype == DocValuesType.SORTED_NUMERIC) {
-            SortedNumericDocValues dv = readerManager.getSortedNumericDocValues(segment, field);
-            Map<Integer,List<String>> values = new HashMap<>(docset.size());
-            for (int docid : docset) {
-                dv.setDocument(docid);
-                List<String> perDocValues = new ArrayList<>(dv.count());
-                for (int index = 0; index < dv.count(); ++index) {
-                    perDocValues.add(Long.toString(dv.valueAt(index)));
-                }
-                values.put(docid, perDocValues);
-            }
-            response = new AnyDocValuesResponse("SORTED_NUMERIC", values);
-        }
-        else if (dvtype == DocValuesType.SORTED_SET) {
-            SortedSetDocValues dv = readerManager.getSortedSetDocValues(segment, field);
-            Map<Integer,List<String>> values = new HashMap<>(docset.size());
-            for (int docid : docset) {
-                dv.setDocument(docid);
-                List<String> perDocValues = new ArrayList<String>((int)dv.getValueCount());
-                long ord;
-                while ((ord = dv.nextOrd()) != SortedSetDocValues.NO_MORE_ORDS) {
-                    perDocValues.add(dv.lookupOrd(ord).utf8ToString());
-                }
-                values.put(docid, perDocValues);
-            }
-            response = new AnyDocValuesResponse("SORTED_SET", values);
-        }
-        else {
-            String msg = String.format("No doc values for field %s", field);
-            throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
+        catch (NumberFormatException e) {
+            throw new WebApplicationException("Field " + field + " cannot be decoded as " + encoding, Response.Status.BAD_REQUEST);
         }
 
         return response;
@@ -246,6 +253,7 @@ public class DocValuesResource {
     
     public static Set<Integer> parseDocSet(String docs, int maxDoc) {
     	Set<Integer> docset = new HashSet<>();
+    	
     	if (docs == null) {
     		// return default set
     		for (int i = 0; i < 100 && i < maxDoc; i++) {
@@ -257,28 +265,46 @@ public class DocValuesResource {
 	    		chunk = chunk.trim();
 	    		if (chunk.contains("-")) {
 	    			String[] range_s = chunk.split("-");
-	    			if (range_s.length != 2) {
+	    			if (range_s.length == 1) {
+    					// handle "n-" gracefully
+	    				int num = Integer.parseInt(range_s[0]);
+	    				if (num < maxDoc) docset.add(num);
+	    			}
+	    			else if (range_s.length == 2) {
+		    			try {
+			    			int range_from = Integer.parseInt(range_s[0]);
+			    			if (range_from < maxDoc) {
+			    				if (range_s[1].equals("")) {
+			    					// handle "n-" gracefully
+			    					docset.add(range_from);
+			    				}
+			    				else {
+			    					int range_to = Math.min(Integer.parseInt(range_s[1]), maxDoc - 1);
+			    					if (range_from <= range_to) {
+			    						for (int i = range_from; i <= range_to; i++) {
+			    							docset.add(i);
+			    						}
+					    			}
+			    				}
+			    			}
+		    			} 
+		    			catch (NumberFormatException e) { }
+	    			}
+	    			else if (range_s.length > 2) {
 	    				String msg = String.format("Incorrect range format \"%s\" in docs", chunk);
 	    	            throw new WebApplicationException(msg, Response.Status.BAD_REQUEST);
 	    			}
-	    			
-	    			int range_from = Integer.parseInt(range_s[0]);
-	    			int range_to = Integer.parseInt(range_s[1]);
-	    			if (range_from > range_to) {
-	    				String msg = String.format("Incorrect range \"%s\" in docs", chunk);
-	    	            throw new WebApplicationException(msg, Response.Status.BAD_REQUEST);    				
-	    			}
-	    			
-	    			int i;
-	    			for (i = range_from; i <= range_to; i++) {
-	    				docset.add(i);
-	    			}
 	    		}
 	    		else {
-	    			docset.add(Integer.parseInt(chunk));
+	    			try {
+	    				int num = Integer.parseInt(chunk);
+	    				if (num < maxDoc) docset.add(num);
+	    			} 
+	    			catch (NumberFormatException e) { }
 	    		}
 	    	}
     	}
+    	System.out.println("FIXME " + docset);
     	return docset;
     }
 

@@ -3,26 +3,24 @@ import ReactDOM from 'react-dom';
 import { Nav, NavItem, Col, Tabs, Tab } from 'react-bootstrap';
 
 import FieldView from './components/fieldview';
-import { MarpleNav, Fields, Segments } from './components/misc';
+import MarpleNav from './components/marplenav';
+import { Fields, Segments } from './components/misc';
 import { segmentFilter, loadIndexData, loadFieldsData } from './data';
+import { handleError } from './util';
 
-
-function handleError(error, msg) {
-  alert("ERROR: " + error + ' (' + msg + ')');   // FIXME
-}
 
 class MarpleContent extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       indexData: { indexpath: "loading", generation: -1, segments: []},
-      fieldsData: []
+      fieldsData: [],
+      encoding: 'utf8'
     };
 
     this.selectSegment = this.selectSegment.bind(this);
     this.selectField = this.selectField.bind(this);
-    // this.setTermsFilter = this.setTermsFilter.bind(this);
-    // this.setEncoding = this.setEncoding.bind(this);
+    this.setEncoding = this.setEncoding.bind(this);
   }
 
   componentDidMount() {
@@ -47,23 +45,31 @@ class MarpleContent extends React.Component {
     });
   }
 
+  setEncoding(encoding) {
+    this.setState({ encoding });
+  }
+
   render() {
+    const s = this.state;
     return (
       <div>
-        <MarpleNav indexData={this.state.indexData}/>
+        <MarpleNav indexData={s.indexData}
+                   encoding={s.encoding} setEncoding={this.setEncoding}/>
         <Col md={2}>
-          <Segments segments={this.state.indexData.segments}
+          <Segments segments={s.indexData.segments}
                     onSelect={this.selectSegment}
-                    selected={this.state.selectedSegment}/>
+                    selected={s.selectedSegment}/>
         </Col>
         <Col md={2}>
-          <Fields fields={this.state.fieldsData}
+          <Fields fields={s.fieldsData}
                   onSelect={this.selectField}
-                  selected={this.state.selectedField}/>
+                  selected={s.selectedField}/>
         </Col>
         <Col md={6}>
-          <FieldView segment={this.state.selectedSegment}
-                     field={this.state.selectedField} />
+          <FieldView segment={s.selectedSegment}
+                     field={s.selectedField}
+                     encoding={s.encoding}
+                     indexData={s.indexData}/>
         </Col>
       </div>
     );

@@ -75,4 +75,16 @@ public class TestTermsResource extends IndexResourceTestBase {
                 .get(TermsData.class);
         assertThat(terms.terms).isEmpty();
     }
+    
+    @Test
+    public void testEncodings() {
+        TermsData terms = resource.client().target("/terms/field1?encoding=utf8").request()
+                .get(TermsData.class);
+        assertThat(terms.terms).containsExactly("value1", "value2");
+        
+        terms = resource.client().target("/terms/field1?encoding=base64").request()
+                .get(TermsData.class);
+        assertThat(terms.terms).containsExactly("dmFsdWUx", "dmFsdWUy");
+    }
+    
 }

@@ -76,7 +76,10 @@ public class BytesRefUtils {
     private static Function<BytesRef, String> getEncoder(String type) {
         switch (type.toLowerCase(Locale.ROOT)) {
             case "base64" :
-                return b -> new String(Base64.getUrlEncoder().encode(b.bytes), Charset.defaultCharset());
+                return b -> {
+                	BytesRef b2 = BytesRef.deepCopyOf(b);
+                	return new String(Base64.getUrlEncoder().encode(b2.bytes), Charset.defaultCharset());
+                };
             case "utf8" :
                 return BytesRef::utf8ToString;
             case "int" :
