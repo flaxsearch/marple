@@ -14,13 +14,11 @@ class MarpleContent extends React.Component {
     super(props);
     this.state = {
       indexData: { indexpath: "loading", generation: -1, segments: []},
-      fieldsData: [],
-      encoding: 'utf8'
+      fieldsData: []
     };
 
     this.selectSegment = this.selectSegment.bind(this);
     this.selectField = this.selectField.bind(this);
-    this.setEncoding = this.setEncoding.bind(this);
   }
 
   componentDidMount() {
@@ -45,16 +43,11 @@ class MarpleContent extends React.Component {
     });
   }
 
-  setEncoding(encoding) {
-    this.setState({ encoding });
-  }
-
   render() {
     const s = this.state;
     return (
       <div>
-        <MarpleNav indexData={s.indexData}
-                   encoding={s.encoding} setEncoding={this.setEncoding}/>
+        <MarpleNav indexData={s.indexData}/>
         <Col md={2}>
           <Segments segments={s.indexData.segments}
                     onSelect={this.selectSegment}
@@ -68,7 +61,6 @@ class MarpleContent extends React.Component {
         <Col md={6}>
           <FieldView segment={s.selectedSegment}
                      field={s.selectedField}
-                     encoding={s.encoding}
                      indexData={s.indexData}/>
         </Col>
       </div>

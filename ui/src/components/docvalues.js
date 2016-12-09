@@ -10,7 +10,8 @@ class DocValues extends React.Component {
     super(props);
     this.state = {
       docs: '',
-      docValues: undefined
+      docValues: undefined,
+      encoding: 'utf8'
     }
 
     this.setDocs = this.setDocs.bind(this);
@@ -22,7 +23,7 @@ class DocValues extends React.Component {
   componentDidMount() {
     if (this.props.field) {
       loadDocValues(this.props.segment, this.props.field,
-        this.state.docs, this.props.encoding, docValues => {
+        this.state.docs, this.state.encoding, docValues => {
           this.setState({ docValues });
         }, this.handleDocValuesError
       );
@@ -31,8 +32,9 @@ class DocValues extends React.Component {
 
   componentWillReceiveProps(newProps) {
     if (newProps.field) {
+      // FIXME fetch encoding for field
       loadDocValues(newProps.segment, newProps.field,
-        this.state.docs, newProps.encoding, docValues => {
+        this.state.docs, this.state.encoding, docValues => {
           this.setState({ docValues });
         }, this.handleDocValuesError
       );
@@ -54,7 +56,7 @@ class DocValues extends React.Component {
   setDocs(docs) {
     docs = docs.replace(/[^\d ,\-]/, '');  // restrict input
     loadDocValues(this.props.segment, this.props.field,
-      docs, this.props.encoding, docValues => {
+      docs, this.state.encoding, docValues => {
         this.setState({ docs, docValues });
       }, this.handleDocValuesError
     );

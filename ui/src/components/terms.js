@@ -1,7 +1,8 @@
 import React from 'react';
-import { Nav, NavItem, FormGroup, FormControl, Radio } from 'react-bootstrap';
+import { Nav, NavItem, FormGroup, FormControl, Radio, Form } from 'react-bootstrap';
 import { loadTermsData } from '../data';
 import { handleError } from '../util';
+import { EncodingDropdown } from './misc';
 
 
 class Terms extends React.Component {
@@ -9,19 +10,21 @@ class Terms extends React.Component {
     super(props);
     this.state = {
       termsData: undefined,
-      termsFilter: ''
+      termsFilter: '',
+      encoding: 'utf8'
     }
 
     this.componentDidMount = this.componentDidMount.bind(this);
     this.componentWillReceiveProps = this.componentWillReceiveProps.bind(this);
     this.setTermsFilter = this.setTermsFilter.bind(this);
     this.handleTermsError = this.handleTermsError.bind(this);
+    this.setEncoding = this.setEncoding.bind(this);
   }
 
   componentDidMount() {
     if (this.props.field) {
       loadTermsData(this.props.segment, this.props.field,
-        this.state.termsFilter, this.props.encoding, termsData => {
+        this.state.termsFilter, this.state.encoding, termsData => {
           this.setState({ termsData });
         }, this.handleTermsError
       );
@@ -30,8 +33,9 @@ class Terms extends React.Component {
 
   componentWillReceiveProps(newProps) {
     if (newProps.field) {
+      // FIXME - fetch encoding for field
       loadTermsData(newProps.segment, newProps.field,
-        this.state.termsFilter, newProps.encoding, termsData => {
+        this.state.termsFilter, this.state.encoding, termsData => {
           this.setState({ termsData });
         }, this.handleTermsError
       );
@@ -40,10 +44,14 @@ class Terms extends React.Component {
 
   setTermsFilter(termsFilter) {
     loadTermsData(this.props.segment, this.props.field,
-      termsFilter, this.props.encoding, termsData => {
+      termsFilter, this.state.encoding, termsData => {
         this.setState({ termsData, termsFilter });
       }, this.handleTermsError
     );
+  }
+
+  setEncoding(encoding) {
+    console.log('FIXME ' + encoding);
   }
 
   handleTermsError(errmsg) {
@@ -71,28 +79,44 @@ class Terms extends React.Component {
       return (<NavItem key={term}>{term}</NavItem>)
     });
 
-    const style = {"paddingTop": "7px"};
+    const style = {"paddingTop": "7px" };
     return <div>
-        <table className="table table-bordered" style={style}>
-            <tbody>
-            <tr>
-                <td>Total terms:</td><td>{s.termsData.termCount}</td>
-                <td>Docs with terms:</td><td>{s.termsData.docCount}</td>
-            </tr>
-            <tr>
-                <td>Min term:</td><td>{s.termsData.minTerm}</td>
-                <td>Max term:</td><td>{s.termsData.maxTerm}</td>
-            </tr>
-            </tbody>
-        </table>
-      <form style={style} onSubmit={ e => e.preventDefault() }>
-          <FormControl type="text" placeholder="Filter" value={s.termsFilter}
-            onChange={ e => this.setTermsFilter(e.target.value) } />
-      </form>
+      <table className="table table-bordered" style={style}>
+        <tbody>
+        <tr>
+            <td>Total terms:</td><td>{s.termsData.termCount}</td>
+            <td>Docs with terms:</td><td>{s.termsData.docCount}</td>
+        </tr>
+        <tr>
+            <td>Min term:</td><td>{s.termsData.minTerm}</td>
+            <td>Max term:</td><td>{s.termsData.maxTerm}</td>
+        </tr>
+        </tbody>
+      </table>
+      <Form inline style={style} onSubmit={ e => e.preventDefault() }>
+        <FormControl type="text" placeholder="Filter" value={s.termsFilter}
+         onChange={ e => this.setTermsFilter(e.target.value) }
+         style={{"width": "500px"}} />
+         {" "}
+         <EncodingDropdown encoding={s.encoding} onSelect={x => this.setEncoding(x)} />
+      </Form>
 
       <Nav>{termsList}</Nav>
     </div>;
   }
 }
+
+// <Nav>
+//   <NavDropdown title={`Encoding: ${p.encoding}`}
+//     onSelect={x => p.setEncoding(x)} id='encoding-dropdown'>
+//     <MenuItem eventKey={'utf8'}>utf8</MenuItem>
+//     <MenuItem eventKey={'base64'}>base64</MenuItem>
+//     <MenuItem divider />
+//     <MenuItem eventKey={'int'}>int</MenuItem>
+//     <MenuItem eventKey={'long'}>long</MenuItem>
+//     <MenuItem eventKey={'float'}>float</MenuItem>
+//     <MenuItem eventKey={'double'}>double</MenuItem>
+//   </NavDropdown>
+// </Nav>
 
 export default Terms;
