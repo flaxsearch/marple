@@ -1,8 +1,8 @@
 import React from 'react';
-import { Nav, NavItem, FormControl } from 'react-bootstrap';
-
-import { loadDocValues } from '../data';
+import { Nav, NavItem, Form, FormControl, Label } from 'react-bootstrap';
+import { loadDocValues, getFieldEncoding, setFieldEncoding } from '../data';
 import { handleError, parseDoclist } from '../util';
+import { EncodingDropdown } from './misc';
 
 
 class DocValues extends React.Component {
@@ -22,9 +22,11 @@ class DocValues extends React.Component {
 
   componentDidMount() {
     if (this.props.field) {
+      const encoding = getFieldEncoding(this.props.indexData.indexpath,
+                                        this.props.field, 'docvalues');
       loadDocValues(this.props.segment, this.props.field,
-        this.state.docs, this.state.encoding, docValues => {
-          this.setState({ docValues });
+        this.state.docs, encoding, docValues => {
+          this.setState({ docValues, encoding });
         }, this.handleDocValuesError
       );
     }
@@ -32,13 +34,29 @@ class DocValues extends React.Component {
 
   componentWillReceiveProps(newProps) {
     if (newProps.field) {
-      // FIXME fetch encoding for field
+      const encoding = getFieldEncoding(this.props.indexData.indexpath,
+                                        newProps.field, 'docvalues');
       loadDocValues(newProps.segment, newProps.field,
-        this.state.docs, this.state.encoding, docValues => {
-          this.setState({ docValues });
+        this.state.docs, encoding, docValues => {
+          this.setState({ docValues, encoding });
         }, this.handleDocValuesError
       );
     }
+  }
+
+  setEncoding(enc) {
+    loadDocValues(this.props.segment, this.props.field,
+      this.state.docs, enc, (docValues, encoding) => {
+        if (encoding == enc) {
+          setFieldEncoding(this.props.indexData.indexpath,
+                           this.props.field, 'docvalues', encoding);
+        }
+        else {
+          console.log('FIXME flash up encoding warning');
+        }
+        this.setState({ docValues, encoding });
+      }, this.handleDocValuesError
+    );
   }
 
   handleDocValuesError(errmsg) {
@@ -90,23 +108,31 @@ class DocValues extends React.Component {
     var dvList = keys.map(function(docid) {
       const text = formatDocValue(
         docid, s.docValues.values[docid], s.docValues.type);
-      return (<NavItem key={docid}>{text}</NavItem>)
+      return <NavItem key={docid}>{text}</NavItem>;
     });
+
+    const encodingDropdown = doesEncodingApply(s.docValues.type) ?
+      <EncodingDropdown encoding={s.encoding} numeric={false}
+                        onSelect={x => this.setEncoding(x)} /> : '';
 
     const style = {"paddingTop": "7px"};
     const placeholder = "Doc IDs (e.g. 1, 5, 10-100)";
     return <div>
-      <form style={style} onSubmit={ e => e.preventDefault() }>
-          <FormControl type="text" placeholder={placeholder} value={s.docs}
-            onChange={ e => this.setDocs(e.target.value) } />
-      </form>
-
+      <Form inline style={style} onSubmit={ e => e.preventDefault() }>
+        <FormControl type="text" placeholder={placeholder} value={s.docs}
+          onChange={ e => this.setDocs(e.target.value) }
+          style={{"width": "440px"}} />
+        {" "}
+        { encodingDropdown }
+        {" "}
+        <Label>{ s.docValues.type}</Label>
+      </Form>
       <Nav>{dvList}</Nav>
     </div>;
   }
 }
 
-const formatDocValue = (docid, docvalue, type) => {
+function formatDocValue(docid, docvalue, type) {
   var dvtext;
   if (docvalue == undefined) {
     return `(${docid}) [no value]`;
@@ -130,6 +156,10 @@ const formatDocValue = (docid, docvalue, type) => {
   }
 
   return `(${docid}) ${dvtext}`;
+}
+
+function doesEncodingApply(type) {
+  return ! type.includes('NUMERIC');
 }
 
 

@@ -42,7 +42,7 @@ export function loadTermsData(segment, field, termsFilter, encoding, onSuccess, 
       }
     }
     else {
-      onSuccess(body, encoding);
+      onSuccess(body, encoding);    // return encoding in case it defaulted
     }
   })
   .catch(error => {
@@ -66,7 +66,7 @@ export function loadDocValues(segment, field, docs, encoding, onSuccess, onError
       }
     }
     else {
-      onSuccess(body, encoding);
+      onSuccess(body, encoding);    // return encoding in case it defaulted
     }
   })
   .catch(error => { onError('error loading docvalues: ' + error); });

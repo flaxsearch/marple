@@ -111,8 +111,9 @@ class Terms extends React.Component {
         <FormControl type="text" placeholder="Filter" value={s.termsFilter}
          onChange={ e => this.setTermsFilter(e.target.value) }
          style={{"width": "500px"}} />
-         {" "}
-         <EncodingDropdown encoding={s.encoding} onSelect={x => this.setEncoding(x)} />
+        {" "}
+        <EncodingDropdown encoding={s.encoding} numeric={true}
+                          onSelect={x => this.setEncoding(x)} />
       </Form>
 
       <Nav>{termsList}</Nav>
