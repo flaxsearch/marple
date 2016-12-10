@@ -1,4 +1,6 @@
+import store from 'store';
 import { MARPLE_BASE } from 'config';
+
 
 function makeQueryStr(params) {
   const filt = k => params[k] || params[k] === 0;   // allows 0s into params
@@ -68,4 +70,28 @@ export function loadDocValues(segment, field, docs, encoding, onSuccess, onError
     }
   })
   .catch(error => { onError('error loading docvalues: ' + error); });
+}
+
+export function getFieldEncoding(indexpath, field, item) {
+  const local = store.get('marple');
+  if (local == undefined ||
+      local.encodings == undefined ||
+      local.encodings[field] == undefined ||
+      local.encodings[field][item] == undefined) {
+    return 'utf8';
+  }
+  return local.encodings[field][item];
+}
+
+export function setFieldEncoding(indexpath, field, item, encoding) {
+  const local = store.get('marple') || {};
+  if (local.encodings == undefined) {
+    local.encodings = {};
+  }
+  if (local.encodings[field] == undefined) {
+    local.encodings[field] = {};
+  }
+  local.encodings[field][item] = encoding;
+  store.set('marple', local);
+  console.log('FIXME set local to ' + JSON.stringify(local));
 }

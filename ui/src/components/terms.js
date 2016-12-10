@@ -1,6 +1,6 @@
 import React from 'react';
 import { Nav, NavItem, FormGroup, FormControl, Radio, Form } from 'react-bootstrap';
-import { loadTermsData } from '../data';
+import { loadTermsData, getFieldEncoding, setFieldEncoding } from '../data';
 import { handleError } from '../util';
 import { EncodingDropdown } from './misc';
 
@@ -23,9 +23,11 @@ class Terms extends React.Component {
 
   componentDidMount() {
     if (this.props.field) {
+      const encoding = getFieldEncoding(this.props.indexData.indexpath,
+                                        this.props.field, 'terms');
       loadTermsData(this.props.segment, this.props.field,
-        this.state.termsFilter, this.state.encoding, termsData => {
-          this.setState({ termsData });
+        this.state.termsFilter, encoding, termsData => {
+          this.setState({ termsData, encoding });
         }, this.handleTermsError
       );
     }
@@ -33,10 +35,11 @@ class Terms extends React.Component {
 
   componentWillReceiveProps(newProps) {
     if (newProps.field) {
-      // FIXME - fetch encoding for field
+      const encoding = getFieldEncoding(this.props.indexData.indexpath,
+                                        newProps.field, 'terms');
       loadTermsData(newProps.segment, newProps.field,
-        this.state.termsFilter, this.state.encoding, termsData => {
-          this.setState({ termsData });
+        this.state.termsFilter, encoding, termsData => {
+          this.setState({ termsData, encoding });
         }, this.handleTermsError
       );
     }
@@ -53,8 +56,12 @@ class Terms extends React.Component {
   setEncoding(enc) {
     loadTermsData(this.props.segment, this.props.field,
       this.state.termsFilter, enc, (termsData, encoding) => {
-        if (encoding != enc) {
-          console.log('FIXME flash up that the encoding has defaulted to utf8');
+        if (encoding == enc) {
+          setFieldEncoding(this.props.indexData.indexpath,
+                           this.props.field, 'terms', encoding);
+        }
+        else {
+          console.log('FIXME flash up encoding warning');
         }
         this.setState({ termsData, encoding });
       }, this.handleTermsError

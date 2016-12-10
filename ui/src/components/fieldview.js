@@ -29,7 +29,7 @@ class FieldView extends React.Component {
     }
     else {
       const panel = s.activePanel == "terms" ?
-          <Terms segment={p.segment} field={p.field} />
+          <Terms segment={p.segment} field={p.field} indexData={p.indexData} />
         : s.activePanel == "docvalues" ?
           <DocValues segment={p.segment} field={p.field}
                      indexData={p.indexData}/>
