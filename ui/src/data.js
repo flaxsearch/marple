@@ -40,7 +40,7 @@ export function loadTermsData(segment, field, termsFilter, encoding, onSuccess, 
       }
     }
     else {
-      onSuccess(body);
+      onSuccess(body, encoding);
     }
   })
   .catch(error => {
@@ -64,7 +64,7 @@ export function loadDocValues(segment, field, docs, encoding, onSuccess, onError
       }
     }
     else {
-      onSuccess(body);
+      onSuccess(body, encoding);
     }
   })
   .catch(error => { onError('error loading docvalues: ' + error); });

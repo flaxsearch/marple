@@ -50,8 +50,15 @@ class Terms extends React.Component {
     );
   }
 
-  setEncoding(encoding) {
-    console.log('FIXME ' + encoding);
+  setEncoding(enc) {
+    loadTermsData(this.props.segment, this.props.field,
+      this.state.termsFilter, enc, (termsData, encoding) => {
+        if (encoding != enc) {
+          console.log('FIXME flash up that the encoding has defaulted to utf8');
+        }
+        this.setState({ termsData, encoding });
+      }, this.handleTermsError
+    );
   }
 
   handleTermsError(errmsg) {
