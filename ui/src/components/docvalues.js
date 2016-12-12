@@ -112,7 +112,7 @@ class DocValues extends React.Component {
     });
 
     const encodingDropdown = doesEncodingApply(s.docValues.type) ?
-      <EncodingDropdown encoding={s.encoding} numeric={false}
+      <EncodingDropdown encoding={s.encoding} numeric={true}
                         onSelect={x => this.setEncoding(x)} /> : '';
 
     const style = {"paddingTop": "7px"};
