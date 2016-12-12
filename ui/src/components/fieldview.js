@@ -3,7 +3,6 @@ import { Nav, NavItem } from 'react-bootstrap';
 
 import Terms from './terms';
 import DocValues from './docvalues';
-import { handleError } from '../util';
 
 
 class FieldView extends React.Component {
@@ -29,10 +28,11 @@ class FieldView extends React.Component {
     }
     else {
       const panel = s.activePanel == "terms" ?
-          <Terms segment={p.segment} field={p.field} indexData={p.indexData} />
+          <Terms segment={p.segment} field={p.field}
+                 indexData={p.indexData} showAlert={p.showAlert} />
         : s.activePanel == "docvalues" ?
           <DocValues segment={p.segment} field={p.field}
-                     indexData={p.indexData}/>
+                     indexData={p.indexData} showAlert={p.showAlert} />
         : <div>{ `no panel for ${s.activePanel}`}</div>;
 
       return <div>

@@ -93,5 +93,4 @@ export function setFieldEncoding(indexpath, field, item, encoding) {
   }
   local.encodings[field][item] = encoding;
   store.set('marple', local);
-  console.log('FIXME set local to ' + JSON.stringify(local));
 }

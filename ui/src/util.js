@@ -1,7 +1,3 @@
-export function handleError(error, msg) {
-  alert("ERROR: " + error + ' (' + msg + ')');   // FIXME
-}
-
 export function parseDoclist(doclist, numDocs) {
   let ret = [];
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Nav, NavItem, Form, FormControl, Label } from 'react-bootstrap';
 import { loadDocValues, getFieldEncoding, setFieldEncoding } from '../data';
-import { handleError, parseDoclist } from '../util';
+import { parseDoclist } from '../util';
 import { EncodingDropdown } from './misc';
 
 
@@ -14,10 +14,11 @@ class DocValues extends React.Component {
       encoding: 'utf8'
     }
 
-    this.setDocs = this.setDocs.bind(this);
     this.componentDidMount = this.componentDidMount.bind(this);
     this.componentWillReceiveProps = this.componentWillReceiveProps.bind(this);
+    this.setEncoding = this.setEncoding.bind(this);
     this.handleDocValuesError = this.handleDocValuesError.bind(this);
+    this.setDocs = this.setDocs.bind(this);
   }
 
   componentDidMount() {
@@ -52,7 +53,7 @@ class DocValues extends React.Component {
                            this.props.field, 'docvalues', encoding);
         }
         else {
-          console.log('FIXME flash up encoding warning');
+          this.props.showAlert(`${enc} is not a valid encoding for this field`);
         }
         this.setState({ docValues, encoding });
       }, this.handleDocValuesError
@@ -67,7 +68,7 @@ class DocValues extends React.Component {
       }})
     }
     else {
-      handleError(errmsg)
+      this.props.showAlert(errmsg, true);
     }
   }
 
@@ -105,8 +106,9 @@ class DocValues extends React.Component {
       });
     }
 
-    var dvList = keys.map(function(docid) {
-      const text = formatDocValue(
+    const that = this;    // sigh
+    const dvList = keys.map(function(docid) {
+      const text = that.formatDocValue(
         docid, s.docValues.values[docid], s.docValues.type);
       return <NavItem key={docid}>{text}</NavItem>;
     });
@@ -130,32 +132,32 @@ class DocValues extends React.Component {
       <Nav>{dvList}</Nav>
     </div>;
   }
-}
 
-function formatDocValue(docid, docvalue, type) {
-  var dvtext;
-  if (docvalue == undefined) {
-    return `(${docid}) [no value]`;
-  }
+  formatDocValue(docid, docvalue, type) {
+    var dvtext;
+    if (docvalue == undefined) {
+      return `(${docid}) [no value]`;
+    }
 
-  if (type == 'BINARY' || type == 'SORTED') {
-    dvtext = docvalue;
-  }
-  else if (type == 'SORTED_SET') {
-    dvtext = docvalue.join(', ');
-  }
-  else if (type == 'NUMERIC') {
-    dvtext = docvalue;
-  }
-  else if (type == 'SORTED_NUMERIC') {
-    dvtext = docvalue.join(', ');
-  }
-  else {
-    handleError(`unknown doc values type ${type}`);
-    return '';
-  }
+    if (type == 'BINARY' || type == 'SORTED') {
+      dvtext = docvalue;
+    }
+    else if (type == 'SORTED_SET') {
+      dvtext = docvalue.join(', ');
+    }
+    else if (type == 'NUMERIC') {
+      dvtext = docvalue;
+    }
+    else if (type == 'SORTED_NUMERIC') {
+      dvtext = docvalue.join(', ');
+    }
+    else {
+      this.props.showAlert(`unknown doc values type ${type}`, true);
+      return '';
+    }
 
-  return `(${docid}) ${dvtext}`;
+    return `(${docid}) ${dvtext}`;
+  }
 }
 
 function doesEncodingApply(type) {

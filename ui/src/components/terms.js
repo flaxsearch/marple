@@ -1,7 +1,6 @@
 import React from 'react';
 import { Nav, NavItem, FormGroup, FormControl, Radio, Form } from 'react-bootstrap';
 import { loadTermsData, getFieldEncoding, setFieldEncoding } from '../data';
-import { handleError } from '../util';
 import { EncodingDropdown } from './misc';
 
 
@@ -61,7 +60,7 @@ class Terms extends React.Component {
                            this.props.field, 'terms', encoding);
         }
         else {
-          console.log('FIXME flash up encoding warning');
+          this.props.showAlert(`${enc} is not a valid encoding for this field`);
         }
         this.setState({ termsData, encoding });
       }, this.handleTermsError
@@ -79,7 +78,7 @@ class Terms extends React.Component {
       }})
     }
     else {
-      handleError(errmsg)
+      this.props.showAlert(errmsg, true);
     }
   }
 
@@ -89,7 +88,7 @@ class Terms extends React.Component {
       return <div/>;
     }
 
-    var termsList = s.termsData.terms.map(function(term) {
+    const termsList = s.termsData.terms.map(function(term) {
       return (<NavItem key={term}>{term}</NavItem>)
     });
 

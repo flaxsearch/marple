@@ -32,12 +32,14 @@ export const EncodingDropdown = props => {
   const types = ! props.numeric ? ['utf8', 'base64'] :
     ['utf8', 'base64', null, 'int', 'long', 'float', 'double'];
 
-  const items = types.map(type => type == null ? <MenuItem divider /> :
-    <MenuItem eventKey={ type }>{ type }</MenuItem>);
+  const items = types.map((type, idx) =>
+    type == null ? <MenuItem key={idx} divider /> :
+      <MenuItem key={idx} eventKey={type}>{type}</MenuItem>
+  );
 
   return <DropdownButton title={`Encoding: ${props.encoding}`}
                          id={'encoding-dropdown'}
                          onSelect={props.onSelect}>
-    { items }
+    {items}
   </DropdownButton>;
 };
