@@ -39,9 +39,9 @@ class MarpleContent extends React.Component {
   }
 
   selectField(fieldName) {
-    this.setState({
-      selectedField: fieldName
-    });
+    const selectedField = this.state.fieldsData.filter(
+      x => x.name == fieldName)[0];
+    this.setState({ selectedField });
   }
 
   showAlert(message, isError) {
@@ -75,7 +75,7 @@ class MarpleContent extends React.Component {
       <Col md={2}>
         <Fields fields={s.fieldsData}
                 onSelect={this.selectField}
-                selected={s.selectedField}/>
+                selected={s.selectedField ? s.selectedField.name : undefined }/>
       </Col>
       <Col md={6}>
         <FieldView segment={s.selectedSegment}

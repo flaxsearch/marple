@@ -87,8 +87,8 @@ class Terms extends React.Component {
         [no terms for field { this.props.field }]
       </div>;
     }
-    const termsList = s.termsData.terms.map(term =>
-      <NavItem key={term}>{term}</NavItem>);
+    const termsList = s.termsData.terms.map((term, idx) =>
+      <NavItem key={idx}>{term}</NavItem>);
 
     const termCount = s.termsData.termCount == -1 ? "not stored" : s.termsData.termCount;
 
