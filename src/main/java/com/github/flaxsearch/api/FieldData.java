@@ -33,27 +33,32 @@ public class FieldData {
     public final DocValuesType docValuesType;
 
     public final int pointDimensionCount;
+    
+    public final boolean hasTerms;
 
     public FieldData(@JsonProperty("name") String name,
                      @JsonProperty("indexOptions") IndexOptions indexOptions,
                      @JsonProperty("hasNorms") boolean hasNorms,
                      @JsonProperty("hasPayloads")  boolean hasPayloads,
                      @JsonProperty("docValuesType") DocValuesType docValuesType,
-                     @JsonProperty("pointDimensionCount") int pointDimensionCount) {
+                     @JsonProperty("pointDimensionCount") int pointDimensionCount,
+    				 @JsonProperty("hasTerms") boolean hasTerms) {
         this.name = name;
         this.indexOptions = indexOptions;
         this.hasNorms = hasNorms;
         this.docValuesType = docValuesType;
         this.pointDimensionCount = pointDimensionCount;
         this.hasPayloads = hasPayloads;
+        this.hasTerms = hasTerms;
     }
 
-    public FieldData(FieldInfo fieldInfo) {
+    public FieldData(FieldInfo fieldInfo, boolean hasTerms) {
         this.name = fieldInfo.name;
         this.indexOptions = fieldInfo.getIndexOptions();
         this.hasNorms = fieldInfo.hasNorms();
         this.docValuesType = fieldInfo.getDocValuesType();
         this.pointDimensionCount = fieldInfo.getPointDimensionCount();
         this.hasPayloads = fieldInfo.hasPayloads();
+        this.hasTerms = hasTerms;
     }
 }

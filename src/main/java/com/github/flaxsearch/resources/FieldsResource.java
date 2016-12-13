@@ -19,7 +19,10 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -29,6 +32,8 @@ import com.github.flaxsearch.api.FieldData;
 import com.github.flaxsearch.util.ReaderManager;
 import org.apache.lucene.index.FieldInfo;
 import org.apache.lucene.index.FieldInfos;
+import org.apache.lucene.index.Fields;
+import org.apache.lucene.index.Terms;
 
 @Path("/fields")
 @Produces(MediaType.APPLICATION_JSON)
@@ -46,8 +51,11 @@ public class FieldsResource {
         List<FieldData> fieldData = new ArrayList<>();
         FieldInfos fieldInfos = readerManager.getFieldInfos(segment);
 
+        Fields fields = readerManager.getFields(segment);
+
         for (FieldInfo fieldInfo : fieldInfos) {
-            fieldData.add(new FieldData(fieldInfo));
+            Terms terms = fields.terms(fieldInfo.name);
+            fieldData.add(new FieldData(fieldInfo, (terms != null)));
         }
 
         fieldData.sort(Comparator.comparing(o -> o.name));
