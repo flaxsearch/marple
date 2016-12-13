@@ -21,7 +21,7 @@ export const Segments = props => {
     var stats = "(" + f.numDocs + " docs/" + (f.maxDoc - f.numDocs) + " dels)";
     return <NavItem eventKey={i} key={i + 1}>{name}<br/>{stats}</NavItem>;
   });
-  segmenttab.unshift(<NavItem eventKey={null} key={0}>All segments</NavItem>);
+  segmenttab.unshift(<NavItem eventKey={''} key={0}>All segments</NavItem>);
   return (
     <Nav bsStyle="pills" stacked onSelect={props.onSelect}
          activeKey={props.selected}>{segmenttab}</Nav>
