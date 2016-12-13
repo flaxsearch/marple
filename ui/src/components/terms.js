@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import { Nav, NavItem, FormGroup, FormControl, Radio, Form } from 'react-bootstrap';
 import { loadTermsData, getFieldEncoding, setFieldEncoding } from '../data';
 import { EncodingDropdown } from './misc';
@@ -124,5 +124,14 @@ class Terms extends React.Component {
     </div>;
   }
 }
+
+Terms.propTypes = {
+  segment: PropTypes.oneOfType([
+    PropTypes.string, PropTypes.number
+  ]),
+  field: PropTypes.string.isRequired,
+  indexData: PropTypes.object.isRequired,
+  showAlert: PropTypes.func.isRequired
+};
 
 export default Terms;

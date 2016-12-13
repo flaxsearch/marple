@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import { Nav, NavItem } from 'react-bootstrap';
 
 import Terms from './terms';
@@ -52,6 +52,15 @@ class FieldView extends React.Component {
       </div>;
     }
   }
+};
+
+FieldView.propTypes = {
+  segment: PropTypes.oneOfType([
+    PropTypes.string, PropTypes.number
+  ]),
+  field: PropTypes.object,
+  indexData: PropTypes.object.isRequired,
+  showAlert: PropTypes.func.isRequired
 };
 
 export default FieldView;

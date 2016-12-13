@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import { Nav, NavItem, Form, FormControl, Label } from 'react-bootstrap';
 import { loadDocValues, getFieldEncoding, setFieldEncoding } from '../data';
 import { parseDoclist } from '../util';
@@ -165,6 +165,15 @@ class DocValues extends React.Component {
 function doesEncodingApply(type) {
   return ! type.includes('NUMERIC');
 }
+
+DocValues.propTypes = {
+  segment: PropTypes.oneOfType([
+    PropTypes.string, PropTypes.number
+  ]),
+  field: PropTypes.string.isRequired,
+  indexData: PropTypes.object.isRequired,
+  showAlert: PropTypes.func.isRequired
+};
 
 
 export default DocValues;
