@@ -69,13 +69,7 @@ class Terms extends React.Component {
 
   handleTermsError(errmsg) {
     if (errmsg.includes('No such field')) {
-      this.setState({ termsData: {
-        termCount: '-',
-        docCount: '-',
-        minTerm: '-',
-        maxTerm: '-',
-        terms: ['[no terms]']
-      }})
+      this.setState({ termsData: { terms: undefined }});
     }
     else {
       this.props.showAlert(errmsg, true);
@@ -88,28 +82,37 @@ class Terms extends React.Component {
       return <div/>;
     }
 
-    const termsList = s.termsData.terms.map(function(term) {
-      return (<NavItem key={term}>{term}</NavItem>)
-    });
+    if (s.termsData.terms == undefined) {
+      return <div style={{margin:'14px'}}>
+        [no terms for field { this.props.field }]
+      </div>;
+    }
+    const termsList = s.termsData.terms.map(term =>
+      <NavItem key={term}>{term}</NavItem>);
 
-    const style = {"paddingTop": "7px" };
+    const termCount = s.termsData.termCount == -1 ? "not stored" : s.termsData.termCount;
+
     return <div>
-      <table className="table table-bordered" style={style}>
-        <tbody>
+      <table style={{width:'100%', border:'0px', margin:'7px 0px 7px 14px'}}>
         <tr>
-            <td>Total terms:</td><td>{s.termsData.termCount}</td>
-            <td>Docs with terms:</td><td>{s.termsData.docCount}</td>
+          <td style={{width:'100px'}}><i>Total terms:</i></td>
+          <td style={{width:'120px'}}>{termCount}</td>
+          <td style={{width:'120px'}}><i>Docs with terms:</i></td>
+          <td style={{width:'auto'}}>{s.termsData.docCount}</td>
         </tr>
         <tr>
-            <td>Min term:</td><td>{s.termsData.minTerm}</td>
-            <td>Max term:</td><td>{s.termsData.maxTerm}</td>
+          <td style={{width:'100px'}}><i>Min term:</i></td>
+          <td colspan={3}>{s.termsData.minTerm}</td>
         </tr>
-        </tbody>
+        <tr>
+          <td style={{width:'100px'}}><i>Max term:</i></td>
+          <td colspan={3}>{s.termsData.maxTerm}</td>
+        </tr>
       </table>
-      <Form inline style={style} onSubmit={ e => e.preventDefault() }>
+      <Form inline onSubmit={ e => e.preventDefault() }>
         <FormControl type="text" placeholder="Filter" value={s.termsFilter}
          onChange={ e => this.setTermsFilter(e.target.value) }
-         style={{"width": "500px"}} />
+         style={{width:'500px'}} />
         {" "}
         <EncodingDropdown encoding={s.encoding} numeric={true}
                           onSelect={x => this.setEncoding(x)} />
@@ -119,18 +122,5 @@ class Terms extends React.Component {
     </div>;
   }
 }
-
-// <Nav>
-//   <NavDropdown title={`Encoding: ${p.encoding}`}
-//     onSelect={x => p.setEncoding(x)} id='encoding-dropdown'>
-//     <MenuItem eventKey={'utf8'}>utf8</MenuItem>
-//     <MenuItem eventKey={'base64'}>base64</MenuItem>
-//     <MenuItem divider />
-//     <MenuItem eventKey={'int'}>int</MenuItem>
-//     <MenuItem eventKey={'long'}>long</MenuItem>
-//     <MenuItem eventKey={'float'}>float</MenuItem>
-//     <MenuItem eventKey={'double'}>double</MenuItem>
-//   </NavDropdown>
-// </Nav>
 
 export default Terms;

@@ -90,7 +90,9 @@ class DocValues extends React.Component {
     }
 
     if (s.docValues.type == 'NONE') {
-      return <div><Nav><NavItem>[no doc values]</NavItem></Nav></div>;
+      return <div style={{margin:'14px'}}>
+        [no doc values for field {p.field}]
+      </div>;
     }
 
     let keys;
