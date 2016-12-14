@@ -21,6 +21,9 @@ class DocValues extends React.Component {
   }
 
   loadAndDisplayData(segment, field, docs, newEncoding) {
+    newEncoding = newEncoding || getFieldEncoding(
+      this.props.indexData.indexpath, field, 'docvalues');
+
     loadDocValues(segment, field, docs, newEncoding,
       (docValues, encoding) => {
         if (encoding != this.state.encoding) {
@@ -47,17 +50,13 @@ class DocValues extends React.Component {
 
   componentDidMount() {
     if (this.props.field) {
-      const encoding = getFieldEncoding(
-        this.props.indexData.indexpath, this.props.field, 'docvalues');
-      this.loadAndDisplayData(this.props.segment, this.props.field, '', encoding);
+      this.loadAndDisplayData(this.props.segment, this.props.field, '');
     }
   }
 
   componentWillReceiveProps(newProps) {
     if (newProps.field && newProps.field != this.props.field) {
-      const encoding = getFieldEncoding(
-        this.props.indexData.indexpath, newProps.field, 'docvalues');
-      this.loadAndDisplayData(newProps.segment, newProps.field, this.state.docs, encoding);
+      this.loadAndDisplayData(newProps.segment, newProps.field, this.state.docs);
     }
   }
 

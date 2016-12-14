@@ -20,6 +20,9 @@ class Terms extends React.Component {
   }
 
   loadAndDisplayData(segment, field, termsFilter, newEncoding) {
+    newEncoding = newEncoding || getFieldEncoding(
+      this.props.indexData.indexpath, field, 'terms');
+
     loadTermsData(segment, field, termsFilter, newEncoding,
       (termsData, encoding) => {
         if (encoding != this.state.encoding) {
@@ -46,17 +49,13 @@ class Terms extends React.Component {
 
   componentDidMount() {
     if (this.props.field) {
-      const encoding = getFieldEncoding(
-        this.props.indexData.indexpath, this.props.field, 'terms');
-      this.loadAndDisplayData(this.props.segment, this.props.field, '', encoding);
+      this.loadAndDisplayData(this.props.segment, this.props.field, '');
     }
   }
 
   componentWillReceiveProps(newProps) {
     if (newProps.field && newProps.field != this.props.field) {
-      const encoding = getFieldEncoding(
-        this.props.indexData.indexpath, newProps.field, 'terms');
-      this.loadAndDisplayData(newProps.segment, newProps.field, this.state.termsFilter, encoding);
+      this.loadAndDisplayData(newProps.segment, newProps.field, this.state.termsFilter);
     }
   }
 
