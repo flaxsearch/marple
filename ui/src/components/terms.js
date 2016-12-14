@@ -1,7 +1,7 @@
-import React from 'react';
-import { Nav, NavItem, FormGroup, FormControl, Radio } from 'react-bootstrap';
-import { loadTermsData } from '../data';
-import { handleError } from '../util';
+import React, { PropTypes } from 'react';
+import { Nav, NavItem, FormGroup, FormControl, Radio, Form } from 'react-bootstrap';
+import { loadTermsData, getFieldEncoding, setFieldEncoding } from '../data';
+import { EncodingDropdown } from './misc';
 
 
 class Terms extends React.Component {
@@ -9,20 +9,24 @@ class Terms extends React.Component {
     super(props);
     this.state = {
       termsData: undefined,
-      termsFilter: ''
+      termsFilter: '',
+      encoding: 'utf8'
     }
 
     this.componentDidMount = this.componentDidMount.bind(this);
     this.componentWillReceiveProps = this.componentWillReceiveProps.bind(this);
     this.setTermsFilter = this.setTermsFilter.bind(this);
     this.handleTermsError = this.handleTermsError.bind(this);
+    this.setEncoding = this.setEncoding.bind(this);
   }
 
   componentDidMount() {
     if (this.props.field) {
+      const encoding = getFieldEncoding(this.props.indexData.indexpath,
+                                        this.props.field, 'terms');
       loadTermsData(this.props.segment, this.props.field,
-        this.state.termsFilter, this.props.encoding, termsData => {
-          this.setState({ termsData });
+        this.state.termsFilter, encoding, termsData => {
+          this.setState({ termsData, encoding });
         }, this.handleTermsError
       );
     }
@@ -30,9 +34,11 @@ class Terms extends React.Component {
 
   componentWillReceiveProps(newProps) {
     if (newProps.field) {
+      const encoding = getFieldEncoding(this.props.indexData.indexpath,
+                                        newProps.field, 'terms');
       loadTermsData(newProps.segment, newProps.field,
-        this.state.termsFilter, newProps.encoding, termsData => {
-          this.setState({ termsData });
+        this.state.termsFilter, encoding, termsData => {
+          this.setState({ termsData, encoding });
         }, this.handleTermsError
       );
     }
@@ -40,24 +46,33 @@ class Terms extends React.Component {
 
   setTermsFilter(termsFilter) {
     loadTermsData(this.props.segment, this.props.field,
-      termsFilter, this.props.encoding, termsData => {
+      termsFilter, this.state.encoding, termsData => {
         this.setState({ termsData, termsFilter });
+      }, this.handleTermsError
+    );
+  }
+
+  setEncoding(enc) {
+    loadTermsData(this.props.segment, this.props.field,
+      this.state.termsFilter, enc, (termsData, encoding) => {
+        if (encoding == enc) {
+          setFieldEncoding(this.props.indexData.indexpath,
+                           this.props.field, 'terms', encoding);
+        }
+        else {
+          this.props.showAlert(`${enc} is not a valid encoding for this field`);
+        }
+        this.setState({ termsData, encoding });
       }, this.handleTermsError
     );
   }
 
   handleTermsError(errmsg) {
     if (errmsg.includes('No such field')) {
-      this.setState({ termsData: {
-        termCount: '-',
-        docCount: '-',
-        minTerm: '-',
-        maxTerm: '-',
-        terms: ['[no terms]']
-      }})
+      this.setState({ termsData: { terms: undefined }});
     }
     else {
-      handleError(errmsg)
+      this.props.showAlert(errmsg, true);
     }
   }
 
@@ -67,32 +82,56 @@ class Terms extends React.Component {
       return <div/>;
     }
 
-    var termsList = s.termsData.terms.map(function(term) {
-      return (<NavItem key={term}>{term}</NavItem>)
-    });
+    if (s.termsData.terms == undefined) {
+      return <div style={{margin:'14px'}}>
+        [no terms for field { this.props.field }]
+      </div>;
+    }
+    const termsList = s.termsData.terms.map((term, idx) =>
+      <NavItem key={idx}>{term}</NavItem>);
 
-    const style = {"paddingTop": "7px"};
+    const termCount = s.termsData.termCount == -1 ? "not stored" : s.termsData.termCount;
+
     return <div>
-        <table className="table table-bordered" style={style}>
-            <tbody>
-            <tr>
-                <td>Total terms:</td><td>{s.termsData.termCount}</td>
-                <td>Docs with terms:</td><td>{s.termsData.docCount}</td>
-            </tr>
-            <tr>
-                <td>Min term:</td><td>{s.termsData.minTerm}</td>
-                <td>Max term:</td><td>{s.termsData.maxTerm}</td>
-            </tr>
-            </tbody>
-        </table>
-      <form style={style} onSubmit={ e => e.preventDefault() }>
-          <FormControl type="text" placeholder="Filter" value={s.termsFilter}
-            onChange={ e => this.setTermsFilter(e.target.value) } />
-      </form>
+      <table style={{width:'100%', border:'0px', margin:'7px 0px 7px 14px'}}>
+        <tbody>
+          <tr>
+            <td style={{width:'100px'}}><i>Total terms:</i></td>
+            <td style={{width:'120px'}}>{termCount}</td>
+            <td style={{width:'120px'}}><i>Docs with terms:</i></td>
+            <td style={{width:'auto'}}>{s.termsData.docCount}</td>
+          </tr>
+          <tr>
+            <td style={{width:'100px'}}><i>Min term:</i></td>
+            <td colSpan={3}>{s.termsData.minTerm}</td>
+          </tr>
+          <tr>
+            <td style={{width:'100px'}}><i>Max term:</i></td>
+            <td colSpan={3}>{s.termsData.maxTerm}</td>
+          </tr>
+        </tbody>
+      </table>
+      <Form inline onSubmit={ e => e.preventDefault() }>
+        <FormControl type="text" placeholder="Filter" value={s.termsFilter}
+         onChange={ e => this.setTermsFilter(e.target.value) }
+         style={{width:'500px'}} />
+        {" "}
+        <EncodingDropdown encoding={s.encoding} numeric={true}
+                          onSelect={x => this.setEncoding(x)} />
+      </Form>
 
       <Nav>{termsList}</Nav>
     </div>;
   }
 }
+
+Terms.propTypes = {
+  segment: PropTypes.oneOfType([
+    PropTypes.string, PropTypes.number
+  ]),
+  field: PropTypes.string.isRequired,
+  indexData: PropTypes.object.isRequired,
+  showAlert: PropTypes.func.isRequired
+};
 
 export default Terms;

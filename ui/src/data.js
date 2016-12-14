@@ -1,4 +1,6 @@
+import store from 'store';
 import { MARPLE_BASE } from 'config';
+
 
 function makeQueryStr(params) {
   const filt = k => params[k] || params[k] === 0;   // allows 0s into params
@@ -40,7 +42,7 @@ export function loadTermsData(segment, field, termsFilter, encoding, onSuccess, 
       }
     }
     else {
-      onSuccess(body);
+      onSuccess(body, encoding);    // return encoding in case it defaulted
     }
   })
   .catch(error => {
@@ -64,8 +66,31 @@ export function loadDocValues(segment, field, docs, encoding, onSuccess, onError
       }
     }
     else {
-      onSuccess(body);
+      onSuccess(body, encoding);    // return encoding in case it defaulted
     }
   })
   .catch(error => { onError('error loading docvalues: ' + error); });
+}
+
+export function getFieldEncoding(indexpath, field, item) {
+  const local = store.get('marple');
+  if (local == undefined ||
+      local.encodings == undefined ||
+      local.encodings[field] == undefined ||
+      local.encodings[field][item] == undefined) {
+    return 'utf8';
+  }
+  return local.encodings[field][item];
+}
+
+export function setFieldEncoding(indexpath, field, item, encoding) {
+  const local = store.get('marple') || {};
+  if (local.encodings == undefined) {
+    local.encodings = {};
+  }
+  if (local.encodings[field] == undefined) {
+    local.encodings[field] = {};
+  }
+  local.encodings[field][item] = encoding;
+  store.set('marple', local);
 }

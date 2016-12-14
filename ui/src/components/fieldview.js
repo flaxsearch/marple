@@ -1,9 +1,8 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import { Nav, NavItem } from 'react-bootstrap';
 
 import Terms from './terms';
 import DocValues from './docvalues';
-import { handleError } from '../util';
 
 
 class FieldView extends React.Component {
@@ -20,6 +19,13 @@ class FieldView extends React.Component {
     this.setState({ activePanel });
   }
 
+  componentWillReceiveProps(newProps) {
+    if (newProps.field != undefined) {
+      const activePanel = newProps.field.hasTerms ? 'terms' : 'docvalues';
+      this.setState({ activePanel });
+    }
+  }
+
   render() {
     const s = this.state;
     const p = this.props;
@@ -29,14 +35,11 @@ class FieldView extends React.Component {
     }
     else {
       const panel = s.activePanel == "terms" ?
-          <Terms segment={p.segment}
-                 field={p.field}
-                 encoding={p.encoding}/>
+          <Terms segment={p.segment} field={p.field.name}
+                 indexData={p.indexData} showAlert={p.showAlert} />
         : s.activePanel == "docvalues" ?
-          <DocValues segment={p.segment}
-                     field={p.field}
-                     encoding={p.encoding}
-                     indexData={p.indexData}/>
+          <DocValues segment={p.segment} field={p.field.name}
+                     indexData={p.indexData} showAlert={p.showAlert} />
         : <div>{ `no panel for ${s.activePanel}`}</div>;
 
       return <div>
@@ -49,6 +52,15 @@ class FieldView extends React.Component {
       </div>;
     }
   }
+};
+
+FieldView.propTypes = {
+  segment: PropTypes.oneOfType([
+    PropTypes.string, PropTypes.number
+  ]),
+  field: PropTypes.object,
+  indexData: PropTypes.object.isRequired,
+  showAlert: PropTypes.func.isRequired
 };
 
 export default FieldView;
