@@ -96,18 +96,20 @@ class Terms extends React.Component {
       <table style={{width:'100%', border:'0px', margin:'7px 0px 7px 14px'}}>
         <tbody>
           <tr>
-            <td style={{width:'100px'}}><i>Total terms:</i></td>
-            <td style={{width:'120px'}}>{termCount}</td>
-            <td style={{width:'120px'}}><i>Docs with terms:</i></td>
+            <td style={{width:'140px'}}><i>Total terms:</i></td>
+            <td style={{width:'auto'}}>{termCount}</td>
+          </tr>
+          <tr>
+            <td style={{width:'140px'}}><i>Docs with terms:</i></td>
             <td style={{width:'auto'}}>{s.termsData.docCount}</td>
           </tr>
           <tr>
-            <td style={{width:'100px'}}><i>Min term:</i></td>
-            <td colSpan={3}>{s.termsData.minTerm}</td>
+            <td style={{width:'140px'}}><i>Min term:</i></td>
+            <td style={{width:'auto'}}>{s.termsData.minTerm}</td>
           </tr>
           <tr>
-            <td style={{width:'100px'}}><i>Max term:</i></td>
-            <td colSpan={3}>{s.termsData.maxTerm}</td>
+            <td style={{width:'140px'}}><i>Max term:</i></td>
+            <td style={{width:'auto'}}>{s.termsData.maxTerm}</td>
           </tr>
         </tbody>
       </table>
