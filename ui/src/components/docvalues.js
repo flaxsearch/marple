@@ -36,10 +36,7 @@ class DocValues extends React.Component {
       },
       errmsg => {
         if (errmsg.includes('No doc values for')) {
-          this.setState({ docValues: {
-            type: 'NONE',
-            values: null
-          }})
+          this.setState({ docValues: { type: 'NONE', values: null }});
         }
         else {
           this.props.showAlert(errmsg, true);
