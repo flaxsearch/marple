@@ -4,8 +4,8 @@ import { renderShallow } from '../test-helper';
 import { Fields } from '../../src/components/misc';
 
 
-describe('components/misc/Fields', () => {
-  it('works', () => {
+describe('components/misc/Fields', function() {
+  it('works', function() {
     const fields = [
       { name: 'Alice' },
       { name: 'Bob' }
@@ -20,6 +20,5 @@ describe('components/misc/Fields', () => {
     expect(children[0].props.children).to.eql('Alice');
     expect(children[1].props.eventKey).to.eql('Bob');
     expect(children[1].props.children).to.eql('Bob');
-
   });
 });

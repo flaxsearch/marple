@@ -5,7 +5,8 @@
     ["module-resolver", {
       "root": ["./"],
       "alias": {
-        "config": "src/config/dev"
+        "config": "src/config/dev",
+        "store": "test/store-mock.js"
       }
     }]
   ]

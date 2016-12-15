@@ -2,7 +2,7 @@ import store from 'store';
 import { MARPLE_BASE } from 'config';
 
 
-function makeQueryStr(params) {
+export function makeQueryStr(params) {
   const filt = k => params[k] || params[k] === 0;   // allows 0s into params
   return Object.keys(params).filter(filt).map(
       k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])
