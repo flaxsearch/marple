@@ -2,6 +2,7 @@ import React, { PropTypes } from 'react';
 import { Nav, NavItem } from 'react-bootstrap';
 
 import FieldView from './fieldview';
+import DocumentView from './docview';
 
 class SegmentView extends React.Component {
 
@@ -37,7 +38,7 @@ class SegmentView extends React.Component {
                                indexData={this.props.indexData} showAlert={this.props.showAlert}/>);
         }
         else {
-            return <div>hello</div>;
+            return <DocumentView viewSelector={viewSelector} showAlert={this.props.showAlert} segment={this.props.segment}/>;
         }
 
     }
