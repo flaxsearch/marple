@@ -2,25 +2,6 @@ import React, { PropTypes } from 'react';
 
 import { Nav, NavItem, DropdownButton, MenuItem } from 'react-bootstrap';
 
-
-export const Fields = props => {
-  var fieldtabs = props.fields.map(function(f, i) {
-    return (<NavItem eventKey={f.name} key={f.name}>{f.name}</NavItem>);
-  });
-  return (
-    <Nav bsStyle="pills" stacked onSelect={props.onSelect}
-       activeKey={props.selected}>
-       {fieldtabs}
-    </Nav>
-  );
-};
-
-Fields.propTypes = {
-  fields: PropTypes.arrayOf(PropTypes.object),
-  selected: PropTypes.string,
-  onSelect: PropTypes.func.isRequired
-};
-
 export const Segments = props => {
   var segmenttab = props.segments.map(function(f, i) {
     var name = "Segment " + f.ord;
@@ -36,7 +17,9 @@ export const Segments = props => {
 
 Segments.propTypes = {
   segments: PropTypes.arrayOf(PropTypes.object),
-  selected: PropTypes.string,
+  selected: PropTypes.oneOfType([
+      PropTypes.string, PropTypes.number
+  ]),
   onSelect: PropTypes.func.isRequired
 };
 

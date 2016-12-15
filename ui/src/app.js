@@ -2,9 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Nav, NavItem, Col, Tabs, Tab, Alert, Grid, Row } from 'react-bootstrap';
 
-import FieldView from './components/fieldview';
 import MarpleNav from './components/marplenav';
-import { Fields, Segments } from './components/misc';
+import SegmentView from './components/segmentview';
+import { Segments } from './components/misc';
 import { segmentFilter, loadIndexData, loadFieldsData } from './data';
 
 
@@ -17,7 +17,6 @@ class MarpleContent extends React.Component {
     };
 
     this.selectSegment = this.selectSegment.bind(this);
-    this.selectField = this.selectField.bind(this);
     this.showAlert = this.showAlert.bind(this);
     this.dismissAlert = this.dismissAlert.bind(this);
   }
@@ -28,20 +27,8 @@ class MarpleContent extends React.Component {
     }, errorMsg => this.showAlert(errorMsg, true))
   }
 
-  selectSegment(segNumber) {
-    loadFieldsData(segNumber, fieldsData => {
-      this.setState({
-        fieldsData,
-        selectedSegment: segNumber,
-        selectedField: undefined
-      });
-    }, errorMsg => this.showAlert(errorMsg, true));
-  }
-
-  selectField(fieldName) {
-    const selectedField = this.state.fieldsData.filter(
-      x => x.name == fieldName)[0];
-    this.setState({ selectedField });
+  selectSegment(selectedSegment) {
+      this.setState({ selectedSegment });
   }
 
   showAlert(message, isError) {
@@ -64,7 +51,7 @@ class MarpleContent extends React.Component {
       <strong>{s.alertLevel == 'danger' ? 'ERROR: ' : 'Warning: '}</strong>
       {s.alertMessage}</Alert></Row></Grid> : '';
 
-    return <div>
+    return (<div>
       <MarpleNav indexData={s.indexData}/>
       { alert }
       <Col md={2}>
@@ -72,18 +59,9 @@ class MarpleContent extends React.Component {
                   onSelect={this.selectSegment}
                   selected={s.selectedSegment}/>
       </Col>
-      <Col md={2}>
-        <Fields fields={s.fieldsData}
-                onSelect={this.selectField}
-                selected={s.selectedField ? s.selectedField.name : undefined }/>
-      </Col>
-      <Col md={6}>
-        <FieldView segment={s.selectedSegment}
-                   field={s.selectedField}
-                   indexData={s.indexData}
-                   showAlert={this.showAlert}/>
-      </Col>
-    </div>;
+        <SegmentView indexData={s.indexData} showAlert={this.showAlert} segment={s.selectedSegment}/>
+    </div>);
+
   }
 }
 
