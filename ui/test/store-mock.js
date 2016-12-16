@@ -1,11 +1,10 @@
 
 class Store {
   get(key) {
-    console.log('FIXME store-mock.get');
+    return undefined;
   }
 
   set(key, val) {
-    console.log('FIXME store-mock.set');
   }
 }
 

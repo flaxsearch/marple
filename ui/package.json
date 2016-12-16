@@ -4,7 +4,7 @@
   "description": "React UI for Marple",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha --compilers js:babel-core/register --reporter dot --recursive",
+    "test": "./node_modules/mocha/bin/mocha --compilers js:babel-core/register --recursive",
     "start": "NODE_ENV=dev webpack-dev-server --progress --port 8090",
     "bundle": "NODE_ENV=prod webpack --progress --colors; ./install.sh"
   },
