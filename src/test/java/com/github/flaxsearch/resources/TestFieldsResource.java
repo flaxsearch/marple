@@ -48,7 +48,7 @@ public class TestFieldsResource extends IndexResourceTestBase {
 
         fields = resource.client().target("/fields?segment=1").request()
                 .get(new GenericType<List<FieldData>>() {});
-        assertThat(fields).extracting("name").containsOnly("field1", "field3");
+        assertThat(fields).extracting("name").containsOnly("field1", "field3", "field4");
     }
 
 }

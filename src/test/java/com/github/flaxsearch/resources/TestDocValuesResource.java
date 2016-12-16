@@ -74,4 +74,17 @@ public class TestDocValuesResource extends IndexResourceTestBase {
     	assertThat(values.get("1")).isEqualTo("c29tZSBieXRlcw==");
     }
 
+    @Test
+    public void testSortedSetValues() {
+        AnyDocValuesResponse response = resource.client().target("/docvalues/field4").request()
+                .get(new GenericType<AnyDocValuesResponse>() {});
+    	assertThat(response.getType()).isEqualTo("SORTED_SET");
+    	assertThat(response.getValues()).isInstanceOf(Map.class);
+    	Map<String,List<Map<String,Object>>> values = (Map<String,List<Map<String,Object>>>) response.getValues();
+    	assertThat(values.get("0").size()).isEqualTo(0);
+    	assertThat(values.get("1").size()).isEqualTo(2);
+    	assertThat(values.get("1").get(0).get("value")).isEqualTo("hello");
+    	assertThat(values.get("1").get(1).get("value")).isEqualTo("world");
+    }
+
 }

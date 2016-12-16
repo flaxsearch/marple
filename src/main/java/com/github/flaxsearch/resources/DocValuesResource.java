@@ -28,6 +28,7 @@ import java.util.HashMap;
 
 import com.github.flaxsearch.util.ReaderManager;
 import com.github.flaxsearch.api.AnyDocValuesResponse;
+import com.github.flaxsearch.api.ValueWithOrd;
 import com.github.flaxsearch.util.BytesRefUtils;
 
 import org.apache.lucene.index.BinaryDocValues;
@@ -77,42 +78,42 @@ public class DocValuesResource {
 	        }
 	        else if (dvtype == DocValuesType.NUMERIC) {
 	            NumericDocValues dv = readerManager.getNumericDocValues(segment, field);
-	            Map<Integer,String> values = new HashMap<>(docset.size());
+	            Map<Integer,Long> values = new HashMap<>(docset.size());
 	            for (int docid : docset) {
-	                values.put(docid, Long.toString(dv.get(docid)));
+	                values.put(docid, dv.get(docid));
 	            }
 	            response = new AnyDocValuesResponse("NUMERIC", values);
 	        }
-	        else if (dvtype == DocValuesType.SORTED) {
-	            SortedDocValues dv = readerManager.getSortedDocValues(segment, field);
-	            Map<Integer,String> values = new HashMap<>(docset.size());
-	            for (int docid : docset) {
-	                values.put(docid, BytesRefUtils.encode(dv.get(docid), encoding));
-	            }
-	            response = new AnyDocValuesResponse("SORTED", values);
-	        }
 	        else if (dvtype == DocValuesType.SORTED_NUMERIC) {
 	            SortedNumericDocValues dv = readerManager.getSortedNumericDocValues(segment, field);
-	            Map<Integer,List<String>> values = new HashMap<>(docset.size());
+	            Map<Integer,List<Long>> values = new HashMap<>(docset.size());
 	            for (int docid : docset) {
 	                dv.setDocument(docid);
-	                List<String> perDocValues = new ArrayList<>(dv.count());
+	                List<Long> perDocValues = new ArrayList<>(dv.count());
 	                for (int index = 0; index < dv.count(); ++index) {
-	                    perDocValues.add(Long.toString(dv.valueAt(index)));
+	                    perDocValues.add(dv.valueAt(index));
 	                }
 	                values.put(docid, perDocValues);
 	            }
 	            response = new AnyDocValuesResponse("SORTED_NUMERIC", values);
 	        }
+	        else if (dvtype == DocValuesType.SORTED) {
+	            SortedDocValues dv = readerManager.getSortedDocValues(segment, field);
+	            Map<Integer,ValueWithOrd> values = new HashMap<>(docset.size());
+	            for (int docid : docset) {
+	                values.put(docid, new ValueWithOrd(BytesRefUtils.encode(dv.get(docid), encoding), dv.getOrd(docid)));
+	            }
+	            response = new AnyDocValuesResponse("SORTED", values);
+	        }
 	        else if (dvtype == DocValuesType.SORTED_SET) {
 	            SortedSetDocValues dv = readerManager.getSortedSetDocValues(segment, field);
-	            Map<Integer,List<String>> values = new HashMap<>(docset.size());
+	            Map<Integer,List<ValueWithOrd>> values = new HashMap<>(docset.size());
 	            for (int docid : docset) {
 	                dv.setDocument(docid);
-	                List<String> perDocValues = new ArrayList<String>((int)dv.getValueCount());
+	                List<ValueWithOrd> perDocValues = new ArrayList<>((int)dv.getValueCount());
 	                long ord;
 	                while ((ord = dv.nextOrd()) != SortedSetDocValues.NO_MORE_ORDS) {
-	                     perDocValues.add(BytesRefUtils.encode(dv.lookupOrd(ord), encoding));
+	                     perDocValues.add(new ValueWithOrd(BytesRefUtils.encode(dv.lookupOrd(ord), encoding), ord));
 	                }
 	                values.put(docid, perDocValues);
 	            }
@@ -304,8 +305,6 @@ public class DocValuesResource {
 	    		}
 	    	}
     	}
-    	System.out.println("FIXME " + docset);
     	return docset;
     }
-
 }
