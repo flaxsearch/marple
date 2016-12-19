@@ -1,7 +1,7 @@
 import expect from 'expect.js';
 import React from 'react';
 import { renderShallow } from '../test-helper';
-import { Fields } from '../../src/components/misc';
+import { Fields } from '../../src/components/fieldview';
 
 
 describe('components/misc/Fields', function() {

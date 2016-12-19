@@ -2,3 +2,11 @@ language: java
 jdk:
     - oraclejdk8
 sudo: true
+install:
+      - . $HOME/.nvm/nvm.sh
+      - nvm install stable
+      - nvm use stable
+
+script:
+    - mvn test
+    - cd ui && npm install && npm test
