@@ -52,8 +52,9 @@ class DocumentView extends React.Component {
             <Col md={2}>
                 {this.props.viewSelector}
                 <Form inline onSubmit={e => e.preventDefault()}>
-                    <FormControl type="text" placeholder="docid" value={this.state.selected}
-                                 onChange={e => this.selectDocument(e.target.value)}/>
+                    <FormControl style={{ marginTop:'9px' }}
+                     type="text" placeholder="docid" value={this.state.selected}
+                     onChange={e => this.selectDocument(e.target.value)}/>
                 </Form>
             </Col>
             <Col md={6}>
