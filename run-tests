@@ -1,2 +1,2 @@
 mvn test
-cd ui && npm test
+cd ui && npm install && npm test
