@@ -54,6 +54,7 @@ public class Fixtures {
                 doc.add(new IntPoint("point", 0, 1));
                 doc.add(new IntPoint("point", 2, 1));
                 doc.add(new IntPoint("point", 14, 4));
+                doc.add(new SortedSetDocValuesField("field4", new BytesRef("tanuki")));
                 writer.addDocument(doc);
                 // more than one segment
                 writer.commit();

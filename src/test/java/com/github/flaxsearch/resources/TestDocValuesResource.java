@@ -81,10 +81,27 @@ public class TestDocValuesResource extends IndexResourceTestBase {
     	assertThat(response.getType()).isEqualTo("SORTED_SET");
     	assertThat(response.getValues()).isInstanceOf(Map.class);
     	Map<String,List<Map<String,Object>>> values = (Map<String,List<Map<String,Object>>>) response.getValues();
-    	assertThat(values.get("0").size()).isEqualTo(0);
+    	assertThat(values.get("0").size()).isEqualTo(1);
     	assertThat(values.get("1").size()).isEqualTo(2);
     	assertThat(values.get("1").get(0).get("value")).isEqualTo("hello");
     	assertThat(values.get("1").get(1).get("value")).isEqualTo("world");
+    }
+    
+    @Test
+    public void testOrderedValues() {
+        AnyDocValuesResponse response = resource.client().target("/docvalues/field4/ordered").request()
+                .get(new GenericType<AnyDocValuesResponse>() {});
+    	assertThat(response.getType()).isEqualTo("SORTED_SET");
+    	assertThat(response.getValues()).isInstanceOf(List.class);
+    	List<Map<String, Object>> values = (List<Map<String, Object>>) response.getValues();
+    	assertThat(values.size()).isEqualTo(3);
+    	assertThat(values.get(0).get("value")).isEqualTo("hello");
+    	assertThat(values.get(0).get("ord")).isEqualTo(0);
+    	assertThat(values.get(1).get("value")).isEqualTo("tanuki");
+    	assertThat(values.get(1).get("ord")).isEqualTo(1);
+    	assertThat(values.get(2).get("value")).isEqualTo("world");
+    	assertThat(values.get(2).get("ord")).isEqualTo(2);
+    	
     }
 
 }

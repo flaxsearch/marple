@@ -20,6 +20,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
@@ -28,6 +29,7 @@ import java.util.HashMap;
 
 import com.github.flaxsearch.util.ReaderManager;
 import com.github.flaxsearch.api.AnyDocValuesResponse;
+import com.github.flaxsearch.api.TermsData;
 import com.github.flaxsearch.api.ValueWithOrd;
 import com.github.flaxsearch.util.BytesRefUtils;
 
@@ -38,6 +40,8 @@ import org.apache.lucene.index.SortedNumericDocValues;
 import org.apache.lucene.index.SortedSetDocValues;
 import org.apache.lucene.index.DocValuesType;
 import org.apache.lucene.index.FieldInfo;
+import org.apache.lucene.index.TermsEnum;
+import org.apache.lucene.util.BytesRef;
 
 
 @Path("/docvalues/{field}")
@@ -131,6 +135,62 @@ public class DocValuesResource {
         return response;
     }
 
+    @Path("/ordered")
+    @GET
+    public AnyDocValuesResponse getOrderedDocValues(@QueryParam("segment") Integer segment,
+            										@PathParam("field") String field,
+            										@QueryParam("from") String startTerm,
+            										@QueryParam("count") @DefaultValue("50") int count,
+            										@QueryParam("encoding") @DefaultValue("utf8") String encoding) 
+    												throws IOException {
+        FieldInfo fieldInfo = readerManager.getFieldInfo(segment, field);
+
+        if (fieldInfo == null) {
+            String msg = String.format("No such field %s", field);
+            throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
+        }
+
+        try {
+            DocValuesType dvtype = fieldInfo.getDocValuesType();
+            String type_s;
+            TermsEnum te;
+
+            if (dvtype == DocValuesType.SORTED) {
+	            te = readerManager.getSortedDocValues(segment, field).termsEnum();
+	            type_s = "SORTED";
+	        }
+	        else if (dvtype == DocValuesType.SORTED_SET) {
+	            te = readerManager.getSortedSetDocValues(segment, field).termsEnum();
+	            type_s = "SORTED_SET";
+	        }
+	        else {
+	        	throw new WebApplicationException("Field " + field + " cannot be viewed in value order", Response.Status.BAD_REQUEST);
+	        }
+	        
+	        List<ValueWithOrd> collected = new ArrayList<>();
+
+            if (startTerm != null) {
+                BytesRef start = BytesRefUtils.decode(startTerm, encoding);
+                if (te.seekCeil(start) == TermsEnum.SeekStatus.END)
+                    return new AnyDocValuesResponse(type_s, null);
+            } else {
+                if (te.next() == null) {
+                    return new AnyDocValuesResponse(type_s, null);
+                }
+            }
+
+            do {
+                collected.add(new ValueWithOrd(BytesRefUtils.encode(te.term(), encoding), te.ord()));
+            }
+            while (te.next() != null && --count > 0);
+            
+            return new AnyDocValuesResponse(type_s, collected);
+        }
+	    catch (NumberFormatException e) {
+	        throw new WebApplicationException("Field " + field + " cannot be decoded as " + encoding, Response.Status.BAD_REQUEST);
+	    }    	
+    }
+    
     @Path("/binary")
     @GET
     public List<String> getBinaryDocValues(@QueryParam("segment") Integer segment,
