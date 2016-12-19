@@ -55,7 +55,7 @@ public class TestDocValuesResource extends IndexResourceTestBase {
     @Test
     public void testAnyDocValues() {
         AnyDocValuesResponse response = resource.client().target("/docvalues/field1").request()
-                .get(new GenericType<AnyDocValuesResponse>() {});
+                .get(AnyDocValuesResponse.class);
     	assertThat(response.getType()).isEqualTo("BINARY");
     	assertThat(response.getValues()).isInstanceOf(Map.class);
     	Map<String,String> values = (Map<String,String>) response.getValues();
@@ -66,7 +66,7 @@ public class TestDocValuesResource extends IndexResourceTestBase {
     @Test
     public void testAnyDocValuesEncoding() {
         AnyDocValuesResponse response = resource.client().target("/docvalues/field1?encoding=base64").request()
-                .get(new GenericType<AnyDocValuesResponse>() {});
+                .get(AnyDocValuesResponse.class);
     	assertThat(response.getType()).isEqualTo("BINARY");
     	assertThat(response.getValues()).isInstanceOf(Map.class);
     	Map<String,String> values = (Map<String,String>) response.getValues();
@@ -77,7 +77,7 @@ public class TestDocValuesResource extends IndexResourceTestBase {
     @Test
     public void testSortedSetValues() {
         AnyDocValuesResponse response = resource.client().target("/docvalues/field4").request()
-                .get(new GenericType<AnyDocValuesResponse>() {});
+                .get(AnyDocValuesResponse.class);
     	assertThat(response.getType()).isEqualTo("SORTED_SET");
     	assertThat(response.getValues()).isInstanceOf(Map.class);
     	Map<String,List<Map<String,Object>>> values = (Map<String,List<Map<String,Object>>>) response.getValues();
@@ -90,7 +90,7 @@ public class TestDocValuesResource extends IndexResourceTestBase {
     @Test
     public void testOrderedValues() {
         AnyDocValuesResponse response = resource.client().target("/docvalues/field4/ordered").request()
-                .get(new GenericType<AnyDocValuesResponse>() {});
+                .get(AnyDocValuesResponse.class);
     	assertThat(response.getType()).isEqualTo("SORTED_SET");
     	assertThat(response.getValues()).isInstanceOf(List.class);
     	List<Map<String, Object>> values = (List<Map<String, Object>>) response.getValues();
