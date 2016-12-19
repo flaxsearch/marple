@@ -1,0 +1,13 @@
+// this is only used by the mocha tests
+{
+  "presets": ["react", "es2015"],
+  "plugins": [
+    ["module-resolver", {
+      "root": ["./"],
+      "alias": {
+        "config": "src/config/dev",
+        "store": "test/store-mock.js"
+      }
+    }]
+  ]
+}

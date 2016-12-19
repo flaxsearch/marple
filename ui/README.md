@@ -24,6 +24,12 @@ This will watch for any code changes and make them live without any need to manu
 http://localhost:8090/
 ```
 
+To run the unit tests (such as they are), use:
+
+```
+$ npm test
+```
+
 To produce a Javascript bundle with all dependencies, and copy this (and CSS and index.html) to the resources directory of the main Marple app, run:
 
 ```

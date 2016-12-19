@@ -11,74 +11,62 @@ class DocValues extends React.Component {
     this.state = {
       docs: '',
       docValues: undefined,
-      encoding: 'utf8'
+      encoding: ''
     }
 
     this.componentDidMount = this.componentDidMount.bind(this);
     this.componentWillReceiveProps = this.componentWillReceiveProps.bind(this);
     this.setEncoding = this.setEncoding.bind(this);
-    this.handleDocValuesError = this.handleDocValuesError.bind(this);
     this.setDocs = this.setDocs.bind(this);
+  }
+
+  loadAndDisplayData(segment, field, docs, newEncoding) {
+    newEncoding = newEncoding || getFieldEncoding(
+      this.props.indexData.indexpath, field, 'docvalues');
+
+    loadDocValues(segment, field, docs, newEncoding,
+      (docValues, encoding) => {
+        if (encoding != this.state.encoding) {
+          setFieldEncoding(this.props.indexData.indexpath,
+            this.props.field, 'docvalues', encoding);
+        }
+
+        this.setState({ docs, docValues, encoding });
+
+        if (encoding != newEncoding) {
+          this.props.showAlert(`${newEncoding} is not a valid encoding for this field`);
+        }
+      },
+      errmsg => {
+        if (errmsg.includes('No doc values for')) {
+          this.setState({ docValues: { type: 'NONE', values: null }});
+        }
+        else {
+          this.props.showAlert(errmsg, true);
+        }
+      }
+    );
   }
 
   componentDidMount() {
     if (this.props.field) {
-      const encoding = getFieldEncoding(this.props.indexData.indexpath,
-                                        this.props.field, 'docvalues');
-      loadDocValues(this.props.segment, this.props.field,
-        this.state.docs, encoding, docValues => {
-          this.setState({ docValues, encoding });
-        }, this.handleDocValuesError
-      );
+      this.loadAndDisplayData(this.props.segment, this.props.field, '');
     }
   }
 
   componentWillReceiveProps(newProps) {
-    if (newProps.field) {
-      const encoding = getFieldEncoding(this.props.indexData.indexpath,
-                                        newProps.field, 'docvalues');
-      loadDocValues(newProps.segment, newProps.field,
-        this.state.docs, encoding, docValues => {
-          this.setState({ docValues, encoding });
-        }, this.handleDocValuesError
-      );
+    if (newProps.field && newProps.field != this.props.field) {
+      this.loadAndDisplayData(newProps.segment, newProps.field, this.state.docs);
     }
   }
 
-  setEncoding(enc) {
-    loadDocValues(this.props.segment, this.props.field,
-      this.state.docs, enc, (docValues, encoding) => {
-        if (encoding == enc) {
-          setFieldEncoding(this.props.indexData.indexpath,
-                           this.props.field, 'docvalues', encoding);
-        }
-        else {
-          this.props.showAlert(`${enc} is not a valid encoding for this field`);
-        }
-        this.setState({ docValues, encoding });
-      }, this.handleDocValuesError
-    );
-  }
-
-  handleDocValuesError(errmsg) {
-    if (errmsg.includes('No doc values for')) {
-      this.setState({ docValues: {
-        type: 'NONE',
-        values: null
-      }})
-    }
-    else {
-      this.props.showAlert(errmsg, true);
-    }
+  setEncoding(encoding) {
+    this.loadAndDisplayData(this.props.segment, this.props.field, this.state.docs, encoding);
   }
 
   setDocs(docs) {
     docs = docs.replace(/[^\d ,\-]/, '');  // restrict input
-    loadDocValues(this.props.segment, this.props.field,
-      docs, this.state.encoding, docValues => {
-        this.setState({ docs, docValues });
-      }, this.handleDocValuesError
-    );
+    this.loadAndDisplayData(this.props.segment, this.props.field, docs, this.state.encoding);
   }
 
   render() {
