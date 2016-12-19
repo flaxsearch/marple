@@ -7,6 +7,4 @@ install:
       - nvm install stable
       - nvm use stable
 
-script:
-    - mvn test
-    - cd ui && npm install && npm test
+script: run-tests

@@ -1,0 +1,2 @@
+mvn test
+cd ui && npm test
