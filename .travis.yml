@@ -7,9 +7,6 @@ install:
       - nvm install stable
       - nvm use stable
 
-before_script:
-    (cd ui && npm install)
-
 script:
     - mvn test
-    - cd ui && npm test
+    - cd ui && npm install && npm test
