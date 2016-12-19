@@ -7,25 +7,32 @@ class DocumentView extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = { selected: '' };
         this.selectDocument = this.selectDocument.bind(this);
     }
 
     selectDocument(docid) {
-        loadDocument(this.props.segment, docid, d => {
-            this.setState({
-                document: d,
-                selected: docid
+        if (docid) {
+            loadDocument(this.props.segment, docid, d => {
+                this.setState({
+                    document: d,
+                    selected: docid
+                })
+            }, e => {
+                this.props.showAlert(e);
             })
-        }, e => { this.props.showAlert(e); })
+        }
+        else {
+            this.setState({ selected: '' })
+        }
     }
 
     renderDoc() {
-        if (this.state.selected == undefined)
+        if (this.state.selected == '')
             return <div>[ No document selected ]</div>
 
         const fields = Object.keys(this.state.document.fields).map(k => {
-            return <tr><td>{k}</td><td>{JSON.stringify(this.state.document.fields[k])}</td></tr>
+            return <tr key={k}><td>{k}</td><td>{JSON.stringify(this.state.document.fields[k])}</td></tr>
         });
 
         return <table>
