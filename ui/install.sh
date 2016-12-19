@@ -8,8 +8,3 @@ fi
 
 cp -r bundle.js index.html css $DEST
 
-echo '
-now run:
-  cd ..
-  mvn clean package
-'
