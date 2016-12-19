@@ -24,6 +24,13 @@ export function loadFieldsData(segment, onSuccess, onError) {
   .catch(error => { onError('error loading fields data: ' + error); });
 }
 
+export function loadDocument(segment, docid, onSuccess, onError) {
+    fetch(MARPLE_BASE + "/api/document/" + docid + "?" + makeQueryStr({segment}))
+        .then(response => response.json())
+        .then(data => onSuccess(data))
+        .catch(error => onError('error loading document: ' + error));
+}
+
 export function loadTermsData(segment, field, termsFilter, encoding, onSuccess, onError) {
     // add a wildcard to the end of the filter
   const filter = termsFilter ? termsFilter + '.*' : '';
