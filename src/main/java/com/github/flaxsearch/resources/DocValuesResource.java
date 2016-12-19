@@ -28,6 +28,7 @@ import java.util.HashMap;
 
 import com.github.flaxsearch.util.ReaderManager;
 import com.github.flaxsearch.api.AnyDocValuesResponse;
+import com.github.flaxsearch.api.ValueWithOrd;
 import com.github.flaxsearch.util.BytesRefUtils;
 
 import org.apache.lucene.index.BinaryDocValues;
@@ -37,6 +38,11 @@ import org.apache.lucene.index.SortedNumericDocValues;
 import org.apache.lucene.index.SortedSetDocValues;
 import org.apache.lucene.index.DocValuesType;
 import org.apache.lucene.index.FieldInfo;
+import org.apache.lucene.index.TermsEnum;
+import org.apache.lucene.index.AutomatonTermsEnum;
+import org.apache.lucene.util.BytesRef;
+import org.apache.lucene.util.automaton.CompiledAutomaton;
+import org.apache.lucene.util.automaton.RegExp;
 
 
 @Path("/docvalues/{field}")
@@ -77,42 +83,42 @@ public class DocValuesResource {
 	        }
 	        else if (dvtype == DocValuesType.NUMERIC) {
 	            NumericDocValues dv = readerManager.getNumericDocValues(segment, field);
-	            Map<Integer,String> values = new HashMap<>(docset.size());
+	            Map<Integer,Long> values = new HashMap<>(docset.size());
 	            for (int docid : docset) {
-	                values.put(docid, Long.toString(dv.get(docid)));
+	                values.put(docid, dv.get(docid));
 	            }
 	            response = new AnyDocValuesResponse("NUMERIC", values);
 	        }
-	        else if (dvtype == DocValuesType.SORTED) {
-	            SortedDocValues dv = readerManager.getSortedDocValues(segment, field);
-	            Map<Integer,String> values = new HashMap<>(docset.size());
-	            for (int docid : docset) {
-	                values.put(docid, BytesRefUtils.encode(dv.get(docid), encoding));
-	            }
-	            response = new AnyDocValuesResponse("SORTED", values);
-	        }
 	        else if (dvtype == DocValuesType.SORTED_NUMERIC) {
 	            SortedNumericDocValues dv = readerManager.getSortedNumericDocValues(segment, field);
-	            Map<Integer,List<String>> values = new HashMap<>(docset.size());
+	            Map<Integer,List<Long>> values = new HashMap<>(docset.size());
 	            for (int docid : docset) {
 	                dv.setDocument(docid);
-	                List<String> perDocValues = new ArrayList<>(dv.count());
+	                List<Long> perDocValues = new ArrayList<>(dv.count());
 	                for (int index = 0; index < dv.count(); ++index) {
-	                    perDocValues.add(Long.toString(dv.valueAt(index)));
+	                    perDocValues.add(dv.valueAt(index));
 	                }
 	                values.put(docid, perDocValues);
 	            }
 	            response = new AnyDocValuesResponse("SORTED_NUMERIC", values);
 	        }
+	        else if (dvtype == DocValuesType.SORTED) {
+	            SortedDocValues dv = readerManager.getSortedDocValues(segment, field);
+	            Map<Integer,ValueWithOrd> values = new HashMap<>(docset.size());
+	            for (int docid : docset) {
+	                values.put(docid, new ValueWithOrd(BytesRefUtils.encode(dv.get(docid), encoding), dv.getOrd(docid)));
+	            }
+	            response = new AnyDocValuesResponse("SORTED", values);
+	        }
 	        else if (dvtype == DocValuesType.SORTED_SET) {
 	            SortedSetDocValues dv = readerManager.getSortedSetDocValues(segment, field);
-	            Map<Integer,List<String>> values = new HashMap<>(docset.size());
+	            Map<Integer,List<ValueWithOrd>> values = new HashMap<>(docset.size());
 	            for (int docid : docset) {
 	                dv.setDocument(docid);
-	                List<String> perDocValues = new ArrayList<String>((int)dv.getValueCount());
+	                List<ValueWithOrd> perDocValues = new ArrayList<>((int)dv.getValueCount());
 	                long ord;
 	                while ((ord = dv.nextOrd()) != SortedSetDocValues.NO_MORE_ORDS) {
-	                     perDocValues.add(BytesRefUtils.encode(dv.lookupOrd(ord), encoding));
+	                     perDocValues.add(new ValueWithOrd(BytesRefUtils.encode(dv.lookupOrd(ord), encoding), ord));
 	                }
 	                values.put(docid, perDocValues);
 	            }
@@ -130,6 +136,68 @@ public class DocValuesResource {
         return response;
     }
 
+    @Path("/ordered")
+    @GET
+    public AnyDocValuesResponse getOrderedDocValues(@QueryParam("segment") Integer segment,
+            										@PathParam("field") String field,
+            										@QueryParam("from") String startTerm,
+            										@QueryParam("count") @DefaultValue("50") int count,
+            										@QueryParam("filter") String filter,
+            										@QueryParam("encoding") @DefaultValue("utf8") String encoding) 
+    												throws IOException {
+        FieldInfo fieldInfo = readerManager.getFieldInfo(segment, field);
+
+        if (fieldInfo == null) {
+            String msg = String.format("No such field %s", field);
+            throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
+        }
+
+        try {
+            DocValuesType dvtype = fieldInfo.getDocValuesType();
+            String type_s;
+            TermsEnum te;
+
+            if (dvtype == DocValuesType.SORTED) {
+	            te = readerManager.getSortedDocValues(segment, field).termsEnum();
+	            type_s = "SORTED";
+	        }
+	        else if (dvtype == DocValuesType.SORTED_SET) {
+	            te = readerManager.getSortedSetDocValues(segment, field).termsEnum();
+	            type_s = "SORTED_SET";
+	        }
+	        else {
+	        	throw new WebApplicationException("Field " + field + " cannot be viewed in value order", Response.Status.BAD_REQUEST);
+	        }
+            
+            if (filter != null) {
+            	CompiledAutomaton automaton = new CompiledAutomaton(new RegExp(filter).toAutomaton());
+            	te = new AutomatonTermsEnum(te, automaton);
+            }
+	        
+	        List<ValueWithOrd> collected = new ArrayList<>();
+
+            if (startTerm != null) {
+                BytesRef start = BytesRefUtils.decode(startTerm, encoding);
+                if (te.seekCeil(start) == TermsEnum.SeekStatus.END)
+                    return new AnyDocValuesResponse(type_s, null);
+            } else {
+                if (te.next() == null) {
+                    return new AnyDocValuesResponse(type_s, null);
+                }
+            }
+
+            do {
+                collected.add(new ValueWithOrd(BytesRefUtils.encode(te.term(), encoding), te.ord()));
+            }
+            while (te.next() != null && --count > 0);
+            
+            return new AnyDocValuesResponse(type_s, collected);
+        }
+	    catch (NumberFormatException e) {
+	        throw new WebApplicationException("Field " + field + " cannot be decoded as " + encoding, Response.Status.BAD_REQUEST);
+	    }    	
+    }
+    
     @Path("/binary")
     @GET
     public List<String> getBinaryDocValues(@QueryParam("segment") Integer segment,
@@ -304,8 +372,6 @@ public class DocValuesResource {
 	    		}
 	    	}
     	}
-    	System.out.println("FIXME " + docset);
     	return docset;
     }
-
 }

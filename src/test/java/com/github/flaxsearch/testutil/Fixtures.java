@@ -54,6 +54,7 @@ public class Fixtures {
                 doc.add(new IntPoint("point", 0, 1));
                 doc.add(new IntPoint("point", 2, 1));
                 doc.add(new IntPoint("point", 14, 4));
+                doc.add(new SortedSetDocValuesField("field4", new BytesRef("tanuki")));
                 writer.addDocument(doc);
                 // more than one segment
                 writer.commit();
@@ -64,6 +65,8 @@ public class Fixtures {
                 doc.add(new StringField("field1", "value2", Field.Store.YES));
                 doc.add(new BinaryDocValuesField("field1", new BytesRef("some bytes")));
                 doc.add(new TextField("field3", "this is some more text in a different field value1 value11 value12 value21", Field.Store.YES));
+                doc.add(new SortedSetDocValuesField("field4", new BytesRef("hello")));
+                doc.add(new SortedSetDocValuesField("field4", new BytesRef("world")));
                 writer.addDocument(doc);
             }
 

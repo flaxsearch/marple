@@ -55,7 +55,7 @@ public class TestDocValuesResource extends IndexResourceTestBase {
     @Test
     public void testAnyDocValues() {
         AnyDocValuesResponse response = resource.client().target("/docvalues/field1").request()
-                .get(new GenericType<AnyDocValuesResponse>() {});
+                .get(AnyDocValuesResponse.class);
     	assertThat(response.getType()).isEqualTo("BINARY");
     	assertThat(response.getValues()).isInstanceOf(Map.class);
     	Map<String,String> values = (Map<String,String>) response.getValues();
@@ -66,7 +66,7 @@ public class TestDocValuesResource extends IndexResourceTestBase {
     @Test
     public void testAnyDocValuesEncoding() {
         AnyDocValuesResponse response = resource.client().target("/docvalues/field1?encoding=base64").request()
-                .get(new GenericType<AnyDocValuesResponse>() {});
+                .get(AnyDocValuesResponse.class);
     	assertThat(response.getType()).isEqualTo("BINARY");
     	assertThat(response.getValues()).isInstanceOf(Map.class);
     	Map<String,String> values = (Map<String,String>) response.getValues();
@@ -74,4 +74,54 @@ public class TestDocValuesResource extends IndexResourceTestBase {
     	assertThat(values.get("1")).isEqualTo("c29tZSBieXRlcw==");
     }
 
+    @Test
+    public void testSortedSetValues() {
+        AnyDocValuesResponse response = resource.client().target("/docvalues/field4").request()
+                .get(AnyDocValuesResponse.class);
+    	assertThat(response.getType()).isEqualTo("SORTED_SET");
+    	assertThat(response.getValues()).isInstanceOf(Map.class);
+    	Map<String,List<Map<String,Object>>> values = (Map<String,List<Map<String,Object>>>) response.getValues();
+    	assertThat(values.get("0").size()).isEqualTo(1);
+    	assertThat(values.get("1").size()).isEqualTo(2);
+    	assertThat(values.get("1").get(0).get("value")).isEqualTo("hello");
+    	assertThat(values.get("1").get(1).get("value")).isEqualTo("world");
+    }
+    
+    @Test
+    public void testOrderedValues() {
+        AnyDocValuesResponse response = resource.client().target("/docvalues/field4/ordered").request()
+                .get(AnyDocValuesResponse.class);
+    	assertThat(response.getType()).isEqualTo("SORTED_SET");
+    	assertThat(response.getValues()).isInstanceOf(List.class);
+    	List<Map<String, Object>> values = (List<Map<String, Object>>) response.getValues();
+    	assertThat(values.size()).isEqualTo(3);
+    	assertThat(values.get(0).get("value")).isEqualTo("hello");
+    	assertThat(values.get(0).get("ord")).isEqualTo(0);
+    	assertThat(values.get(1).get("value")).isEqualTo("tanuki");
+    	assertThat(values.get(1).get("ord")).isEqualTo(1);
+    	assertThat(values.get(2).get("value")).isEqualTo("world");
+    	assertThat(values.get(2).get("ord")).isEqualTo(2);    	
+    }
+
+    @Test
+    public void testOrderedValuesWithCount() {
+        AnyDocValuesResponse response = resource.client().target("/docvalues/field4/ordered?from=tanuki&count=1").request()
+                .get(new GenericType<AnyDocValuesResponse>() {});
+    	assertThat(response.getType()).isEqualTo("SORTED_SET");
+    	assertThat(response.getValues()).isInstanceOf(List.class);
+    	List<Map<String, Object>> values = (List<Map<String, Object>>) response.getValues();
+    	assertThat(values.size()).isEqualTo(1);
+    	assertThat(values.get(0).get("value")).isEqualTo("tanuki");
+    	assertThat(values.get(0).get("ord")).isEqualTo(1);
+    }
+
+    @Test
+    public void testOrderedValuesWithFilter() {
+        AnyDocValuesResponse response = resource.client().target("/docvalues/field4/ordered?filter=.*nuk.*").request()
+                .get(new GenericType<AnyDocValuesResponse>() {});
+    	List<Map<String, Object>> values = (List<Map<String, Object>>) response.getValues();
+    	assertThat(values.size()).isEqualTo(1);
+    	assertThat(values.get(0).get("value")).isEqualTo("tanuki");
+    	assertThat(values.get(0).get("ord")).isEqualTo(1);
+    }
 }
