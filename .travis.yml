@@ -11,5 +11,5 @@ before_script:
     (cd ui && npm install)
 
 script:
-    - maven test
+    - mvn test
     - cd ui && npm test
