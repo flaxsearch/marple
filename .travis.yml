@@ -2,3 +2,10 @@ language: java
 jdk:
     - oraclejdk8
 sudo: true
+
+before_script:
+    cd ui && npm install
+
+script:
+    - maven test
+    - cd ui && npm test
