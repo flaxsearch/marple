@@ -20,7 +20,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
@@ -29,7 +28,6 @@ import java.util.HashMap;
 
 import com.github.flaxsearch.util.ReaderManager;
 import com.github.flaxsearch.api.AnyDocValuesResponse;
-import com.github.flaxsearch.api.TermsData;
 import com.github.flaxsearch.api.ValueWithOrd;
 import com.github.flaxsearch.util.BytesRefUtils;
 
@@ -41,7 +39,10 @@ import org.apache.lucene.index.SortedSetDocValues;
 import org.apache.lucene.index.DocValuesType;
 import org.apache.lucene.index.FieldInfo;
 import org.apache.lucene.index.TermsEnum;
+import org.apache.lucene.index.AutomatonTermsEnum;
 import org.apache.lucene.util.BytesRef;
+import org.apache.lucene.util.automaton.CompiledAutomaton;
+import org.apache.lucene.util.automaton.RegExp;
 
 
 @Path("/docvalues/{field}")
@@ -141,6 +142,7 @@ public class DocValuesResource {
             										@PathParam("field") String field,
             										@QueryParam("from") String startTerm,
             										@QueryParam("count") @DefaultValue("50") int count,
+            										@QueryParam("filter") String filter,
             										@QueryParam("encoding") @DefaultValue("utf8") String encoding) 
     												throws IOException {
         FieldInfo fieldInfo = readerManager.getFieldInfo(segment, field);
@@ -166,6 +168,11 @@ public class DocValuesResource {
 	        else {
 	        	throw new WebApplicationException("Field " + field + " cannot be viewed in value order", Response.Status.BAD_REQUEST);
 	        }
+            
+            if (filter != null) {
+            	CompiledAutomaton automaton = new CompiledAutomaton(new RegExp(filter).toAutomaton());
+            	te = new AutomatonTermsEnum(te, automaton);
+            }
 	        
 	        List<ValueWithOrd> collected = new ArrayList<>();
 
