@@ -17,14 +17,18 @@ package com.github.flaxsearch;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
+import java.io.IOException;
 import java.util.EnumSet;
 
+import com.codahale.metrics.health.HealthCheck;
 import com.github.flaxsearch.resources.*;
 import com.github.flaxsearch.util.FSReaderManager;
+import com.github.flaxsearch.util.ReaderManager;
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import org.apache.lucene.index.Term;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 
 public class MarpleApplication extends Application<MarpleConfiguration> {
@@ -56,9 +60,31 @@ public class MarpleApplication extends Application<MarpleConfiguration> {
         environment.jersey().register(new PointsResource(df));
         environment.jersey().register(new IndexResource(marpleConfiguration.getIndexPath(), df));
         environment.jersey().register(new DocValuesResource(df));
+
+        environment.healthChecks().register("index", new IndexCheck(df));
     }
 
     public static void main(String... args) throws Exception {
         new MarpleApplication().run(args);
+    }
+
+    private static class IndexCheck extends HealthCheck {
+
+        final ReaderManager readerManager;
+
+        private IndexCheck(ReaderManager readerManager) {
+            this.readerManager = readerManager;
+        }
+
+        @Override
+        protected Result check() throws Exception {
+            try {
+                readerManager.getIndexReader().docFreq(new Term("nosuchfield", "nosuchterm"));
+                return Result.healthy();
+            }
+            catch (IOException e) {
+                return Result.unhealthy(e);
+            }
+        }
     }
 }
