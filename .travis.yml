@@ -8,7 +8,7 @@ install:
       - nvm use stable
 
 before_script:
-    cd ui && npm install
+    (cd ui && npm install)
 
 script:
     - maven test
