@@ -35,6 +35,7 @@ class FieldView extends React.Component {
 
     this.onSelectPanel = this.onSelectPanel.bind(this);
     this.onSelectField = this.onSelectField.bind(this);
+    this.getDocValuesType = this.getDocValuesType.bind(this);
   }
 
   componentDidMount() {
@@ -50,12 +51,18 @@ class FieldView extends React.Component {
   }
 
   onSelectField(field) {
-      const selectedField = this.state.fields.filter(
+      const fieldData = this.state.fields.filter(
           x => x.name == field)[0];
-      if (selectedField != undefined) {
-          const activePanel = selectedField.hasTerms ? 'terms' : 'docvalues';
+      if (fieldData) {
+          const activePanel = fieldData.hasTerms ? 'terms' : 'docvalues';
           this.setState({ activePanel, selectedField: field });
       }
+  }
+
+  getDocValuesType(field) {
+      const fieldData = this.state.fields.filter(
+          x => x.name == field)[0];
+      return fieldData ? fieldData.docValuesType : 'NONE';
   }
 
   render() {
@@ -88,14 +95,14 @@ class FieldView extends React.Component {
                  indexData={p.indexData} showAlert={p.showAlert} />
         : s.activePanel == "docvalues" ?
           <DocValues segment={p.segment} field={s.selectedField}
-                     indexData={p.indexData} showAlert={p.showAlert} />
+                     indexData={p.indexData} showAlert={p.showAlert}
+                     docValuesType={this.getDocValuesType(s.selectedField)}/>
         : <div>{ `no panel for ${s.activePanel}`}</div>;
 
       return <div>
         <Nav bsStyle="tabs" justified activeKey={s.activePanel} onSelect={this.onSelectPanel}>
           <NavItem eventKey="terms">Terms</NavItem>
           <NavItem eventKey="docvalues">DocValues</NavItem>
-          <NavItem eventKey="points">Points</NavItem>
         </Nav>
         { panel }
       </div>;
@@ -109,7 +116,7 @@ FieldView.propTypes = {
   ]),
   indexData: PropTypes.object.isRequired,
   showAlert: PropTypes.func.isRequired,
-    viewSelector: PropTypes.object.isRequired
+  viewSelector: PropTypes.object.isRequired
 };
 
 export default FieldView;

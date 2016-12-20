@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import { Nav, NavItem, Form, FormControl, Label } from 'react-bootstrap';
+import { Form, FormControl, Label, FormGroup, Radio, Table } from 'react-bootstrap';
 import { loadDocValues, getFieldEncoding, setFieldEncoding } from '../data';
 import { parseDoclist } from '../util';
 import { EncodingDropdown } from './misc';
@@ -11,13 +11,15 @@ class DocValues extends React.Component {
     this.state = {
       docs: '',
       docValues: undefined,
-      encoding: ''
+      encoding: '',
+      viewBy: 'docs'
     }
 
     this.componentDidMount = this.componentDidMount.bind(this);
     this.componentWillReceiveProps = this.componentWillReceiveProps.bind(this);
     this.setEncoding = this.setEncoding.bind(this);
     this.setDocs = this.setDocs.bind(this);
+    this.setViewBy = this.setViewBy.bind(this);
   }
 
   loadAndDisplayData(segment, field, docs, newEncoding) {
@@ -61,12 +63,19 @@ class DocValues extends React.Component {
   }
 
   setEncoding(encoding) {
-    this.loadAndDisplayData(this.props.segment, this.props.field, this.state.docs, encoding);
+    this.loadAndDisplayData(this.props.segment, this.props.field,
+                            this.state.docs, encoding);
   }
 
   setDocs(docs) {
     docs = docs.replace(/[^\d ,\-]/, '');  // restrict input
-    this.loadAndDisplayData(this.props.segment, this.props.field, docs, this.state.encoding);
+    this.loadAndDisplayData(this.props.segment, this.props.field,
+                            docs, this.state.encoding);
+  }
+
+  setViewBy(evt) {
+    const viewBy = evt.target.value;
+    console.log('FIXME viewBy=' + viewBy);
   }
 
   render() {
@@ -77,7 +86,7 @@ class DocValues extends React.Component {
       return <div/>;
     }
 
-    if (s.docValues.type == 'NONE') {
+    if (p.docValuesType == 'NONE') {
       return <div style={{margin:'14px'}}>
         [no doc values for field {p.field}]
       </div>;
@@ -96,57 +105,55 @@ class DocValues extends React.Component {
       });
     }
 
-    const that = this;    // sigh
-    const dvList = keys.map(function(docid) {
-      const text = that.formatDocValue(
-        docid, s.docValues.values[docid], s.docValues.type);
-      return <NavItem key={docid}>{text}</NavItem>;
-    });
-
-    const encodingDropdown = doesEncodingApply(s.docValues.type) ?
+    const encodingDropdown = doesEncodingApply(p.docValuesType) ?
       <EncodingDropdown encoding={s.encoding} numeric={true}
                         onSelect={x => this.setEncoding(x)} /> : '';
 
-    const style = {"paddingTop": "7px"};
+    const disableViewBy = ! typeHasValueView(p.docValuesType);
+    const dvlist = makeDvList(keys, s.docValues.type, s.docValues.values);
+
     const placeholder = "Doc IDs (e.g. 1, 5, 10-100)";
     return <div>
-      <Form inline style={style} onSubmit={ e => e.preventDefault() }>
+      <div style={{ marginTop: '10px' }}>
+        <FormGroup>
+          <Label style={{ marginRight: '15px' }}>{ p.docValuesType}</Label>
+          { encodingDropdown }
+          <Radio inline style={{ marginLeft: '20px' }}
+                 checked={ disableViewBy || s.viewBy == 'docs' }
+                 disabled={ disableViewBy }
+                 value={'docs'}
+                 onChange={this.setViewBy}>
+            View by doc
+          </Radio>
+          {' '}
+          <Radio inline
+                 checked={ s.viewBy == 'values' && ! disableViewBy }
+                 disabled={ disableViewBy }
+                 value={'values'}
+                 onChange={this.setViewBy}>
+            View by value
+          </Radio>
+        </FormGroup>
+      </div>
+
+      <Form inline onSubmit={ e => e.preventDefault() }>
         <FormControl type="text" placeholder={placeholder} value={s.docs}
           onChange={ e => this.setDocs(e.target.value) }
-          style={{"width": "440px"}} />
-        {" "}
-        { encodingDropdown }
-        {" "}
-        <Label>{ s.docValues.type}</Label>
+          style={{width: "100%"}} />
       </Form>
-      <Nav>{dvList}</Nav>
+      <Table style={{marginTop:'10px'}}>
+        <thead>
+          <tr>
+            <th style={{width:'80px'}}>Doc ID</th>
+            <th style={{width:'50px'}}>Ord</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {dvlist}
+        </tbody>
+      </Table>
     </div>;
-  }
-
-  formatDocValue(docid, docvalue, type) {
-    var dvtext;
-    if (docvalue == undefined) {
-      return `(${docid}) [no value]`;
-    }
-
-    if (type == 'BINARY' || type == 'SORTED') {
-      dvtext = docvalue;
-    }
-    else if (type == 'SORTED_SET') {
-      dvtext = docvalue.join(', ');
-    }
-    else if (type == 'NUMERIC') {
-      dvtext = docvalue;
-    }
-    else if (type == 'SORTED_NUMERIC') {
-      dvtext = docvalue.join(', ');
-    }
-    else {
-      this.props.showAlert(`unknown doc values type ${type}`, true);
-      return '';
-    }
-
-    return `(${docid}) ${dvtext}`;
   }
 }
 
@@ -154,11 +161,62 @@ function doesEncodingApply(type) {
   return ! type.includes('NUMERIC');
 }
 
+function typeHasValueView(type) {
+  return type == 'SORTED' || type == 'SORTED_SET';
+}
+
+function makeDvList(keys, type, values) {
+  let dvlist = [];
+  if (type == 'BINARY' || type == 'NUMERIC') {
+    keys.forEach(docid => {
+      dvlist.push(<tr key={docid}>
+        <td>{docid}</td>
+        <td>-</td>
+        <td>{values[docid]}</td>
+      </tr>);
+    });
+  }
+  else if (type == 'SORTED') {
+    keys.forEach(docid => {
+      dvlist.push(<tr key={docid}>
+        <td>{docid}</td>
+        <td>{values[docid].ord}</td>
+        <td>{values[docid].value}</td>
+      </tr>);
+    });
+  }
+  else if (type == 'SORTED_NUMERIC') {
+    keys.forEach(docid => {
+      values[docid].forEach((value, idx) => {
+        dvlist.push(<tr key={`${docid}.${idx}`}>
+          <td>{idx == 0 ? docid : ''}</td>
+          <td>-</td>
+          <td>{value}</td>
+        </tr>);
+      });
+    });
+  }
+  else if (type == 'SORTED_SET') {
+    keys.forEach(docid => {
+      values[docid].forEach((value, idx) => {
+        dvlist.push(<tr key={`${docid}.${idx}`}>
+          <td>{idx == 0 ? docid : ''}</td>
+          <td>{value.ord}</td>
+          <td>{value.value}</td>
+        </tr>);
+      });
+    });
+  }
+
+  return dvlist;
+}
+
 DocValues.propTypes = {
   segment: PropTypes.oneOfType([
     PropTypes.string, PropTypes.number
   ]),
   field: PropTypes.string.isRequired,
+  docValuesType: PropTypes.string.isRequired,
   indexData: PropTypes.object.isRequired,
   showAlert: PropTypes.func.isRequired
 };
