@@ -57,7 +57,7 @@ export function loadTermsData(segment, field, termsFilter, encoding, onSuccess, 
   });
 }
 
-export function loadDocValues(segment, field, docs, encoding, onSuccess, onError) {
+export function loadDocValuesByDoc(segment, field, docs, encoding, onSuccess, onError) {
   const url = MARPLE_BASE + `/api/docvalues/${field}?`+ makeQueryStr({ segment, docs, encoding });
   fetch(url)
   .then(response => response.json())
@@ -66,7 +66,30 @@ export function loadDocValues(segment, field, docs, encoding, onSuccess, onError
     if (body.code) {
       if (body.code == 400 && body.message.includes('cannot be decoded as')) {
         // cope with encoding error by defaulting to utf8
-        loadDocValues(segment, field, docs, 'utf8', onSuccess, onError);
+        loadDocValuesByDoc(segment, field, docs, 'utf8', onSuccess, onError);
+      }
+      else {
+        onError(body.message);
+      }
+    }
+    else {
+      onSuccess(body, encoding);    // return encoding in case it defaulted
+    }
+  })
+  .catch(error => { onError('error loading docvalues: ' + error); });
+}
+
+export function loadDocValuesByValue(segment, field, filter, encoding, onSuccess, onError) {
+  const url = MARPLE_BASE + `/api/docvalues/${field}/ordered?`+ makeQueryStr({
+                                                  segment, filter, encoding });
+  fetch(url)
+  .then(response => response.json())
+  .then(body => {
+    // this relies on the error response containing the 'code' property
+    if (body.code) {
+      if (body.code == 400 && body.message.includes('cannot be decoded as')) {
+        // cope with encoding error by defaulting to utf8
+        loadDocValuesByValue(segment, field, filter, 'utf8', onSuccess, onError);
       }
       else {
         onError(body.message);

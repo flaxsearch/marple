@@ -1,6 +1,7 @@
 import React, { PropTypes } from 'react';
 import { Form, FormControl, Label, FormGroup, Radio, Table } from 'react-bootstrap';
-import { loadDocValues, getFieldEncoding, setFieldEncoding } from '../data';
+import { loadDocValuesByDoc, loadDocValuesByValue,
+         getFieldEncoding, setFieldEncoding } from '../data';
 import { parseDoclist } from '../util';
 import { EncodingDropdown } from './misc';
 
@@ -91,6 +92,12 @@ DocValuesByDocs.propTypes = {
   setDocs: PropTypes.func
 };
 
+
+const DocValuesByValue = props => {
+  return <div>{JSON.stringify(props)}</div>
+};
+
+
 class DocValues extends React.Component {
   constructor(props) {
     super(props);
@@ -110,22 +117,21 @@ class DocValues extends React.Component {
   }
 
   loadAndDisplayDataByDocs(segment, field, docs, newEncoding) {
+    // unset docValues to prevent React trying to render with an incompatible component
+    // while the data is fetching
+    this.setState({ docValues: undefined });
+
     newEncoding = newEncoding || getFieldEncoding(
       this.props.indexData.indexpath, field, 'docvalues');
-    console.log('FIXME newEncoding=' + newEncoding);    
 
-    loadDocValues(segment, field, docs, newEncoding,
+    loadDocValuesByDoc(segment, field, docs, newEncoding,
       (docValues, encoding) => {
-        console.log('FIXME encoding=' + encoding);
-        console.log('FIXME this.state.encoding=' + this.state.encoding);
         if (encoding != this.state.encoding) {
-          console.log('FIXME setting encoding');
           setFieldEncoding(this.props.indexData.indexpath,
             this.props.field, 'docvalues', encoding);
         }
 
-        this.setState({ docs, docValues, encoding });
-
+        this.setState({ docs, docValues, encoding, viewBy: 'docs' });
         if (encoding != newEncoding) {
           this.props.showAlert(`${newEncoding} is not a valid encoding for this field`);
         }
@@ -141,12 +147,43 @@ class DocValues extends React.Component {
     );
   }
 
+  loadAndDisplayDataByValues(segment, field, filter, newEncoding) {
+    this.setState({ docValues: undefined });
+    newEncoding = newEncoding || getFieldEncoding(
+      this.props.indexData.indexpath, field, 'docvalues');
+
+    loadDocValuesByValue(segment, field, '', newEncoding,
+      (docValues, encoding) => {
+        if (encoding != this.state.encoding) {
+          setFieldEncoding(this.props.indexData.indexpath,
+            this.props.field, 'docvalues', encoding);
+        }
+
+        this.setState({ docValues, encoding, viewBy: 'values' });
+        if (encoding != newEncoding) {
+          this.props.showAlert(`${newEncoding} is not a valid encoding for this field`);
+        }
+      },
+      errmsg => {
+        if (errmsg.includes('No doc values for')) {
+          this.setState({ docValues: { type: 'NONE', values: null }});
+        }
+        else {
+          this.props.showAlert(errmsg, true);
+        }
+      }
+    );
+
+  }
+
+  // always open in viewBy:docs state
   componentDidMount() {
     if (this.props.field) {
       this.loadAndDisplayDataByDocs(this.props.segment, this.props.field, '');
     }
   }
 
+  // always switch to viewBy:docs state
   componentWillReceiveProps(newProps) {
     if (newProps.field && newProps.field != this.props.field) {
       this.loadAndDisplayDataByDocs(newProps.segment, newProps.field, this.state.docs);
@@ -154,8 +191,15 @@ class DocValues extends React.Component {
   }
 
   setEncoding(encoding) {
-    this.loadAndDisplayDataByDocs(this.props.segment, this.props.field,
-                                  this.state.docs, encoding);
+    if (this.state.viewBy == 'values' &&
+        typeHasValueView(this.props.docValuesType)) {
+      this.loadAndDisplayDataByValues(this.props.segment, this.props.field,
+                                      this.state.filter, encoding);
+    }
+    else {
+      this.loadAndDisplayDataByDocs(this.props.segment, this.props.field,
+                                    this.state.docs, encoding);
+    }
   }
 
   setDocs(docs) {
@@ -166,7 +210,14 @@ class DocValues extends React.Component {
 
   setViewBy(evt) {
     const viewBy = evt.target.value;
-    console.log('FIXME viewBy=' + viewBy);
+    if (viewBy == 'values' && typeHasValueView(this.props.docValuesType)) {
+      this.loadAndDisplayDataByValues(this.props.segment, this.props.field,
+                                      this.state.filter, this.state.encoding);
+    }
+    else {
+      this.loadAndDisplayDataByDocs(this.props.segment, this.props.field,
+                                    this.state.docs, this.state.encoding);
+    }
   }
 
   render() {
@@ -193,7 +244,8 @@ class DocValues extends React.Component {
       <DocValuesByDocs docs={s.docs} docValues={s.docValues}
                        numDocs={p.indexData.numDocs} setDocs={this.setDocs} />
       :
-      'FIXME';
+      <DocValuesByValue filter={s.filter} docValues={s.docValues}
+                        numDocs={p.indexData.numDocs} /> ;
 
     return <div>
       <div style={{ marginTop: '10px' }}>
