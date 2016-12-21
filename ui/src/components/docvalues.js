@@ -63,26 +63,18 @@ const DocValuesByDocs = props => {
     });
   }
 
-  return <div>
-    <Form inline onSubmit={ e => e.preventDefault() }>
-      <FormControl type="text" value={props.docs}
-        placeholder={'Doc IDs (e.g. 1, 5, 10-100)'}
-        onChange={ e => props.setDocs(e.target.value) }
-        style={{width: "100%"}} />
-    </Form>
-    <Table style={{marginTop:'10px'}}>
-      <thead>
-        <tr>
-          <th style={{width:'70px'}}>Doc ID</th>
-          <th style={{width:'50px'}}>Ord</th>
-          <th>Value</th>
-        </tr>
-      </thead>
-      <tbody>
-        {dvlist}
-      </tbody>
-    </Table>
-  </div>
+  return <Table style={{marginTop:'10px'}}>
+    <thead>
+      <tr>
+        <th style={{width:'70px'}}>Doc ID</th>
+        <th style={{width:'50px'}}>Ord</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      {dvlist}
+    </tbody>
+  </Table>
 };
 
 DocValuesByDocs.propTypes = {
@@ -97,25 +89,17 @@ const DocValuesByValue = props => {
   const dvlist = props.docValues.values.map(value =>
     <tr key={value.ord}><td>{value.ord}</td><td>{value.value}</td></tr>
   );
-  return <div>
-    <Form inline onSubmit={ e => e.preventDefault() }>
-      <FormControl type="text" value={props.filter}
-        placeholder={'Regexp filter'}
-        onChange={ e => props.setFilter(e.target.value) }
-        style={{width: "100%"}} />
-    </Form>
-    <Table style={{marginTop:'10px'}}>
-      <thead>
-        <tr>
-          <th style={{width:'50px'}}>Ord</th>
-          <th>Value</th>
-        </tr>
-      </thead>
-      <tbody>
-        {dvlist}
-      </tbody>
-    </Table>
-  </div>
+  return <Table style={{marginTop:'10px'}}>
+    <thead>
+      <tr>
+        <th style={{width:'50px'}}>Ord</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      {dvlist}
+    </tbody>
+  </Table>
 };
 
 DocValuesByValue.propTypes = {
@@ -160,7 +144,7 @@ class DocValues extends React.Component {
             this.props.field, 'docvalues', encoding);
         }
 
-        this.setState({ docs, docValues, encoding, viewBy: 'docs' });
+        this.setState({ docs, docValues, encoding });
         if (encoding != newEncoding) {
           this.props.showAlert(`${newEncoding} is not a valid encoding for this field`);
         }
@@ -181,14 +165,14 @@ class DocValues extends React.Component {
     newEncoding = newEncoding || getFieldEncoding(
       this.props.indexData.indexpath, field, 'docvalues');
 
-    loadDocValuesByValue(segment, field, '', newEncoding,
+    loadDocValuesByValue(segment, field, filter, newEncoding,
       (docValues, encoding) => {
         if (encoding != this.state.encoding) {
           setFieldEncoding(this.props.indexData.indexpath,
             this.props.field, 'docvalues', encoding);
         }
 
-        this.setState({ docValues, encoding, viewBy: 'values' });
+        this.setState({ docValues, encoding, filter });
         if (encoding != newEncoding) {
           this.props.showAlert(`${newEncoding} is not a valid encoding for this field`);
         }
@@ -238,8 +222,8 @@ class DocValues extends React.Component {
   }
 
   setFilter(filter) {
-    console.log('FIXME filter=' + filter);
-    this.setState({ filter });
+    this.loadAndDisplayDataByValues(this.props.segment, this.props.field,
+                                    filter, this.state.encoding);
   }
 
   setViewBy(evt) {
@@ -274,7 +258,7 @@ class DocValues extends React.Component {
 
     const disableViewBy = ! typeHasValueView(p.docValuesType);
 
-    const dvcomponent = (s.viewBy == 'docs' || disableViewBy) ?
+    const dvtable = (s.viewBy == 'docs' || disableViewBy) ?
       <DocValuesByDocs docs={s.docs} docValues={s.docValues}
                        numDocs={p.indexData.numDocs} setDocs={this.setDocs} />
       :
@@ -303,7 +287,13 @@ class DocValues extends React.Component {
           </Radio>
         </FormGroup>
       </div>
-      {dvcomponent}
+
+      <FormControl type="text" value={s.docs}
+        placeholder={'FIXME'}
+        onChange={ e => this.setDocs(e.target.value) }
+        style={{width: "100%"}} />
+
+      {dvtable}
     </div>;
   }
 }
