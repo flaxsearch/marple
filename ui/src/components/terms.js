@@ -106,7 +106,7 @@ class Terms extends React.Component {
       </table>
       <Form inline onSubmit={ e => e.preventDefault() }>
         <FormControl type="text" value={s.termsFilter}
-         placeholder={'Regexp filter'}
+         placeholder={'Filter by regexp'}
          onChange={ e => this.setTermsFilter(e.target.value) }
          style={{width:'500px'}} />
         {" "}

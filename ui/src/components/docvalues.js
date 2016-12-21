@@ -80,8 +80,7 @@ const DocValuesByDocs = props => {
 DocValuesByDocs.propTypes = {
   docs: PropTypes.string,
   docValues: PropTypes.object,
-  numDocs: PropTypes.number,
-  setDocs: PropTypes.func
+  numDocs: PropTypes.number
 };
 
 
@@ -104,10 +103,8 @@ const DocValuesByValue = props => {
 
 DocValuesByValue.propTypes = {
   filter: PropTypes.string,
-  docValues: PropTypes.object,
-  setFilter: PropTypes.func
+  docValues: PropTypes.object
 };
-
 
 
 class DocValues extends React.Component {
@@ -130,8 +127,8 @@ class DocValues extends React.Component {
   }
 
   loadAndDisplayDataByDocs(segment, field, docs, newEncoding) {
-    // unset docValues to prevent React trying to render with an incompatible component
-    // while the data is fetching
+    // unset docValues to prevent React trying to render
+    // with an incompatible component while the data is fetching
     this.setState({ docValues: undefined });
 
     newEncoding = newEncoding || getFieldEncoding(
@@ -144,7 +141,7 @@ class DocValues extends React.Component {
             this.props.field, 'docvalues', encoding);
         }
 
-        this.setState({ docs, docValues, encoding });
+        this.setState({ docs, docValues, encoding, viewBy:'docs' });
         if (encoding != newEncoding) {
           this.props.showAlert(`${newEncoding} is not a valid encoding for this field`);
         }
@@ -161,7 +158,10 @@ class DocValues extends React.Component {
   }
 
   loadAndDisplayDataByValues(segment, field, filter, newEncoding) {
+    // unset docValues to prevent React trying to render
+    // with an incompatible component while the data is fetching
     this.setState({ docValues: undefined });
+
     newEncoding = newEncoding || getFieldEncoding(
       this.props.indexData.indexpath, field, 'docvalues');
 
@@ -172,7 +172,7 @@ class DocValues extends React.Component {
             this.props.field, 'docvalues', encoding);
         }
 
-        this.setState({ docValues, encoding, filter });
+        this.setState({ docValues, encoding, filter, viewBy:'values' });
         if (encoding != newEncoding) {
           this.props.showAlert(`${newEncoding} is not a valid encoding for this field`);
         }
@@ -242,28 +242,34 @@ class DocValues extends React.Component {
     const s = this.state;
     const p = this.props;
 
-    if (s.docValues == undefined) {
-      return <div/>;
-    }
-
-    if (p.docValuesType == 'NONE') {
-      return <div style={{margin:'14px'}}>
-        [no doc values for field {p.field}]
-      </div>;
-    }
-
     const encodingDropdown = doesEncodingApply(p.docValuesType) ?
       <EncodingDropdown encoding={s.encoding} numeric={true}
                         onSelect={x => this.setEncoding(x)} /> : '';
 
     const disableViewBy = ! typeHasValueView(p.docValuesType);
 
-    const dvtable = (s.viewBy == 'docs' || disableViewBy) ?
-      <DocValuesByDocs docs={s.docs} docValues={s.docValues}
-                       numDocs={p.indexData.numDocs} setDocs={this.setDocs} />
-      :
-      <DocValuesByValue filter={s.filter} docValues={s.docValues}
-                        setFilter={this.setFilter}/> ;
+    let dvTable = '';
+    let filterComp = <FormControl type="text" value={s.docs}
+                  placeholder={'Filter by doc ID, e.g. 1, 3, 5-17'}
+                  onChange={e => this.setDocs(e.target.value)}
+                  style={{width: "100%"}} />;
+
+    if (s.docValues != undefined) {
+      if (p.docValuesType == 'NONE') {
+        dvTable = <h3>[no doc values for field {p.field}]</h3>;
+      }
+      else if (s.viewBy == 'docs' || disableViewBy) {
+        dvTable = <DocValuesByDocs docs={s.docs} docValues={s.docValues}
+                   numDocs={p.indexData.numDocs} setDocs={this.setDocs} />
+      }
+      else {
+        dvTable = <DocValuesByValue filter={s.filter} docValues={s.docValues}/> ;
+        filterComp = <FormControl type="text" value={s.filter}
+                      placeholder={'Filter by regexp'}
+                      onChange={e => this.setFilter(e.target.value)}
+                      style={{width: "100%"}} />;
+      }
+    }
 
     return <div>
       <div style={{ marginTop: '10px' }}>
@@ -287,13 +293,8 @@ class DocValues extends React.Component {
           </Radio>
         </FormGroup>
       </div>
-
-      <FormControl type="text" value={s.docs}
-        placeholder={'FIXME'}
-        onChange={ e => this.setDocs(e.target.value) }
-        style={{width: "100%"}} />
-
-      {dvtable}
+      {filterComp}
+      {dvTable}
     </div>;
   }
 }

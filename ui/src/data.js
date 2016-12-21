@@ -32,7 +32,7 @@ export function loadDocument(segment, docid, onSuccess, onError) {
 }
 
 export function loadTermsData(segment, field, termsFilter, encoding, onSuccess, onError) {
-    // add a wildcard to the end of the filter
+  // add a wildcard to the end of the filter
   const filter = termsFilter ? termsFilter + '.*' : '';
   const url = MARPLE_BASE + `/api/terms/${field}?` + makeQueryStr({ segment, filter, encoding });
   fetch(url)
@@ -79,7 +79,10 @@ export function loadDocValuesByDoc(segment, field, docs, encoding, onSuccess, on
   .catch(error => { onError('error loading docvalues: ' + error); });
 }
 
-export function loadDocValuesByValue(segment, field, filter, encoding, onSuccess, onError) {
+export function loadDocValuesByValue(segment, field, valFilter, encoding, onSuccess, onError) {
+  // add a wildcard to the end of the filter
+  const filter = valFilter ? valFilter + '.*' : '';
+
   const url = MARPLE_BASE + `/api/docvalues/${field}/ordered?`+ makeQueryStr({
                                                   segment, filter, encoding });
   fetch(url)
