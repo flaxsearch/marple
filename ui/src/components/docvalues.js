@@ -94,8 +94,36 @@ DocValuesByDocs.propTypes = {
 
 
 const DocValuesByValue = props => {
-  return <div>{JSON.stringify(props)}</div>
+  const dvlist = props.docValues.values.map(value =>
+    <tr key={value.ord}><td>{value.ord}</td><td>{value.value}</td></tr>
+  );
+  return <div>
+    <Form inline onSubmit={ e => e.preventDefault() }>
+      <FormControl type="text" value={props.filter}
+        placeholder={'Regexp filter'}
+        onChange={ e => props.setFilter(e.target.value) }
+        style={{width: "100%"}} />
+    </Form>
+    <Table style={{marginTop:'10px'}}>
+      <thead>
+        <tr>
+          <th style={{width:'50px'}}>Ord</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        {dvlist}
+      </tbody>
+    </Table>
+  </div>
 };
+
+DocValuesByValue.propTypes = {
+  filter: PropTypes.string,
+  docValues: PropTypes.object,
+  setFilter: PropTypes.func
+};
+
 
 
 class DocValues extends React.Component {
@@ -112,6 +140,7 @@ class DocValues extends React.Component {
     this.componentDidMount = this.componentDidMount.bind(this);
     this.componentWillReceiveProps = this.componentWillReceiveProps.bind(this);
     this.setDocs = this.setDocs.bind(this);
+    this.setFilter = this.setFilter.bind(this);
     this.setEncoding = this.setEncoding.bind(this);
     this.setViewBy = this.setViewBy.bind(this);
   }
@@ -208,6 +237,11 @@ class DocValues extends React.Component {
                                   docs, this.state.encoding);
   }
 
+  setFilter(filter) {
+    console.log('FIXME filter=' + filter);
+    this.setState({ filter });
+  }
+
   setViewBy(evt) {
     const viewBy = evt.target.value;
     if (viewBy == 'values' && typeHasValueView(this.props.docValuesType)) {
@@ -245,7 +279,7 @@ class DocValues extends React.Component {
                        numDocs={p.indexData.numDocs} setDocs={this.setDocs} />
       :
       <DocValuesByValue filter={s.filter} docValues={s.docValues}
-                        numDocs={p.indexData.numDocs} /> ;
+                        setFilter={this.setFilter}/> ;
 
     return <div>
       <div style={{ marginTop: '10px' }}>
