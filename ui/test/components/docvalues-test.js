@@ -111,7 +111,6 @@ describe('components/docvalues', function() {
         expect(radios[1].firstChild.value).to.eql('values');
         TestUtils.Simulate.change(radios[1].firstChild, { target: { value: 'values' }});
         setTimeout(() => {
-          radios = renderedDOM.getElementsByClassName('marple-radio');
           expect(radios[0].firstChild.checked).to.be(false);
           expect(radios[1].firstChild.checked).to.be(true);
           const items = renderedDOM.getElementsByClassName('marple-dv-item');
