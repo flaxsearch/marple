@@ -127,10 +127,6 @@ class DocValues extends React.Component {
   }
 
   loadAndDisplayDataByDocs(segment, field, docs, newEncoding) {
-    // unset docValues to prevent React trying to render
-    // with an incompatible component while the data is fetching
-    this.setState({ docValues: undefined });
-
     newEncoding = newEncoding || getFieldEncoding(
       this.props.indexData.indexpath, field, 'docvalues');
 
@@ -158,10 +154,6 @@ class DocValues extends React.Component {
   }
 
   loadAndDisplayDataByValues(segment, field, filter, newEncoding) {
-    // unset docValues to prevent React trying to render
-    // with an incompatible component while the data is fetching
-    this.setState({ docValues: undefined });
-
     newEncoding = newEncoding || getFieldEncoding(
       this.props.indexData.indexpath, field, 'docvalues');
 
@@ -198,6 +190,7 @@ class DocValues extends React.Component {
 
   // always switch to viewBy:docs state
   componentWillReceiveProps(newProps) {
+    this.setState({ docValues: undefined, viewBy: 'docs' });
     if (newProps.field && newProps.field != this.props.field) {
       this.loadAndDisplayDataByDocs(newProps.segment, newProps.field, this.state.docs);
     }
