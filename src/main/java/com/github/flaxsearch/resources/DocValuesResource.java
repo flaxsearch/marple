@@ -179,10 +179,10 @@ public class DocValuesResource {
             if (startTerm != null) {
                 BytesRef start = BytesRefUtils.decode(startTerm, encoding);
                 if (te.seekCeil(start) == TermsEnum.SeekStatus.END)
-                    return new AnyDocValuesResponse(type_s, null);
+                    return new AnyDocValuesResponse(type_s, collected);
             } else {
                 if (te.next() == null) {
-                    return new AnyDocValuesResponse(type_s, null);
+                    return new AnyDocValuesResponse(type_s, collected);
                 }
             }
 
