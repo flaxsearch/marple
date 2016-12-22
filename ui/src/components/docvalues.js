@@ -24,7 +24,7 @@ const DocValuesByDocs = props => {
   let dvlist = [];
   if (type == 'BINARY' || type == 'NUMERIC') {
     keys.forEach(docid => {
-      dvlist.push(<tr key={docid}>
+      dvlist.push(<tr key={docid} className='marple-dv-item'>
         <td>{docid}</td>
         <td>-</td>
         <td>{values[docid]}</td>
@@ -33,7 +33,7 @@ const DocValuesByDocs = props => {
   }
   else if (type == 'SORTED') {
     keys.forEach(docid => {
-      dvlist.push(<tr key={docid}>
+      dvlist.push(<tr key={docid} className='marple-dv-item'>
         <td>{docid}</td>
         <td>{values[docid].ord}</td>
         <td>{values[docid].value}</td>
@@ -43,7 +43,7 @@ const DocValuesByDocs = props => {
   else if (type == 'SORTED_NUMERIC') {
     keys.forEach(docid => {
       values[docid].forEach((value, idx) => {
-        dvlist.push(<tr key={`${docid}.${idx}`}>
+        dvlist.push(<tr key={`${docid}.${idx}`} className='marple-dv-item'>
           <td>{idx == 0 ? docid : ''}</td>
           <td>-</td>
           <td>{value}</td>
@@ -54,7 +54,7 @@ const DocValuesByDocs = props => {
   else if (type == 'SORTED_SET') {
     keys.forEach(docid => {
       values[docid].forEach((value, idx) => {
-        dvlist.push(<tr key={`${docid}.${idx}`}>
+        dvlist.push(<tr key={`${docid}.${idx}`} className='marple-dv-item'>
           <td>{idx == 0 ? docid : ''}</td>
           <td>{value.ord}</td>
           <td>{value.value}</td>
@@ -86,7 +86,10 @@ DocValuesByDocs.propTypes = {
 
 const DocValuesByValue = props => {
   const dvlist = props.docValues.values.map(value =>
-    <tr key={value.ord}><td>{value.ord}</td><td>{value.value}</td></tr>
+    <tr key={value.ord} className='marple-dv-item'>
+      <td>{value.ord}</td>
+      <td>{value.value}</td>
+    </tr>
   );
   return <Table style={{marginTop:'10px'}}>
     <thead>
@@ -245,7 +248,8 @@ class DocValues extends React.Component {
     let filterComp = <FormControl type="text" value={s.docs}
                   placeholder={'Filter by doc ID, e.g. 1, 3, 5-17'}
                   onChange={e => this.setDocs(e.target.value)}
-                  style={{width: "100%"}} />;
+                  style={{width: "100%"}}
+                  className="marple-docs-input"/>;
 
     if (s.docValues != undefined) {
       if (p.docValuesType == 'NONE') {
@@ -260,7 +264,8 @@ class DocValues extends React.Component {
         filterComp = <FormControl type="text" value={s.filter}
                       placeholder={'Filter by regexp'}
                       onChange={e => this.setFilter(e.target.value)}
-                      style={{width: "100%"}} />;
+                      style={{width: "100%"}}
+                      className="marple-filter-input"/>;
       }
     }
 
@@ -273,7 +278,8 @@ class DocValues extends React.Component {
                  checked={ disableViewBy || s.viewBy == 'docs' }
                  disabled={ disableViewBy }
                  value={'docs'}
-                 onChange={this.setViewBy}>
+                 onChange={this.setViewBy}
+                 className="marple-radio">
             View by doc
           </Radio>
           {' '}
@@ -281,7 +287,8 @@ class DocValues extends React.Component {
                  checked={ s.viewBy == 'values' && ! disableViewBy }
                  disabled={ disableViewBy }
                  value={'values'}
-                 onChange={this.setViewBy}>
+                 onChange={this.setViewBy}
+                 className="marple-radio">
             View by value
           </Radio>
         </FormGroup>
