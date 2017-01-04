@@ -54,7 +54,7 @@ class Terms extends React.Component {
   }
 
   componentWillReceiveProps(newProps) {
-    if (newProps.field && newProps.field != this.props.field) {
+    if (newProps.field) {
       this.loadAndDisplayData(newProps.segment, newProps.field, this.state.termsFilter);
     }
   }
