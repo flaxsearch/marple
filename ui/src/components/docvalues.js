@@ -194,8 +194,8 @@ class DocValues extends React.Component {
   // always switch to viewBy:docs state
   componentWillReceiveProps(newProps) {
     this.setState({ docValues: undefined, viewBy: 'docs' });
-    if (newProps.field && newProps.field != this.props.field) {
-      this.loadAndDisplayDataByDocs(newProps.segment, newProps.field, this.state.docs);
+    if (newProps.field) {
+      this.loadAndDisplayData(newProps.segment, newProps.field, this.state.docs);
     }
   }
 
