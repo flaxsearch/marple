@@ -46,12 +46,7 @@ describe('components/docvalues', function() {
         expect(items[0].children[2].innerHTML).to.eql('austen-emma.txt');
 
         const radios = renderedDOM.getElementsByClassName('marple-radio');
-        expect(radios.length).to.eql(2);
-        expect(radios[0].firstChild.disabled).to.be(true);
-        expect(radios[0].firstChild.checked).to.be(true);
-        expect(radios[1].firstChild.disabled).to.be(true);
-        expect(radios[1].firstChild.checked).to.be(false);
-
+        expect(radios.length).to.eql(0);
         done();
     });
   });
@@ -82,6 +77,7 @@ describe('components/docvalues', function() {
         expect(items[1].children[2].innerHTML).to.eql('cat');
 
         const radios = renderedDOM.getElementsByClassName('marple-radio');
+        expect(radios.length).to.eql(2);
         expect(radios[0].firstChild.disabled).to.be(false);
         expect(radios[0].firstChild.checked).to.be(true);
         done();
