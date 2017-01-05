@@ -269,28 +269,31 @@ class DocValues extends React.Component {
       }
     }
 
+    const viewBySelector = disableViewBy ? '' :
+      <span>
+        <Radio inline style={{ marginLeft: '20px' }}
+               checked={ s.viewBy == 'docs' }
+               value={'docs'}
+               onChange={this.setViewBy}
+               className="marple-radio">
+          View by doc
+        </Radio>
+        {' '}
+        <Radio inline
+               checked={ s.viewBy == 'values' }
+               value={'values'}
+               onChange={this.setViewBy}
+               className="marple-radio">
+          View by value
+        </Radio>
+      </span>;
+
     return <div>
       <div style={{ marginTop: '10px' }}>
         <FormGroup>
           <Label style={{ marginRight: '15px' }}>{ p.docValuesType}</Label>
           { encodingDropdown }
-          <Radio inline style={{ marginLeft: '20px' }}
-                 checked={ disableViewBy || s.viewBy == 'docs' }
-                 disabled={ disableViewBy }
-                 value={'docs'}
-                 onChange={this.setViewBy}
-                 className="marple-radio">
-            View by doc
-          </Radio>
-          {' '}
-          <Radio inline
-                 checked={ s.viewBy == 'values' && ! disableViewBy }
-                 disabled={ disableViewBy }
-                 value={'values'}
-                 onChange={this.setViewBy}
-                 className="marple-radio">
-            View by value
-          </Radio>
+          { viewBySelector }
         </FormGroup>
       </div>
       {filterComp}
