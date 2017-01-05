@@ -1,8 +1,119 @@
 import React, { PropTypes } from 'react';
-import { Nav, NavItem, Form, FormControl, Label } from 'react-bootstrap';
-import { loadDocValues, getFieldEncoding, setFieldEncoding } from '../data';
+import { Form, FormControl, Label, FormGroup, Radio, Table } from 'react-bootstrap';
+import { loadDocValuesByDoc, loadDocValuesByValue,
+         getFieldEncoding, setFieldEncoding } from '../data';
 import { parseDoclist } from '../util';
 import { EncodingDropdown } from './misc';
+
+const DocValuesByDocs = props => {
+  let keys;
+  if (props.docs) {
+      keys = parseDoclist(props.docs, props.numDocs);
+  }
+  else {
+    keys = Object.keys(props.docValues.values);
+    keys.sort((a, b) => {
+      const ia = parseInt(a);
+      const ib = parseInt(b);
+      return ia < ib ? -1 : ia > ib ? 1 : 0;
+    });
+  }
+
+  const type = props.docValues.type;
+  const values = props.docValues.values;
+  let dvlist = [];
+  if (type == 'BINARY' || type == 'NUMERIC') {
+    keys.forEach(docid => {
+      dvlist.push(<tr key={docid} className='marple-dv-item'>
+        <td>{docid}</td>
+        <td>-</td>
+        <td>{values[docid]}</td>
+      </tr>);
+    });
+  }
+  else if (type == 'SORTED') {
+    keys.forEach(docid => {
+      dvlist.push(<tr key={docid} className='marple-dv-item'>
+        <td>{docid}</td>
+        <td>{values[docid].ord}</td>
+        <td>{values[docid].value}</td>
+      </tr>);
+    });
+  }
+  else if (type == 'SORTED_NUMERIC') {
+    keys.forEach(docid => {
+      values[docid].forEach((value, idx) => {
+        const style = (idx == values[docid].length - 1) ?
+          { borderBottom: "2px solid #ddd" } : {};
+
+        dvlist.push(<tr key={`${docid}.${idx}`} className='marple-dv-item'>
+          <td style={style}>{idx == 0 ? docid : ''}</td>
+          <td style={style}>-</td>
+          <td style={style}>{value}</td>
+        </tr>);
+      });
+    });
+  }
+  else if (type == 'SORTED_SET') {
+    keys.forEach(docid => {
+      values[docid].forEach((value, idx) => {
+        const style = (idx == values[docid].length - 1) ?
+          { borderBottom: "2px solid #ddd" } : {};
+
+        dvlist.push(<tr key={`${docid}.${idx}`} className='marple-dv-item'>
+          <td style={style}>{idx == 0 ? docid : ''}</td>
+          <td style={style}>{value.ord}</td>
+          <td style={style}>{value.value}</td>
+        </tr>);
+      });
+    });
+  }
+
+  return <Table style={{marginTop:'10px'}}>
+    <thead>
+      <tr>
+        <th style={{width:'70px'}}>Doc ID</th>
+        <th style={{width:'50px'}}>Ord</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      {dvlist}
+    </tbody>
+  </Table>
+};
+
+DocValuesByDocs.propTypes = {
+  docs: PropTypes.string,
+  docValues: PropTypes.object,
+  numDocs: PropTypes.number
+};
+
+
+const DocValuesByValue = props => {
+  const dvlist = props.docValues.values.map(value =>
+    <tr key={value.ord} className='marple-dv-item'>
+      <td>{value.ord}</td>
+      <td>{value.value}</td>
+    </tr>
+  );
+  return <Table style={{marginTop:'10px'}}>
+    <thead>
+      <tr>
+        <th style={{width:'50px'}}>Ord</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      {dvlist}
+    </tbody>
+  </Table>
+};
+
+DocValuesByValue.propTypes = {
+  filter: PropTypes.string,
+  docValues: PropTypes.object
+};
 
 
 class DocValues extends React.Component {
@@ -10,29 +121,32 @@ class DocValues extends React.Component {
     super(props);
     this.state = {
       docs: '',
+      filter: '',
       docValues: undefined,
-      encoding: ''
+      encoding: '',
+      viewBy: 'docs'
     }
 
     this.componentDidMount = this.componentDidMount.bind(this);
     this.componentWillReceiveProps = this.componentWillReceiveProps.bind(this);
-    this.setEncoding = this.setEncoding.bind(this);
     this.setDocs = this.setDocs.bind(this);
+    this.setFilter = this.setFilter.bind(this);
+    this.setEncoding = this.setEncoding.bind(this);
+    this.setViewBy = this.setViewBy.bind(this);
   }
 
-  loadAndDisplayData(segment, field, docs, newEncoding) {
+  loadAndDisplayDataByDocs(segment, field, docs, newEncoding) {
     newEncoding = newEncoding || getFieldEncoding(
       this.props.indexData.indexpath, field, 'docvalues');
 
-    loadDocValues(segment, field, docs, newEncoding,
+    loadDocValuesByDoc(segment, field, docs, newEncoding,
       (docValues, encoding) => {
         if (encoding != this.state.encoding) {
           setFieldEncoding(this.props.indexData.indexpath,
             this.props.field, 'docvalues', encoding);
         }
 
-        this.setState({ docs, docValues, encoding });
-
+        this.setState({ docs, docValues, encoding, viewBy:'docs' });
         if (encoding != newEncoding) {
           this.props.showAlert(`${newEncoding} is not a valid encoding for this field`);
         }
@@ -48,105 +162,149 @@ class DocValues extends React.Component {
     );
   }
 
+  loadAndDisplayDataByValues(segment, field, filter, newEncoding) {
+    newEncoding = newEncoding || getFieldEncoding(
+      this.props.indexData.indexpath, field, 'docvalues');
+
+    loadDocValuesByValue(segment, field, filter, newEncoding,
+      (docValues, encoding) => {
+        if (encoding != this.state.encoding) {
+          setFieldEncoding(this.props.indexData.indexpath,
+            this.props.field, 'docvalues', encoding);
+        }
+
+        this.setState({ docValues, encoding, filter, viewBy:'values' });
+        if (encoding != newEncoding) {
+          this.props.showAlert(`${newEncoding} is not a valid encoding for this field`);
+        }
+      },
+      errmsg => {
+        if (errmsg.includes('No doc values for')) {
+          this.setState({ docValues: { type: 'NONE', values: null }});
+        }
+        else {
+          this.props.showAlert(errmsg, true);
+        }
+      }
+    );
+
+  }
+
+  // always open in viewBy:docs state
   componentDidMount() {
     if (this.props.field) {
-      this.loadAndDisplayData(this.props.segment, this.props.field, '');
+      this.loadAndDisplayDataByDocs(this.props.segment, this.props.field, '');
     }
   }
 
+  // always switch to viewBy:docs state
   componentWillReceiveProps(newProps) {
+    this.setState({ docValues: undefined, viewBy: 'docs' });
     if (newProps.field) {
-      this.loadAndDisplayData(newProps.segment, newProps.field, this.state.docs);
+      this.loadAndDisplayDataByDocs(newProps.segment, newProps.field, this.state.docs);
     }
   }
 
   setEncoding(encoding) {
-    this.loadAndDisplayData(this.props.segment, this.props.field, this.state.docs, encoding);
+    if (this.state.viewBy == 'values' &&
+        typeHasValueView(this.props.docValuesType)) {
+      this.loadAndDisplayDataByValues(this.props.segment, this.props.field,
+                                      this.state.filter, encoding);
+    }
+    else {
+      this.loadAndDisplayDataByDocs(this.props.segment, this.props.field,
+                                    this.state.docs, encoding);
+    }
   }
 
   setDocs(docs) {
     docs = docs.replace(/[^\d ,\-]/, '');  // restrict input
-    this.loadAndDisplayData(this.props.segment, this.props.field, docs, this.state.encoding);
+    this.loadAndDisplayDataByDocs(this.props.segment, this.props.field,
+                                  docs, this.state.encoding);
+  }
+
+  setFilter(filter) {
+    this.loadAndDisplayDataByValues(this.props.segment, this.props.field,
+                                    filter, this.state.encoding);
+  }
+
+  setViewBy(evt) {
+    const viewBy = evt.target.value;
+    if (viewBy == 'values' && typeHasValueView(this.props.docValuesType)) {
+      this.loadAndDisplayDataByValues(this.props.segment, this.props.field,
+                                      this.state.filter, this.state.encoding);
+    }
+    else {
+      this.loadAndDisplayDataByDocs(this.props.segment, this.props.field,
+                                    this.state.docs, this.state.encoding);
+    }
   }
 
   render() {
     const s = this.state;
     const p = this.props;
 
-    if (s.docValues == undefined) {
-      return <div/>;
-    }
-
-    if (s.docValues.type == 'NONE') {
-      return <div style={{margin:'14px'}}>
-        [no doc values for field {p.field}]
-      </div>;
-    }
-
-    let keys;
-    if (s.docs) {
-        keys = parseDoclist(s.docs, p.indexData.numDocs);
-    }
-    else {
-      keys = Object.keys(s.docValues.values);
-      keys.sort((a, b) => {
-        const ia = parseInt(a);
-        const ib = parseInt(b);
-        return ia < ib ? -1 : ia > ib ? 1 : 0;
-      });
-    }
-
-    const that = this;    // sigh
-    const dvList = keys.map(function(docid) {
-      const text = that.formatDocValue(
-        docid, s.docValues.values[docid], s.docValues.type);
-      return <NavItem key={docid}>{text}</NavItem>;
-    });
-
-    const encodingDropdown = doesEncodingApply(s.docValues.type) ?
+    const encodingDropdown = doesEncodingApply(p.docValuesType) ?
       <EncodingDropdown encoding={s.encoding} numeric={true}
                         onSelect={x => this.setEncoding(x)} /> : '';
 
-    const style = {"paddingTop": "7px"};
-    const placeholder = "Doc IDs (e.g. 1, 5, 10-100)";
+    const disableViewBy = ! typeHasValueView(p.docValuesType);
+
+    let dvTable = '';
+    let filterComp = <FormControl type="text" value={s.docs}
+                  placeholder={'Filter by doc ID, e.g. 1, 3, 5-17'}
+                  onChange={e => this.setDocs(e.target.value)}
+                  style={{width: "100%"}}
+                  className="marple-docs-input"/>;
+
+    if (s.docValues != undefined) {
+      if (p.docValuesType == 'NONE') {
+        dvTable = <h3>[no doc values for field {p.field}]</h3>;
+      }
+      else if (s.viewBy == 'docs' || disableViewBy) {
+        dvTable = <DocValuesByDocs docs={s.docs} docValues={s.docValues}
+                   numDocs={p.indexData.numDocs} setDocs={this.setDocs} />
+      }
+      else {
+        dvTable = <DocValuesByValue filter={s.filter} docValues={s.docValues}/> ;
+        filterComp = <FormControl type="text" value={s.filter}
+                      placeholder={'Filter by regexp'}
+                      onChange={e => this.setFilter(e.target.value)}
+                      style={{width: "100%"}}
+                      className="marple-filter-input"/>;
+      }
+    }
+
+    const viewBySelector = disableViewBy ? '' :
+      <span>
+        <Radio inline style={{ marginLeft: '20px' }}
+               checked={ s.viewBy == 'docs' }
+               value={'docs'}
+               onChange={this.setViewBy}
+               className="marple-radio">
+          View by doc
+        </Radio>
+        {' '}
+        <Radio inline
+               checked={ s.viewBy == 'values' }
+               value={'values'}
+               onChange={this.setViewBy}
+               className="marple-radio">
+          View by value
+        </Radio>
+      </span>;
+
     return <div>
-      <Form inline style={style} onSubmit={ e => e.preventDefault() }>
-        <FormControl type="text" placeholder={placeholder} value={s.docs}
-          onChange={ e => this.setDocs(e.target.value) }
-          style={{"width": "440px"}} />
-        {" "}
-        { encodingDropdown }
-        {" "}
-        <Label>{ s.docValues.type}</Label>
-      </Form>
-      <Nav>{dvList}</Nav>
+      <div style={{ marginTop: '10px' }}>
+        <FormGroup>
+          <Label style={{ marginRight: '15px' }}>{ p.docValuesType}</Label>
+          { encodingDropdown }
+          { viewBySelector }
+        </FormGroup>
+      </div>
+      {filterComp}
+      {dvTable}
     </div>;
-  }
-
-  formatDocValue(docid, docvalue, type) {
-    var dvtext;
-    if (docvalue == undefined) {
-      return `(${docid}) [no value]`;
-    }
-
-    if (type == 'BINARY' || type == 'SORTED') {
-      dvtext = docvalue;
-    }
-    else if (type == 'SORTED_SET') {
-      dvtext = docvalue.join(', ');
-    }
-    else if (type == 'NUMERIC') {
-      dvtext = docvalue;
-    }
-    else if (type == 'SORTED_NUMERIC') {
-      dvtext = docvalue.join(', ');
-    }
-    else {
-      this.props.showAlert(`unknown doc values type ${type}`, true);
-      return '';
-    }
-
-    return `(${docid}) ${dvtext}`;
   }
 }
 
@@ -154,11 +312,16 @@ function doesEncodingApply(type) {
   return ! type.includes('NUMERIC');
 }
 
+function typeHasValueView(type) {
+  return type == 'SORTED' || type == 'SORTED_SET';
+}
+
 DocValues.propTypes = {
   segment: PropTypes.oneOfType([
     PropTypes.string, PropTypes.number
   ]),
   field: PropTypes.string.isRequired,
+  docValuesType: PropTypes.string.isRequired,
   indexData: PropTypes.object.isRequired,
   showAlert: PropTypes.func.isRequired
 };

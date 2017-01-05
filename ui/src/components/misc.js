@@ -33,7 +33,7 @@ export const EncodingDropdown = props => {
   );
 
   return <DropdownButton title={`Encoding: ${props.encoding}`}
-                         id={'encoding-dropdown'}
+                         id={'marple-encoding-dropdown'}
                          onSelect={props.onSelect}>
     {items}
   </DropdownButton>;
