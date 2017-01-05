@@ -43,10 +43,13 @@ const DocValuesByDocs = props => {
   else if (type == 'SORTED_NUMERIC') {
     keys.forEach(docid => {
       values[docid].forEach((value, idx) => {
+        const style = (idx == values[docid].length - 1) ?
+          { borderBottom: "2px solid #ddd" } : {};
+
         dvlist.push(<tr key={`${docid}.${idx}`} className='marple-dv-item'>
-          <td>{idx == 0 ? docid : ''}</td>
-          <td>-</td>
-          <td>{value}</td>
+          <td style={style}>{idx == 0 ? docid : ''}</td>
+          <td style={style}>-</td>
+          <td style={style}>{value}</td>
         </tr>);
       });
     });
@@ -54,10 +57,13 @@ const DocValuesByDocs = props => {
   else if (type == 'SORTED_SET') {
     keys.forEach(docid => {
       values[docid].forEach((value, idx) => {
+        const style = (idx == values[docid].length - 1) ?
+          { borderBottom: "2px solid #ddd" } : {};
+
         dvlist.push(<tr key={`${docid}.${idx}`} className='marple-dv-item'>
-          <td>{idx == 0 ? docid : ''}</td>
-          <td>{value.ord}</td>
-          <td>{value.value}</td>
+          <td style={style}>{idx == 0 ? docid : ''}</td>
+          <td style={style}>{value.ord}</td>
+          <td style={style}>{value.value}</td>
         </tr>);
       });
     });
