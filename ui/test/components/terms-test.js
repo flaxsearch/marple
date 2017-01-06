@@ -18,7 +18,7 @@ describe('components/terms', function() {
   jsdom();  // create the DOM
 
   before(function() {
-    fetchMock.get(MARPLE_BASE + '/api/terms/foo?segment=1&encoding=utf8', {
+    fetchMock.get(MARPLE_BASE + '/api/terms/foo?segment=1&encoding=utf8&count=51', {
       "termCount": 101,
       "docCount": 19,
       "minTerm": "aardvark",
@@ -26,7 +26,7 @@ describe('components/terms', function() {
       "terms": [ "aardvark", "bat", "cat" ]
     });
 
-    fetchMock.get(MARPLE_BASE + '/api/terms/foo?segment=1&encoding=int', {
+    fetchMock.get(MARPLE_BASE + '/api/terms/foo?segment=1&encoding=int&count=51', {
       "status": 400,
       "body": {
         "code": 400,
