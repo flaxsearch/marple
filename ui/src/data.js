@@ -46,7 +46,7 @@ export function loadTermsData({ segment, field, termsFilter, encoding,
       if (body.code == 400 && body.message.includes('cannot be decoded as')) {
         // cope with encoding error by defaulting to utf8
         loadTermsData({ segment, field, termsFilter, encoding: 'utf8',
-                        from, count, onSuccess, onError });
+          from, count, onSuccess, onError });
       }
       else {
         onError(body.message);
@@ -75,7 +75,7 @@ export function loadTermsData({ segment, field, termsFilter, encoding,
   });
 }
 
-export function loadDocValuesByDoc(segment, field, docs, encoding, onSuccess, onError) {
+export function loadDocValuesByDoc({ segment, field, docs, encoding, onSuccess, onError }) {
   const url = MARPLE_BASE + `/api/docvalues/${field}?`+ makeQueryStr({ segment, docs, encoding });
   fetch(url)
   .then(response => response.json())
@@ -84,7 +84,7 @@ export function loadDocValuesByDoc(segment, field, docs, encoding, onSuccess, on
     if (body.code) {
       if (body.code == 400 && body.message.includes('cannot be decoded as')) {
         // cope with encoding error by defaulting to utf8
-        loadDocValuesByDoc(segment, field, docs, 'utf8', onSuccess, onError);
+        loadDocValuesByDoc({ segment, field, docs, encoding: 'utf8', onSuccess, onError });
       }
       else {
         onError(body.message);
@@ -97,12 +97,14 @@ export function loadDocValuesByDoc(segment, field, docs, encoding, onSuccess, on
   .catch(error => { onError('error loading docvalues: ' + error); });
 }
 
-export function loadDocValuesByValue(segment, field, valFilter, encoding, onSuccess, onError) {
+export function loadDocValuesByValue({ segment, field, valFilter, encoding,
+                                       from, count, onSuccess, onError }) {
   // add a wildcard to the end of the filter
   const filter = valFilter ? valFilter + '.*' : '';
 
   const url = MARPLE_BASE + `/api/docvalues/${field}/ordered?`+ makeQueryStr({
-                                                  segment, filter, encoding });
+    from, count: count + 1, segment, filter, encoding });
+
   fetch(url)
   .then(response => response.json())
   .then(body => {
@@ -110,14 +112,26 @@ export function loadDocValuesByValue(segment, field, valFilter, encoding, onSucc
     if (body.code) {
       if (body.code == 400 && body.message.includes('cannot be decoded as')) {
         // cope with encoding error by defaulting to utf8
-        loadDocValuesByValue(segment, field, filter, 'utf8', onSuccess, onError);
+        loadDocValuesByValue({ segment, field, filter, encoding: 'utf8',
+                               from, count, onSuccess, onError });
       }
       else {
         onError(body.message);
       }
     }
     else {
-      onSuccess(body, encoding);    // return encoding in case it defaulted
+      // did we get more than 'count' items back?
+      let valuesData = {
+        type: body.type,
+        values: body.values
+      };
+
+      if (body.values.length > count) {
+        valuesData.values = body.values.slice(0, -1);
+        valuesData.moreFrom = body.values[count].value;
+      }
+
+      onSuccess(valuesData, encoding);    // return encoding in case it defaulted
     }
   })
   .catch(error => { onError('error loading docvalues: ' + error); });
