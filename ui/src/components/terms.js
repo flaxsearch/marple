@@ -114,7 +114,7 @@ class Terms extends React.Component {
     const termCount = s.termsData.termCount == -1 ? "not stored" : s.termsData.termCount;
 
     const moreFromLink = s.termsData.moreFrom ?
-      <Button bsStyle="link" onClick={this.loadMore}>Load more</Button> : '';
+      <Button bsStyle="primary" onClick={this.loadMore}>Load more</Button> : '';
 
     return <div>
       <table style={{width:'100%', border:'0px', margin:'7px 0px 7px 14px'}}>
@@ -149,6 +149,7 @@ class Terms extends React.Component {
 
       <Nav>{termsList}</Nav>
       {moreFromLink}
+      <p style={{ height: "50px" }}></p>
     </div>;
   }
 }
