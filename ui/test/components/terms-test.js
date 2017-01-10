@@ -48,7 +48,7 @@ describe('components/terms', function() {
   });
 
   it('renders correctly', function() {
-    expect(renderedDOM.children.length).to.eql(3);
+    expect(renderedDOM.children.length).to.eql(4);
     expect(renderedDOM.children[0].tagName).to.eql('TABLE');
     expect(renderedDOM.children[1].tagName).to.eql('FORM');
     expect(renderedDOM.children[2].tagName).to.eql('UL');

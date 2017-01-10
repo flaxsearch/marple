@@ -25,7 +25,7 @@ describe('components/docvalues', function() {
   jsdom();  // create the DOM
 
   it('renders docvalues by doc without ords', function(done) {
-    fetchMock.get(MARPLE_BASE + '/api/docvalues/foo?segment=0&encoding=utf8', {
+    fetchMock.get(MARPLE_BASE + '/api/docvalues/foo?segment=0&docs=0-50&encoding=utf8', {
       "type": "BINARY",
       "values": {
         "0": "austen-emma.txt",
@@ -52,7 +52,7 @@ describe('components/docvalues', function() {
   });
 
   it('renders docvalues by doc with ords', function(done) {
-    fetchMock.get(MARPLE_BASE + '/api/docvalues/foo?segment=0&encoding=utf8', {
+    fetchMock.get(MARPLE_BASE + '/api/docvalues/foo?segment=0&docs=0-50&encoding=utf8', {
       "type": "SORTED_SET",
       "values": {
         "0": [
@@ -85,11 +85,11 @@ describe('components/docvalues', function() {
   });
 
   it('renders docvalues by value', function(done) {
-    fetchMock.get(MARPLE_BASE + '/api/docvalues/foo?segment=0&encoding=utf8', {
+    fetchMock.get(MARPLE_BASE + '/api/docvalues/foo?segment=0&docs=0-50&encoding=utf8', {
       "type": "SORTED_SET", "values": { }
     });
 
-    fetchMock.get(MARPLE_BASE + '/api/docvalues/foo/ordered?segment=0&encoding=utf8', {
+    fetchMock.get(MARPLE_BASE + '/api/docvalues/foo/ordered?count=51&segment=0&encoding=utf8', {
       "type": "SORTED_SET",
       "values": [
         { "value": "prosecco", "ord": 0 },
