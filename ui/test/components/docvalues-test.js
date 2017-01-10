@@ -38,7 +38,7 @@ describe('components/docvalues', function() {
                     docValuesType={'BINARY'}
                     indexData={indexData} showAlert={showAlert} />,
       function(renderedDOM) {
-        const items = renderedDOM.getElementsByClassName('marple-dv-item')
+        const items = renderedDOM.getElementsByClassName('marple-dv-item');
         expect(items.length).to.eql(3);
         expect(items[0].children.length).to.eql(3);
         expect(items[0].children[0].innerHTML).to.eql('0');
