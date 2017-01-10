@@ -73,7 +73,7 @@ const DocValuesByDocs = props => {
 
   if (props.docValues.moreFrom) {
     dvlist.push(
-      <tr key={'load more'} className='marple-dv-item'>
+      <tr key={'load more'}>
         <td></td>
         <td></td>
         <td>
@@ -115,7 +115,7 @@ const DocValuesByValue = props => {
 
   if (props.docValues.moreFrom) {
     dvlist.push(
-      <tr key={'load more'} className='marple-dv-item'>
+      <tr key={'load more'}>
         <td></td>
         <td>
           <Button bsStyle="primary" onClick={props.loadMore}>Load more</Button>
