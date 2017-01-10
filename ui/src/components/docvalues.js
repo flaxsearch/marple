@@ -5,7 +5,7 @@ import { loadDocValuesByDoc, loadDocValuesByValue,
 import { parseDoclist } from '../util';
 import { EncodingDropdown } from './misc';
 
-const FETCH_COUNT = 7;    // FIXME set to 50
+const FETCH_COUNT = 50;
 
 const DocValuesByDocs = props => {
   let keys;
@@ -71,6 +71,18 @@ const DocValuesByDocs = props => {
     });
   }
 
+  if (props.docValues.moreFrom) {
+    dvlist.push(
+      <tr key={'load more'} className='marple-dv-item'>
+        <td></td>
+        <td></td>
+        <td>
+          <Button bsStyle="primary" onClick={props.loadMore}>Load more</Button>
+        </td>
+      </tr>
+    );
+  }
+
   return <Table style={{marginTop:'10px'}}>
     <thead>
       <tr>
@@ -88,7 +100,8 @@ const DocValuesByDocs = props => {
 DocValuesByDocs.propTypes = {
   docs: PropTypes.string,
   docValues: PropTypes.object,
-  numDocs: PropTypes.number
+  numDocs: PropTypes.number,
+  loadMore: PropTypes.func.isRequired
 };
 
 
@@ -150,6 +163,7 @@ class DocValues extends React.Component {
     this.setEncoding = this.setEncoding.bind(this);
     this.setViewBy = this.setViewBy.bind(this);
     this.loadMoreByValue = this.loadMoreByValue.bind(this);
+    this.loadMoreByDocs = this.loadMoreByDocs.bind(this);
   }
 
   onError(errmsg) {
@@ -171,13 +185,26 @@ class DocValues extends React.Component {
           this.props.field, 'docvalues', encoding);
       }
 
-      this.setState({ docs, docValues, encoding, viewBy:'docs' });
       if (encoding != newEncoding) {
         this.props.showAlert(`${newEncoding} is not a valid encoding for this field`);
       }
+
+      if (docs) {
+        this.setState({ docs, docValues, encoding, viewBy:'docs' });
+      }
+      else {
+        // if the user did not specify 'docs', we might be able to load more
+        const docids = Object.keys(docValues.values);
+        if (docids.length > FETCH_COUNT) {
+          docValues.moreFrom = Math.max(... docids);
+          delete docValues.values[docValues.moreFrom];
+        }
+        this.setState({ docs: '', docValues, encoding, viewBy:'docs' });
+      }
     };
 
-    loadDocValuesByDoc({ segment, field, docs, encoding: newEncoding,
+    const docsToFetch = docs || '0-' + FETCH_COUNT;
+    loadDocValuesByDoc({ segment, field, docs: docsToFetch, encoding: newEncoding,
                          onSuccess, onError: this.onError });
   }
 
@@ -272,6 +299,37 @@ class DocValues extends React.Component {
       onError: this.onError });
   }
 
+  loadMoreByDocs() {
+    // this should only be callable when state.docs is empty
+    const onSuccess = newData => {
+      const newValues = Object.assign({}, this.state.docValues.values, newData.values);
+      let docValues = {
+        type: newData.type,
+        values: newValues
+      };
+
+      // could we get more?
+      const docids = Object.keys(newData.values);
+      if (docids.length > FETCH_COUNT) {
+        docValues.moreFrom = Math.max(... docids);
+        delete docValues.values[docValues.moreFrom];
+      }
+
+      this.setState({ docValues });
+    };
+
+    const from = this.state.docValues.moreFrom;
+    const to = from + FETCH_COUNT;
+
+    loadDocValuesByDoc({
+      segment: this.props.segment,
+      field: this.props.field,
+      docs: `${from}-${to}`,
+      encoding: this.state.encoding,
+      onSuccess,
+      onError: this.onError });
+  }
+
   render() {
     const s = this.state;
     const p = this.props;
@@ -296,7 +354,8 @@ class DocValues extends React.Component {
       else if (s.viewBy == 'docs' || disableViewBy) {
         dvTable = <DocValuesByDocs docs={s.docs}
                                    docValues={s.docValues}
-                                   numDocs={p.indexData.numDocs} />
+                                   numDocs={p.indexData.numDocs}
+                                   loadMore={this.loadMoreByDocs}/>
       }
       else {
         dvTable = <DocValuesByValue filter={s.filter}
