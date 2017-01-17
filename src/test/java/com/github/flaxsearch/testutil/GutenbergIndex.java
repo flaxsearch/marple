@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Random;
 
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
@@ -29,6 +30,8 @@ import org.apache.lucene.util.BytesRef;
 
 
 public class GutenbergIndex {
+
+    public static final Random random = new Random();
 
     public static void main(String... args) throws IOException {
 
@@ -50,6 +53,13 @@ public class GutenbergIndex {
                 byte[] data = Files.readAllBytes(file);
                 writer.addDocument(buildDocument(file, data));
                 if (count++ % 7 == 0)
+                    writer.commit();
+            }
+            for (int i = 0; i < 250; i++) {
+                Path p = source.resolve("document_" + i);
+                byte[] data = ("this is document " + i).getBytes(Charset.defaultCharset());
+                writer.addDocument(buildDocument(p, data));
+                if (random.nextInt(25) == 0)
                     writer.commit();
             }
         }
