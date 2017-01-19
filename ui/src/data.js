@@ -98,12 +98,12 @@ export function loadDocValuesByDoc({ segment, field, docs, encoding, onSuccess, 
 }
 
 export function loadDocValuesByValue({ segment, field, valFilter, encoding,
-                                       from, count, onSuccess, onError }) {
+                                       offset, count, onSuccess, onError }) {
   // add a wildcard to the end of the filter
   const filter = valFilter ? valFilter + '.*' : '';
 
   const url = MARPLE_BASE + `/api/docvalues/${field}/ordered?`+ makeQueryStr({
-    from, count: count + 1, segment, filter, encoding });
+    offset, count: count + 1, segment, filter, encoding });
 
   fetch(url)
   .then(response => response.json())
@@ -113,7 +113,7 @@ export function loadDocValuesByValue({ segment, field, valFilter, encoding,
       if (body.code == 400 && body.message.includes('cannot be decoded as')) {
         // cope with encoding error by defaulting to utf8
         loadDocValuesByValue({ segment, field, filter, encoding: 'utf8',
-                               from, count, onSuccess, onError });
+                               offset, count, onSuccess, onError });
       }
       else {
         onError(body.message);
@@ -129,6 +129,7 @@ export function loadDocValuesByValue({ segment, field, valFilter, encoding,
       if (body.values.length > count) {
         valuesData.values = body.values.slice(0, -1);
         valuesData.moreFrom = body.values[count].value;
+        // (we don't use the value of .moreFrom, just its presence)
       }
 
       onSuccess(valuesData, encoding);    // return encoding in case it defaulted

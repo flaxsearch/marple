@@ -293,14 +293,13 @@ class DocValues extends React.Component {
       field: this.props.field,
       valFilter: this.state.filter,
       encoding: this.state.encoding,
-      from: this.state.docValues.moreFrom,
+      offset: this.state.docValues.values.length,
       count: FETCH_COUNT,
       onSuccess,
       onError: this.onError });
   }
 
   loadMoreByDocs() {
-    // this should only be callable when state.docs is empty
     const onSuccess = newData => {
       const newValues = Object.assign({}, this.state.docValues.values, newData.values);
       let docValues = {
