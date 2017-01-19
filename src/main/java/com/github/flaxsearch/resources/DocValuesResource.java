@@ -141,15 +141,26 @@ public class DocValuesResource {
     public AnyDocValuesResponse getOrderedDocValues(@QueryParam("segment") Integer segment,
             										@PathParam("field") String field,
             										@QueryParam("from") String startTerm,
+            										@QueryParam("offset") Integer offset,
             										@QueryParam("count") @DefaultValue("50") int count,
             										@QueryParam("filter") String filter,
             										@QueryParam("encoding") @DefaultValue("utf8") String encoding) 
     												throws IOException {
+
+    	if (startTerm != null) {
+        	if (offset != null) {
+        		throw new WebApplicationException("Cannot have both 'from' and 'offset' parameters", Response.Status.FORBIDDEN);
+        	}
+        	if (filter != null) {
+        		throw new WebApplicationException("Cannot have both 'from' and 'filter' parameters", Response.Status.FORBIDDEN);        		
+        	}
+    	}
+    	
         FieldInfo fieldInfo = readerManager.getFieldInfo(segment, field);
 
         if (fieldInfo == null) {
             String msg = String.format("No such field %s", field);
-            throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
+            throw new WebApplicationException(msg, Response.Status.NOT_FOUND);    		
         }
 
         try {
@@ -186,10 +197,22 @@ public class DocValuesResource {
                 }
             }
 
-            do {
-                collected.add(new ValueWithOrd(BytesRefUtils.encode(te.term(), encoding), te.ord()));
+            boolean hasMore = true;
+            if (offset != null) {
+            	for (int i = 0; i < offset; i++) {
+            		if (te.next() == null) {
+            			hasMore = false;
+            			break;
+            		}
+            	}
             }
-            while (te.next() != null && --count > 0);
+
+            if (hasMore) {
+            	do {
+            		collected.add(new ValueWithOrd(BytesRefUtils.encode(te.term(), encoding), te.ord()));
+            	}
+            	while (te.next() != null && --count > 0);
+            }
             
             return new AnyDocValuesResponse(type_s, collected);
         }
