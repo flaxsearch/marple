@@ -176,7 +176,7 @@ describe('components/docvalues', function() {
       type: "SORTED_SET", values
     });
 
-    fetchMock.get(MARPLE_BASE + '/api/docvalues/foo/ordered?from=val50&count=51&segment=0&encoding=utf8', {
+    fetchMock.get(MARPLE_BASE + '/api/docvalues/foo/ordered?offset=50&count=51&segment=0&encoding=utf8', {
       type: "SORTED_SET", values: [
         { "value": "prosecco", "ord": 50 },
         { "value": "gin", "ord": 51 },
