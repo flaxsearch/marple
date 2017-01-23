@@ -56,7 +56,7 @@
 
     <properties>
         <dropwizard.version>1.0.0</dropwizard.version>
-        <lucene.version>6.2.0</lucene.version>
+        <lucene.version>6.4.0</lucene.version>
     </properties>
 
     <dependencies>
