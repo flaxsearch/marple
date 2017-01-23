@@ -33,8 +33,7 @@ export function loadDocument(segment, docid, onSuccess, onError) {
 
 export function loadTermsData({ segment, field, termsFilter, encoding,
                                 from, count, onSuccess, onError }) {
-  // add a wildcard to the end of the filter
-  const filter = termsFilter ? termsFilter + '.*' : '';
+  const filter = normaliseFilter(termsFilter);
   const url = MARPLE_BASE + `/api/terms/${field}?` + makeQueryStr({
     segment, filter, encoding, from, count: count + 1 });
 
@@ -99,9 +98,7 @@ export function loadDocValuesByDoc({ segment, field, docs, encoding, onSuccess, 
 
 export function loadDocValuesByValue({ segment, field, valFilter, encoding,
                                        offset, count, onSuccess, onError }) {
-  // add a wildcard to the end of the filter
-  const filter = valFilter ? valFilter + '.*' : '';
-
+  const filter = normaliseFilter(valFilter);
   const url = MARPLE_BASE + `/api/docvalues/${field}/ordered?`+ makeQueryStr({
     offset, count: count + 1, segment, filter, encoding });
 
@@ -159,4 +156,16 @@ export function setFieldEncoding(indexpath, field, item, encoding) {
   }
   local.encodings[field][item] = encoding;
   store.set('marple', local);
+}
+
+function normaliseFilter(filter) {
+  if (filter) {
+    if (filter.endsWith('.*')) {
+      return filter;
+    }
+    else {
+      return filter + '.*';
+    }
+  }
+  return '';
 }
