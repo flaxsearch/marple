@@ -10,16 +10,26 @@ class Postings extends React.Component {
       displayPostings: false
     }
 
+    this.componentDidMount = this.componentDidMount.bind(this);
     this.componentWillReceiveProps = this.componentWillReceiveProps.bind(this);
+  }
+
+  componentDidMount() {
+    this.setState({ postingsData: undefined, displayPostings: false });
   }
 
   componentWillReceiveProps(newprops) {
     const p = this.props;
 
-    if (newprops.displayPostings) {
-      this.loadAndDisplayData(p.segment, p.field, p.term);
+    if (newprops.field !== p.field || newprops.term !== p.term || newprops.segment !== p.segment) {
+      // New field and/or term - clear the postings data
+      this.setState({ postingsData: undefined, displayPostings: false });
+    } else {
+      if (newprops.displayPostings) {
+        this.loadAndDisplayData(p.segment, p.field, p.term);
+      }
+      this.setState({ displayPostings: newprops.displayPostings });
     }
-    this.setState({ displayPostings: newprops.displayPostings });
   }
 
   loadAndDisplayData(segment, field, term) {

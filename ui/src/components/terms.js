@@ -81,7 +81,7 @@ class Terms extends React.Component {
       </div>;
     }
     const termsList = s.termsData.terms.map((term, idx) =>
-      <TermItem key={idx} segment={p.segment} field={p.field} term={term} />);
+      <TermItem key={idx} segment={p.segment} field={p.field} term={term} showAlert={p.showAlert} />);
 
     const termCount = s.termsData.termCount == -1 ? "not stored" : s.termsData.termCount;
 
