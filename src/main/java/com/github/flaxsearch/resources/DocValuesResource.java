@@ -169,22 +169,30 @@ public class DocValuesResource {
             TermsEnum te;
 
             if (dvtype == DocValuesType.SORTED) {
-	            te = readerManager.getSortedDocValues(segment, field).termsEnum();
+            	if (filter != null && filter.length() > 0) {
+    	            te = readerManager.getSortedDocValues(segment, field).intersect(
+    	            		new CompiledAutomaton(new RegExp(filter).toAutomaton()));
+            		
+            	} 
+            	else {
+            		te = readerManager.getSortedDocValues(segment, field).termsEnum();
+            	}
 	            type_s = "SORTED";
 	        }
 	        else if (dvtype == DocValuesType.SORTED_SET) {
-	            te = readerManager.getSortedSetDocValues(segment, field).termsEnum();
+            	if (filter != null && filter.length() > 0) {
+            		te = readerManager.getSortedSetDocValues(segment, field).intersect(
+    	            		new CompiledAutomaton(new RegExp(filter).toAutomaton()));
+            	}
+            	else {
+            		te = readerManager.getSortedSetDocValues(segment, field).termsEnum();
+            	}
 	            type_s = "SORTED_SET";
 	        }
 	        else {
 	        	throw new WebApplicationException("Field " + field + " cannot be viewed in value order", Response.Status.BAD_REQUEST);
 	        }
             
-            if (filter != null) {
-            	CompiledAutomaton automaton = new CompiledAutomaton(new RegExp(filter).toAutomaton());
-            	te = new AutomatonTermsEnum(te, automaton);
-            }
-	        
 	        List<ValueWithOrd> collected = new ArrayList<>();
 
             if (startTerm != null) {
