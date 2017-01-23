@@ -1,7 +1,8 @@
 import React, { PropTypes } from 'react';
-import { Nav, NavItem, FormGroup, FormControl, Radio, Form } from 'react-bootstrap';
+import { Nav, NavItem, FormGroup, FormControl, Radio, Form, Grid, Row, Col, Button } from 'react-bootstrap';
 import { loadTermsData, getFieldEncoding, setFieldEncoding } from '../data';
 import { EncodingDropdown } from './misc';
+import TermItem from './termitem'
 
 
 class Terms extends React.Component {
@@ -69,6 +70,7 @@ class Terms extends React.Component {
 
   render() {
     const s = this.state;
+    const p = this.props;
     if (s.termsData == undefined) {
       return <div/>;
     }
@@ -79,7 +81,7 @@ class Terms extends React.Component {
       </div>;
     }
     const termsList = s.termsData.terms.map((term, idx) =>
-      <NavItem key={idx}>{term}</NavItem>);
+      <TermItem key={idx} segment={p.segment} field={p.field} term={term} />);
 
     const termCount = s.termsData.termCount == -1 ? "not stored" : s.termsData.termCount;
 
@@ -114,7 +116,7 @@ class Terms extends React.Component {
                           onSelect={x => this.setEncoding(x)} />
       </Form>
 
-      <Nav>{termsList}</Nav>
+      <Grid>{termsList}</Grid>
     </div>;
   }
 }

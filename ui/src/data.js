@@ -127,3 +127,18 @@ export function setFieldEncoding(indexpath, field, item, encoding) {
   local.encodings[field][item] = encoding;
   store.set('marple', local);
 }
+
+export function loadPostings(segment, field, value, onSuccess, onError) {
+	const url = MARPLE_BASE + `/api/postings/${field}/${value}?` + makeQueryStr({ segment });
+
+	fetch(url)
+	.then(response => response.json())
+	.then(body => {
+		if (body.code) {
+			onError(body.message);
+		} else {
+			onSuccess(body);
+		}
+	})
+	.catch(error => { onError('error loading postings: ' + error); });
+}
