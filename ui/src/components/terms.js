@@ -116,7 +116,10 @@ class Terms extends React.Component {
                           onSelect={x => this.setEncoding(x)} />
       </Form>
 
-      <Grid>{termsList}</Grid>
+      <Grid>
+        <Row><Col md={2}>Term</Col><Col md={8}>Postings</Col></Row>
+        {termsList}
+      </Grid>
     </div>;
   }
 }

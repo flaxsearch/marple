@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import { Nav, NavItem, FormGroup, FormControl, Radio, Form, Grid, Row, Col, Button } from 'react-bootstrap';
+import { Grid, Row, Col } from 'react-bootstrap';
 import Postings from './postings';
 
 class TermItem extends React.Component {
@@ -27,7 +27,7 @@ class TermItem extends React.Component {
     const p = this.props;
 
     return <Row>
-      <Col md={2}><Nav activeKey={p.term}><NavItem eventKey={p.term} onSelect={ e => this.handlePostingsClick() }>{p.term}</NavItem></Nav></Col>
+      <Col md={2}><a href="#" onClick={ e => { e.preventDefault(); this.handlePostingsClick() }}>{p.term}</a></Col>
       <Col md={8}><Postings segment={p.segment} field={p.field} term={p.term} displayPostings={s.displayPostings} showAlert={p.showAlert} /></Col>
       </Row>;
   }
