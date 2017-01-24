@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 import { loadPostings } from '../data';
-
+import PostingItem from './postingitem';
 
 class Postings extends React.Component {
   constructor(props) {
@@ -56,8 +56,11 @@ class Postings extends React.Component {
       return <div></div>;
     }
 
-    var postingList = s.postingsData.postings.map((docid, idx) => <li style={{ display: 'inline-block', width: '60px' }} key={idx}>{docid}</li>);
-    return <ul style={{ listStyleType: 'none' }}>{postingList}</ul>
+    var postingList = s.postingsData.postings.map((docid, idx) =>
+      <li style={{ display: 'inline-block', width: '60px' }} key={idx}>
+        <PostingItem segment={p.segment} field={p.field} term={p.term} docid={docid} showAlert={p.showAlert} />
+      </li>);
+    return <ul style={{ listStyleType: 'none' }}>{postingList}</ul>;
   }
 
 }

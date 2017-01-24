@@ -142,3 +142,18 @@ export function loadPostings(segment, field, value, onSuccess, onError) {
 	})
 	.catch(error => { onError('error loading postings: ' + error); });
 }
+
+export function loadPositions(segment, field, term, docid, onSuccess, onError) {
+	const url = MARPLE_BASE + `/api/positions/${field}/${term}/${docid}?` + makeQueryStr({ segment });
+
+	fetch(url)
+	.then(response => response.json())
+	.then(body => {
+		if (body.code) {
+			onError(body.message);
+		} else {
+			onSuccess(body);
+		}
+	})
+	.catch(error => { onError('error loading positions: ' + error); });
+}
