@@ -4,6 +4,15 @@ import { loadTermsData, getFieldEncoding, setFieldEncoding } from '../data';
 import { EncodingDropdown } from './misc';
 import TermItem from './termitem'
 
+const TERMSLISTSTYLE = {
+  marginTop: '10px',
+  marginLeft: '15px'
+};
+
+const LABELSTYLE = {
+  width:'140px',
+  color: 'gray'
+};
 
 class Terms extends React.Component {
   constructor(props) {
@@ -89,19 +98,19 @@ class Terms extends React.Component {
       <table style={{width:'100%', border:'0px', margin:'7px 0px 7px 14px'}}>
         <tbody>
           <tr>
-            <td style={{width:'140px'}}><i>Total terms:</i></td>
+            <td style={LABELSTYLE}>Total terms:</td>
             <td style={{width:'auto'}}>{termCount}</td>
           </tr>
           <tr>
-            <td style={{width:'140px'}}><i>Docs with terms:</i></td>
+            <td style={LABELSTYLE}>Docs with terms:</td>
             <td style={{width:'auto'}}>{s.termsData.docCount}</td>
           </tr>
           <tr>
-            <td style={{width:'140px'}}><i>Min term:</i></td>
+            <td style={LABELSTYLE}>Min term:</td>
             <td style={{width:'auto'}}>{s.termsData.minTerm}</td>
           </tr>
           <tr>
-            <td style={{width:'140px'}}><i>Max term:</i></td>
+            <td style={LABELSTYLE}>Max term:</td>
             <td style={{width:'auto'}}>{s.termsData.maxTerm}</td>
           </tr>
         </tbody>
@@ -116,10 +125,9 @@ class Terms extends React.Component {
                           onSelect={x => this.setEncoding(x)} />
       </Form>
 
-      <Grid>
-        <Row><Col md={2}>Term</Col><Col md={8}>Postings</Col></Row>
+      <div style={TERMSLISTSTYLE}>
         {termsList}
-      </Grid>
+      </div>
     </div>;
   }
 }

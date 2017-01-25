@@ -2,6 +2,10 @@ import React, { PropTypes } from 'react';
 import { Grid, Row, Col } from 'react-bootstrap';
 import Postings from './postings';
 
+const POSTINGSSTYLE = {
+  marginLeft: '15px'
+};
+
 class TermItem extends React.Component {
   constructor(props) {
     super(props);
@@ -26,10 +30,25 @@ class TermItem extends React.Component {
     const s = this.state;
     const p = this.props;
 
-    return <Row>
-      <Col md={2}><a href="#" onClick={ e => { e.preventDefault(); this.handlePostingsClick() }}>{p.term}</a></Col>
-      <Col md={8}><Postings segment={p.segment} field={p.field} term={p.term} displayPostings={s.displayPostings} showAlert={p.showAlert} /></Col>
-      </Row>;
+    const postings = s.displayPostings ?
+      <div style={POSTINGSSTYLE}>
+        <Postings segment={p.segment} field={p.field}
+         term={p.term} showAlert={p.showAlert} />
+      </div> : null;
+
+    const toggle = s.displayPostings ?
+      'glyphicon-triangle-bottom' : 'glyphicon-triangle-right';
+
+    return <div>
+      <div><a href="#" onClick={ e => { e.preventDefault();
+        this.handlePostingsClick() }}>
+        {p.term}
+        <span className={'glyphicon ' + toggle}
+              style={{ fontSize: '11px', paddingLeft: '5px', color: 'lightgrey' }}
+              aria-hidden="true"></span>
+      </a></div>
+      {postings}
+      </div>;
   }
 }
 

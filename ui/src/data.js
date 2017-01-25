@@ -128,8 +128,10 @@ export function setFieldEncoding(indexpath, field, item, encoding) {
   store.set('marple', local);
 }
 
-export function loadPostings(segment, field, value, onSuccess, onError) {
-	const url = MARPLE_BASE + `/api/postings/${field}/${value}?` + makeQueryStr({ segment });
+export function loadPostings(segment, field, term, onSuccess, onError) {
+  term = encodeURIComponent(term);
+	const url = MARPLE_BASE + `/api/postings/${field}/${term}?` +
+    makeQueryStr({ segment });
 
 	fetch(url)
 	.then(response => response.json())
@@ -144,7 +146,9 @@ export function loadPostings(segment, field, value, onSuccess, onError) {
 }
 
 export function loadPositions(segment, field, term, docid, onSuccess, onError) {
-	const url = MARPLE_BASE + `/api/positions/${field}/${term}/${docid}?` + makeQueryStr({ segment });
+  term = encodeURIComponent(term);
+	const url = MARPLE_BASE + `/api/positions/${field}/${term}/${docid}?` +
+    makeQueryStr({ segment });
 
 	fetch(url)
 	.then(response => response.json())

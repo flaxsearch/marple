@@ -62,7 +62,7 @@ describe('components/terms', function() {
 
     // count the terms
     const rows = renderedDOM.children[2].children;
-    expect(rows.length).to.eql(4);
+    expect(rows.length).to.eql(3);
   });
 
   it('handles invalid encoding', function(done) {
