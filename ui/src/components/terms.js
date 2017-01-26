@@ -1,8 +1,9 @@
 import React, { PropTypes } from 'react';
-import { Nav, NavItem, FormGroup, FormControl, Radio, Form } from 'react-bootstrap';
+import { Nav, NavItem, FormGroup, FormControl, Radio, Form, Button } from 'react-bootstrap';
 import { loadTermsData, getFieldEncoding, setFieldEncoding } from '../data';
 import { EncodingDropdown } from './misc';
 
+const FETCH_COUNT = 50;
 
 class Terms extends React.Component {
   constructor(props) {
@@ -13,38 +14,42 @@ class Terms extends React.Component {
       encoding: ''
     }
 
+    this.onError = this.onError.bind(this);
     this.componentDidMount = this.componentDidMount.bind(this);
     this.componentWillReceiveProps = this.componentWillReceiveProps.bind(this);
     this.setTermsFilter = this.setTermsFilter.bind(this);
     this.setEncoding = this.setEncoding.bind(this);
+    this.loadMore = this.loadMore.bind(this);
+  }
+
+  onError(errmsg) {
+    if (errmsg.includes('No such field')) {
+      this.setState({ termsData: { terms: undefined }});
+    }
+    else {
+      this.props.showAlert(errmsg, true);
+    }
   }
 
   loadAndDisplayData(segment, field, termsFilter, newEncoding) {
     newEncoding = newEncoding || getFieldEncoding(
       this.props.indexData.indexpath, field, 'terms');
 
-    loadTermsData(segment, field, termsFilter, newEncoding,
-      (termsData, encoding) => {
-        if (encoding != this.state.encoding) {
-          setFieldEncoding(this.props.indexData.indexpath,
-            this.props.field, 'terms', encoding);
-        }
-
-        this.setState({ termsFilter, termsData, encoding });
-
-        if (encoding != newEncoding) {
-          this.props.showAlert(`${newEncoding} is not a valid encoding for this field`);
-        }
-      },
-      errmsg => {
-        if (errmsg.includes('No such field')) {
-          this.setState({ termsData: { terms: undefined }});
-        }
-        else {
-          this.props.showAlert(errmsg, true);
-        }
+    const onSuccess = (termsData, encoding) => {
+      if (encoding != this.state.encoding) {
+        setFieldEncoding(this.props.indexData.indexpath,
+          this.props.field, 'terms', encoding);
       }
-    );
+
+      this.setState({ termsFilter, termsData, encoding });
+
+      if (encoding != newEncoding) {
+        this.props.showAlert(`${newEncoding} is not a valid encoding for this field`);
+      }
+    };
+
+    loadTermsData({ segment, field, termsFilter, encoding: newEncoding,
+                    count: FETCH_COUNT, onSuccess, onError: this.onError });
   }
 
   componentDidMount() {
@@ -67,6 +72,31 @@ class Terms extends React.Component {
     this.loadAndDisplayData(this.props.segment, this.props.field, this.state.termsFilter, encoding);
   }
 
+  loadMore() {
+    const onSuccess = newTermsData => {
+      const termsData = {
+        termCount: newTermsData.termCount,
+        docCount: newTermsData.docCount,
+        minTerm: newTermsData.minTerm,
+        maxTerm: newTermsData.maxTerm,
+        terms: this.state.termsData.terms.concat(newTermsData.terms),
+        moreFrom: newTermsData.moreFrom
+      };
+      this.setState({ termsData });
+    };
+
+    loadTermsData({
+      segment: this.props.segment,
+      field: this.props.field,
+      termsFilter: this.state.termsFilter,
+      encoding: this.state.encoding,
+      from: this.state.termsData.moreFrom,
+      count: FETCH_COUNT,
+      onSuccess,
+      onError: this.onError
+    });
+  }
+
   render() {
     const s = this.state;
     if (s.termsData == undefined) {
@@ -82,6 +112,9 @@ class Terms extends React.Component {
       <NavItem key={idx}>{term}</NavItem>);
 
     const termCount = s.termsData.termCount == -1 ? "not stored" : s.termsData.termCount;
+
+    const moreFromLink = s.termsData.moreFrom ?
+      <Button bsStyle="primary" onClick={this.loadMore}>Load more</Button> : '';
 
     return <div>
       <table style={{width:'100%', border:'0px', margin:'7px 0px 7px 14px'}}>
@@ -115,6 +148,8 @@ class Terms extends React.Component {
       </Form>
 
       <Nav>{termsList}</Nav>
+      {moreFromLink}
+      <p style={{ height: "50px" }}></p>
     </div>;
   }
 }
