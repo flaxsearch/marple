@@ -102,7 +102,11 @@ class Terms extends React.Component {
         return(
             <Table>
                 <thead>
-                <tr><td>term</td><td>docFreq</td><td>totalTermFreq</td></tr>
+                <tr>
+                    <td style={{ width:'80%' }}>term</td>
+                    <td>docFreq</td>
+                    <td>totalTermFreq</td>
+                </tr>
                 </thead>
                 <tbody>
                 {termEntries}
