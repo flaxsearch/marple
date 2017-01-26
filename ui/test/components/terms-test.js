@@ -56,14 +56,17 @@ describe('components/terms', function() {
     expect(renderedDOM.children[2].tagName).to.eql('DIV');
 
     const tds = renderedDOM.getElementsByTagName('TD');
-    expect(tds.length).to.eql(8);
+    expect(tds.length).to.eql(20);
     expect(tds[1].innerHTML).to.eql('101');         // term count
     expect(tds[3].innerHTML).to.eql('19');          // docs with terms
     expect(tds[5].innerHTML).to.eql('aardvark');    // min term
     expect(tds[7].innerHTML).to.eql('zebra');       // max term
 
+      const termTable = renderedDOM.children[2].children[0];
+      expect(termTable.tagName).to.eql('TABLE');
+
     // count the terms
-    const rows = renderedDOM.children[2].children;
+    const rows = termTable.children[1].children;
     expect(rows.length).to.eql(3);
   });
 
