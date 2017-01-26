@@ -158,6 +158,40 @@ export function setFieldEncoding(indexpath, field, item, encoding) {
   store.set('marple', local);
 }
 
+export function loadPostings(segment, field, term, onSuccess, onError) {
+  term = encodeURIComponent(term);
+	const url = MARPLE_BASE + `/api/postings/${field}/${term}?` +
+    makeQueryStr({ segment });
+
+	fetch(url)
+	.then(response => response.json())
+	.then(body => {
+		if (body.code) {
+			onError(body.message);
+		} else {
+			onSuccess(body);
+		}
+	})
+	.catch(error => { onError('error loading postings: ' + error); });
+}
+
+export function loadPositions(segment, field, term, docid, onSuccess, onError) {
+  term = encodeURIComponent(term);
+	const url = MARPLE_BASE + `/api/positions/${field}/${term}/${docid}?` +
+    makeQueryStr({ segment });
+
+	fetch(url)
+	.then(response => response.json())
+	.then(body => {
+		if (body.code) {
+			onError(body.message);
+		} else {
+			onSuccess(body);
+		}
+	})
+	.catch(error => { onError('error loading positions: ' + error); });
+}
+
 function normaliseFilter(filter) {
   if (filter) {
     if (filter.endsWith('.*')) {

@@ -49,10 +49,10 @@ describe('components/terms', function() {
     });
 
     it('renders correctly', function() {
-      expect(renderedDOM.children.length).to.eql(4);
+      expect(renderedDOM.children.length).to.eql(3);
       expect(renderedDOM.children[0].tagName).to.eql('TABLE');
       expect(renderedDOM.children[1].tagName).to.eql('FORM');
-      expect(renderedDOM.children[2].tagName).to.eql('UL');
+      expect(renderedDOM.children[2].tagName).to.eql('DIV');
 
       const tds = renderedDOM.getElementsByTagName('TD');
       expect(tds.length).to.eql(8);
@@ -62,9 +62,8 @@ describe('components/terms', function() {
       expect(tds[7].innerHTML).to.eql('zebra');       // max term
 
       // count the terms
-      const lis = renderedDOM.children[2].getElementsByTagName('LI');
-      expect(lis.length).to.eql(3);
-      expect(lis[1].firstChild.innerHTML).to.eql('bat');
+      const rows = renderedDOM.children[2].children;
+      expect(rows.length).to.eql(3);
     });
 
     it('handles invalid encoding', function(done) {

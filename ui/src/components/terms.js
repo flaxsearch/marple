@@ -2,8 +2,20 @@ import React, { PropTypes } from 'react';
 import { Nav, NavItem, FormGroup, FormControl, Radio, Form, Button } from 'react-bootstrap';
 import { loadTermsData, getFieldEncoding, setFieldEncoding } from '../data';
 import { EncodingDropdown } from './misc';
+import TermItem from './termitem'
+
+const TERMSLISTSTYLE = {
+  marginTop: '10px',
+  marginLeft: '15px'
+};
+
+const LABELSTYLE = {
+  width:'140px',
+  color: 'gray'
+};
 
 const FETCH_COUNT = 50;
+
 
 class Terms extends React.Component {
   constructor(props) {
@@ -99,6 +111,7 @@ class Terms extends React.Component {
 
   render() {
     const s = this.state;
+    const p = this.props;
     if (s.termsData == undefined) {
       return <div/>;
     }
@@ -109,7 +122,7 @@ class Terms extends React.Component {
       </div>;
     }
     const termsList = s.termsData.terms.map((term, idx) =>
-      <NavItem key={idx}>{term}</NavItem>);
+      <TermItem key={idx} segment={p.segment} field={p.field} term={term} showAlert={p.showAlert} />);
 
     const termCount = s.termsData.termCount == -1 ? "not stored" : s.termsData.termCount;
 
@@ -120,19 +133,19 @@ class Terms extends React.Component {
       <table style={{width:'100%', border:'0px', margin:'7px 0px 7px 14px'}}>
         <tbody>
           <tr>
-            <td style={{width:'140px'}}><i>Total terms:</i></td>
+            <td style={LABELSTYLE}>Total terms:</td>
             <td style={{width:'auto'}}>{termCount}</td>
           </tr>
           <tr>
-            <td style={{width:'140px'}}><i>Docs with terms:</i></td>
+            <td style={LABELSTYLE}>Docs with terms:</td>
             <td style={{width:'auto'}}>{s.termsData.docCount}</td>
           </tr>
           <tr>
-            <td style={{width:'140px'}}><i>Min term:</i></td>
+            <td style={LABELSTYLE}>Min term:</td>
             <td style={{width:'auto'}}>{s.termsData.minTerm}</td>
           </tr>
           <tr>
-            <td style={{width:'140px'}}><i>Max term:</i></td>
+            <td style={LABELSTYLE}>Max term:</td>
             <td style={{width:'auto'}}>{s.termsData.maxTerm}</td>
           </tr>
         </tbody>
@@ -147,9 +160,9 @@ class Terms extends React.Component {
                           onSelect={x => this.setEncoding(x)} />
       </Form>
 
-      <Nav>{termsList}</Nav>
-      {moreFromLink}
-      <p style={{ height: "50px" }}></p>
+      <div style={TERMSLISTSTYLE}>
+        {termsList}
+      </div>
     </div>;
   }
 }
