@@ -5,33 +5,33 @@ import { loadPositions } from '../data';
 
 const TABLESTYLE = {
   marginLeft: '15px',
-  width: '100%',
+  width: '100%'
 };
 
 const COL1STYLE = {
-  width: '50px',
+  width: '15%',
   textAlign: 'right'
 };
 
 const COL2STYLE = {
-  width: '100px',
+  width: '20%',
   textAlign: 'right'
 };
 
 const COL3STYLE = {
   width: 'auto',
   textAlign: 'left',
-  paddingLeft: '10px'
+  paddingLeft: '20px'
 };
 
 const COL1HSTYLE = {
-  width: '50px',
+  width: '15%',
   textAlign: 'right',
   color: 'grey'
 };
 
 const COL2HSTYLE = {
-  width: '100px',
+  width: '20%',
   textAlign: 'right',
   color: 'grey'
 };
@@ -39,7 +39,7 @@ const COL2HSTYLE = {
 const COL3HSTYLE = {
   width: 'auto',
   textAlign: 'left',
-  paddingLeft: '10px',
+  paddingLeft: '20px',
   color: 'grey'
 };
 
