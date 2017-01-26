@@ -76,4 +76,5 @@ public class TestPostingsResource extends IndexResourceTestBase {
             // Expected: HTTP 404 Not Found
         }
     }
+
 }

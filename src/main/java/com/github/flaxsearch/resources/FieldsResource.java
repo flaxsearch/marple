@@ -15,14 +15,8 @@ package com.github.flaxsearch.resources;
  *   limitations under the License.
  */
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -60,6 +54,16 @@ public class FieldsResource {
 
         fieldData.sort(Comparator.comparing(o -> o.name));
         return fieldData;
+    }
+
+    @GET
+    @Path("{field}")
+    public FieldData getField(@QueryParam("segment") Integer segment, @PathParam("field") String field) throws IOException {
+        FieldInfos fieldInfos = readerManager.getFieldInfos(segment);
+        Fields fields = readerManager.getFields(segment);
+        FieldInfo info = fieldInfos.fieldInfo(field);
+        Terms terms = fields.terms(info.name);
+        return new FieldData(info, terms != null);
     }
 
 }

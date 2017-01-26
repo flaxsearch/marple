@@ -124,4 +124,16 @@ public class TestDocValuesResource extends IndexResourceTestBase {
     	assertThat(values.get(0).get("value")).isEqualTo("tanuki");
     	assertThat(values.get(0).get("ord")).isEqualTo(1);
     }
+    
+    @Test
+    public void testOrderedValuesWithOffset() {
+        AnyDocValuesResponse response = resource.client().target("/docvalues/field4/ordered?offset=1").request()
+                .get(new GenericType<AnyDocValuesResponse>() {});
+    	List<Map<String, Object>> values = (List<Map<String, Object>>) response.getValues();
+    	assertThat(values.size()).isEqualTo(2);
+    	assertThat(values.get(0).get("value")).isEqualTo("tanuki");
+    	assertThat(values.get(0).get("ord")).isEqualTo(1);
+    	assertThat(values.get(1).get("value")).isEqualTo("world");
+    	assertThat(values.get(1).get("ord")).isEqualTo(2);    	
+    }
 }

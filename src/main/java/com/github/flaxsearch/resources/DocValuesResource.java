@@ -141,15 +141,26 @@ public class DocValuesResource {
     public AnyDocValuesResponse getOrderedDocValues(@QueryParam("segment") Integer segment,
             										@PathParam("field") String field,
             										@QueryParam("from") String startTerm,
+            										@QueryParam("offset") Integer offset,
             										@QueryParam("count") @DefaultValue("50") int count,
             										@QueryParam("filter") String filter,
             										@QueryParam("encoding") @DefaultValue("utf8") String encoding) 
     												throws IOException {
+
+    	if (startTerm != null) {
+        	if (offset != null) {
+        		throw new WebApplicationException("Cannot have both 'from' and 'offset' parameters", Response.Status.FORBIDDEN);
+        	}
+        	if (filter != null) {
+        		throw new WebApplicationException("Cannot have both 'from' and 'filter' parameters", Response.Status.FORBIDDEN);        		
+        	}
+    	}
+    	
         FieldInfo fieldInfo = readerManager.getFieldInfo(segment, field);
 
         if (fieldInfo == null) {
             String msg = String.format("No such field %s", field);
-            throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
+            throw new WebApplicationException(msg, Response.Status.NOT_FOUND);    		
         }
 
         try {
@@ -158,22 +169,30 @@ public class DocValuesResource {
             TermsEnum te;
 
             if (dvtype == DocValuesType.SORTED) {
-	            te = readerManager.getSortedDocValues(segment, field).termsEnum();
+            	if (filter != null && filter.length() > 0) {
+    	            te = readerManager.getSortedDocValues(segment, field).intersect(
+    	            		new CompiledAutomaton(new RegExp(filter).toAutomaton()));
+            		
+            	} 
+            	else {
+            		te = readerManager.getSortedDocValues(segment, field).termsEnum();
+            	}
 	            type_s = "SORTED";
 	        }
 	        else if (dvtype == DocValuesType.SORTED_SET) {
-	            te = readerManager.getSortedSetDocValues(segment, field).termsEnum();
+            	if (filter != null && filter.length() > 0) {
+            		te = readerManager.getSortedSetDocValues(segment, field).intersect(
+    	            		new CompiledAutomaton(new RegExp(filter).toAutomaton()));
+            	}
+            	else {
+            		te = readerManager.getSortedSetDocValues(segment, field).termsEnum();
+            	}
 	            type_s = "SORTED_SET";
 	        }
 	        else {
 	        	throw new WebApplicationException("Field " + field + " cannot be viewed in value order", Response.Status.BAD_REQUEST);
 	        }
             
-            if (filter != null) {
-            	CompiledAutomaton automaton = new CompiledAutomaton(new RegExp(filter).toAutomaton());
-            	te = new AutomatonTermsEnum(te, automaton);
-            }
-	        
 	        List<ValueWithOrd> collected = new ArrayList<>();
 
             if (startTerm != null) {
@@ -186,10 +205,22 @@ public class DocValuesResource {
                 }
             }
 
-            do {
-                collected.add(new ValueWithOrd(BytesRefUtils.encode(te.term(), encoding), te.ord()));
+            boolean hasMore = true;
+            if (offset != null) {
+            	for (int i = 0; i < offset; i++) {
+            		if (te.next() == null) {
+            			hasMore = false;
+            			break;
+            		}
+            	}
             }
-            while (te.next() != null && --count > 0);
+
+            if (hasMore) {
+            	do {
+            		collected.add(new ValueWithOrd(BytesRefUtils.encode(te.term(), encoding), te.ord()));
+            	}
+            	while (te.next() != null && --count > 0);
+            }
             
             return new AnyDocValuesResponse(type_s, collected);
         }

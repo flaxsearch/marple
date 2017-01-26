@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -49,6 +50,8 @@ public class Fixtures {
             {
                 Document doc = new Document();
                 doc.add(new TextField("field2", "here is some text", Field.Store.YES));
+                TokenStream payloads = GutenbergIndex.payloadAnalyzer.tokenStream("payload", "here|1 is|2 some|3 text|4");
+                doc.add(new TextField("payload", payloads));
                 doc.add(new StringField("field1", "value1", Field.Store.YES));
                 doc.add(new IntPoint("point", 2, 4));
                 doc.add(new IntPoint("point", 0, 1));
