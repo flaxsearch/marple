@@ -21,6 +21,8 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Random;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -86,9 +88,25 @@ public class GutenbergIndex {
         document.add(new SortedSetDocValuesField("dv_filename_set", new BytesRef(filepath)));
         document.add(new SortedSetDocValuesField("dv_filename_set", new BytesRef(fileparent)));
 
+        document.add(new Field("payloads",
+                payloadAnalyzer.tokenStream("payloads", "abc|abc def|def"), TextField.TYPE_NOT_STORED));
 
         return document;
     }
+
+    private static Analyzer buildAnalyzer() {
+        try {
+            return CustomAnalyzer.builder()
+                    .withTokenizer("whitespace")
+                    .addTokenFilter("lowercase")
+                    .addTokenFilter("delimitedpayload", "encoder", "identity")
+                    .build();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Analyzer payloadAnalyzer = buildAnalyzer();
 
     public static void clearDirectory(Path path) throws IOException {
         if (Files.exists(path) == false)
