@@ -24,6 +24,7 @@ import java.util.Random;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.document.*;
+import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
@@ -34,8 +35,14 @@ import org.apache.lucene.util.BytesRef;
 public class GutenbergIndex {
 
     public static final Random random = new Random();
+    
+    private static FieldType textFieldType = new FieldType();
 
     public static void main(String... args) throws IOException {
+
+        textFieldType.setStored(true);
+        textFieldType.setTokenized(true);
+        textFieldType.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
 
         Path source = Paths.get("src/test/resources/gutenberg");
         Path index = Paths.get("src/test/resources/index");
@@ -45,7 +52,6 @@ public class GutenbergIndex {
              IndexWriter writer = new IndexWriter(directory, new IndexWriterConfig())) {
             writeDocuments(writer, source);
         }
-
     }
 
     public static void writeDocuments(IndexWriter writer, Path source) throws IOException {
@@ -73,7 +79,8 @@ public class GutenbergIndex {
         String fileparent = source.getParent().toString();
 
         Document document = new Document();
-        document.add(new TextField("text", new String(data, Charset.defaultCharset()), Field.Store.YES));
+        document.add(new Field("text", new String(data, Charset.defaultCharset()), textFieldType));
+        
         document.add(new StringField("source", filepath, Field.Store.YES));
         document.add(new IntPoint("filesize", data.length));
         document.add(new NumericDocValuesField("filesize", data.length));
