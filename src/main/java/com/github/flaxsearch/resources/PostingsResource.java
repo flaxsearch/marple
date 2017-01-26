@@ -19,7 +19,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 
-import com.github.flaxsearch.api.TermData;
 import com.github.flaxsearch.util.ReaderManager;
 import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.TermsEnum;
@@ -36,7 +35,7 @@ public class PostingsResource {
     }
 
     @GET
-    public TermData getPostings(@QueryParam("segment") Integer segment,
+    public int[] getPostings(@QueryParam("segment") Integer segment,
                                 @PathParam("field") String field,
                                 @PathParam("term") String term,
                                 @QueryParam("count") @DefaultValue("2147483647") int count) throws IOException {
@@ -46,7 +45,6 @@ public class PostingsResource {
         PostingsEnum pe = te.postings(null, PostingsEnum.NONE);
 
         int docFreq = te.docFreq();
-        long totalTermFreq = te.totalTermFreq();
 
         int size = (docFreq < count) ? docFreq : count;
         int[] postings = new int[size];
@@ -57,7 +55,7 @@ public class PostingsResource {
             postings[i] = docId;
             i++;
         }
-        return new TermData(term, docFreq, totalTermFreq, postings);
+        return postings;
     }
 
 }

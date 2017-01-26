@@ -63,7 +63,7 @@ export function loadTermsData({ segment, field, termsFilter, encoding,
 
       if (body.terms.length > count) {
         termsData.terms = body.terms.slice(0, -1);
-        termsData.moreFrom = body.terms[count];
+        termsData.moreFrom = body.terms[count].term;
       }
 
       onSuccess(termsData, encoding);    // return encoding in case it defaulted
