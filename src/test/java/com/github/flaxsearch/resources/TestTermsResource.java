@@ -38,7 +38,8 @@ public class TestTermsResource extends IndexResourceTestBase {
                 .get(TermsData.class);
 
         assertThat(terms.terms).hasSize(2);
-        assertThat(terms.terms).containsExactly("field", "more");
+        assertThat(terms.terms.get(0).term).isEqualTo("field");
+        assertThat(terms.terms.get(0).docFreq).isEqualTo(1);
     }
 
     @Test
@@ -59,14 +60,14 @@ public class TestTermsResource extends IndexResourceTestBase {
         TermsData terms = resource.client().target("/terms/field3?filter=value.1").request()
                 .get(TermsData.class);
 
-        assertThat(terms.terms).containsExactly("value11", "value21");
+        assertThat(terms.terms).extracting("term").containsExactly("value11", "value21");
     }
 
     @Test
     public void testTermsSingleValueFilter() {
         TermsData terms = resource.client().target("/terms/field3?filter=value21").request()
                 .get(TermsData.class);
-        assertThat(terms.terms).containsExactly("value21");
+        assertThat(terms.terms).extracting("term").containsExactly("value21");
     }
 
     @Test
@@ -80,11 +81,11 @@ public class TestTermsResource extends IndexResourceTestBase {
     public void testEncodings() {
         TermsData terms = resource.client().target("/terms/field1?encoding=utf8").request()
                 .get(TermsData.class);
-        assertThat(terms.terms).containsExactly("value1", "value2");
+        assertThat(terms.terms).extracting("term").containsExactly("value1", "value2");
         
         terms = resource.client().target("/terms/field1?encoding=base64").request()
                 .get(TermsData.class);
-        assertThat(terms.terms).containsExactly("dmFsdWUx", "dmFsdWUy");
+        assertThat(terms.terms).extracting("term").containsExactly("dmFsdWUx", "dmFsdWUy");
     }
     
 }

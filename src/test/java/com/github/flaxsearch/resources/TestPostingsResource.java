@@ -20,7 +20,6 @@ import javax.ws.rs.core.GenericType;
 import java.util.List;
 import java.util.Map;
 
-import com.github.flaxsearch.api.TermData;
 import io.dropwizard.testing.junit.ResourceTestRule;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -37,14 +36,11 @@ public class TestPostingsResource extends IndexResourceTestBase {
 
     @Test
     public void testWholeIndexPostings() {
-        TermData termData = resource.client().target("/postings/field3/field").request()
-                .get(TermData.class);
+        int[] postings = resource.client().target("/postings/field3/field").request()
+                .get(int[].class);
 
-        assertThat(termData).isNotNull();
-        assertThat(termData.term).isEqualTo("field");
-        assertThat(termData.docFreq).isEqualTo(1);
-        assertThat(termData.totalTermFreq).isEqualTo(1);
-        assertThat(termData.postings.length).isEqualTo(1);
+        assertThat(postings).isNotNull();
+        assertThat(postings).hasSize(1);
     }
 
     @Test

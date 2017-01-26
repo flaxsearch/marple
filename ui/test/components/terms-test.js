@@ -23,7 +23,9 @@ describe('components/terms', function() {
       "docCount": 19,
       "minTerm": "aardvark",
       "maxTerm": "zebra",
-      "terms": [ "aardvark", "bat", "cat" ]
+      "terms": [ { term : "aardvark", docFreq: 1, totalTermFreq: 1 } ,
+          { term : "bat", docFreq: 1, totalTermFreq: 1 },
+          { term : "cat", docFreq: 1, totalTermFreq: 1 } ]
     });
 
     fetchMock.get(MARPLE_BASE + '/api/terms/foo?segment=1&encoding=int', {

@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.github.flaxsearch.api.TermData;
 import com.github.flaxsearch.api.TermsData;
 import com.github.flaxsearch.util.BytesRefUtils;
 import com.github.flaxsearch.util.ReaderManager;
@@ -59,7 +60,7 @@ public class TermsResource {
                 throw new WebApplicationException("No such field " + field, Response.Status.NOT_FOUND);
 
             TermsEnum te = getTermsEnum(terms, filter);
-            List<String> collected = new ArrayList<>();
+            List<TermData> collected = new ArrayList<>();
 
             if (startTerm != null) {
                 BytesRef start = BytesRefUtils.decode(startTerm, encoding);
@@ -72,7 +73,8 @@ public class TermsResource {
             }
 
             do {
-                collected.add(BytesRefUtils.encode(te.term(), encoding));
+                TermData td = new TermData(BytesRefUtils.encode(te.term(), encoding), te.docFreq(), te.totalTermFreq());
+                collected.add(td);
             }
             while (te.next() != null && --count > 0);
 

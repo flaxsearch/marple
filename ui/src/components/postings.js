@@ -5,7 +5,7 @@ import PostingItem from './postingitem';
 class Postings extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { };
+    this.state = { postingsData: [] };
     this.componentDidMount = this.componentDidMount.bind(this);
   }
 
@@ -16,7 +16,7 @@ class Postings extends React.Component {
 	  },
 	  errmsg => {
         if (errmsg.includes('No term')) {
-          this.setState({ postingsData: undefined });
+          this.setState({ postingsData: [] });
         }
         else {
           this.props.showAlert(errmsg, true);
@@ -28,11 +28,11 @@ class Postings extends React.Component {
     const s = this.state;
     const p = this.props;
 
-    if (s.postingsData == undefined) {
+    if (s.postingsData.length == 0) {
       return <div></div>;
     }
 
-    var postingList = s.postingsData.postings.map((docid, idx) =>
+    var postingList = s.postingsData.map((docid, idx) =>
       <PostingItem key={idx} segment={p.segment} field={p.field}
        term={p.term} docid={docid} showAlert={p.showAlert}/>
     );
