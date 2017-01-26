@@ -123,9 +123,8 @@ describe('components/terms', function() {
 
     it('renders correctly', function() {
       // count the terms
-      const lis = renderedDOM.children[2].getElementsByTagName('LI');
-      expect(lis.length).to.eql(50);
-      expect(lis[42].firstChild.innerHTML).to.eql('ec');
+      const lis = renderedDOM.children[2].getElementsByTagName('DIV');
+      expect(lis.length).to.eql(100);
 
       const buttons = renderedDOM.getElementsByClassName('btn-primary');
       expect(buttons.length).to.eql(1);
@@ -136,9 +135,8 @@ describe('components/terms', function() {
       const buttons = renderedDOM.getElementsByClassName('btn-primary');
       TestUtils.Simulate.click(buttons[0]);
       setTimeout(() => {
-        const lis = renderedDOM.children[2].getElementsByTagName('LI');
-        expect(lis.length).to.eql(55);
-        expect(lis[53].firstChild.innerHTML).to.eql('fd');
+        const lis = renderedDOM.children[2].getElementsByTagName('DIV');
+        expect(lis.length).to.eql(110);
         done();
       }, 100);
     });

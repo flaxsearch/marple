@@ -162,6 +162,7 @@ class Terms extends React.Component {
 
       <div style={TERMSLISTSTYLE}>
         {termsList}
+        {moreFromLink}
       </div>
     </div>;
   }
