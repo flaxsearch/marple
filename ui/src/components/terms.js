@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import { Nav, NavItem, FormGroup, FormControl, Radio, Form, Grid, Row, Col, Button } from 'react-bootstrap';
+import { Nav, NavItem, FormGroup, FormControl, Radio, Form, Grid, Row, Col, Button, Table } from 'react-bootstrap';
 import { loadTermsData, getFieldEncoding, setFieldEncoding } from '../data';
 import { EncodingDropdown } from './misc';
 import TermItem from './termitem'
@@ -15,67 +15,94 @@ const LABELSTYLE = {
 };
 
 class Terms extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      termsData: undefined,
-      termsFilter: '',
-      encoding: ''
+    constructor(props) {
+        super(props);
+        this.state = {
+            termsData: undefined,
+            termsFilter: '',
+            encoding: ''
+        }
+
+        this.componentDidMount = this.componentDidMount.bind(this);
+        this.componentWillReceiveProps = this.componentWillReceiveProps.bind(this);
+        this.setTermsFilter = this.setTermsFilter.bind(this);
+        this.setEncoding = this.setEncoding.bind(this);
+        this.termsTable = this.termsTable.bind(this);
     }
 
-    this.componentDidMount = this.componentDidMount.bind(this);
-    this.componentWillReceiveProps = this.componentWillReceiveProps.bind(this);
-    this.setTermsFilter = this.setTermsFilter.bind(this);
-    this.setEncoding = this.setEncoding.bind(this);
-  }
+    loadAndDisplayData(segment, field, termsFilter, newEncoding) {
+        newEncoding = newEncoding || getFieldEncoding(
+                this.props.indexData.indexpath, field, 'terms');
 
-  loadAndDisplayData(segment, field, termsFilter, newEncoding) {
-    newEncoding = newEncoding || getFieldEncoding(
-      this.props.indexData.indexpath, field, 'terms');
+        loadTermsData(segment, field, termsFilter, newEncoding,
+            (termsData, encoding) => {
+                if (encoding != this.state.encoding) {
+                    setFieldEncoding(this.props.indexData.indexpath,
+                        this.props.field, 'terms', encoding);
+                }
 
-    loadTermsData(segment, field, termsFilter, newEncoding,
-      (termsData, encoding) => {
-        if (encoding != this.state.encoding) {
-          setFieldEncoding(this.props.indexData.indexpath,
-            this.props.field, 'terms', encoding);
-        }
+                this.setState({termsFilter, termsData, encoding});
 
-        this.setState({ termsFilter, termsData, encoding });
-
-        if (encoding != newEncoding) {
-          this.props.showAlert(`${newEncoding} is not a valid encoding for this field`);
-        }
-      },
-      errmsg => {
-        if (errmsg.includes('No such field')) {
-          this.setState({ termsData: { terms: undefined }});
-        }
-        else {
-          this.props.showAlert(errmsg, true);
-        }
-      }
-    );
-  }
-
-  componentDidMount() {
-    if (this.props.field) {
-      this.loadAndDisplayData(this.props.segment, this.props.field, '');
+                if (encoding != newEncoding) {
+                    this.props.showAlert(`${newEncoding} is not a valid encoding for this field`);
+                }
+            },
+            errmsg => {
+            alert(errmsg);
+                if (errmsg.includes('No such field')) {
+                    this.setState({termsData: {terms: undefined}});
+                }
+                else {
+                    this.props.showAlert(errmsg, true);
+                }
+            }
+        );
     }
-  }
 
-  componentWillReceiveProps(newProps) {
-    if (newProps.field) {
-      this.loadAndDisplayData(newProps.segment, newProps.field, this.state.termsFilter);
+    componentDidMount() {
+        if (this.props.field) {
+            this.loadAndDisplayData(this.props.segment, this.props.field, '');
+        }
     }
-  }
 
-  setTermsFilter(termsFilter) {
-    this.loadAndDisplayData(this.props.segment, this.props.field, termsFilter, this.state.encoding);
-  }
+    componentWillReceiveProps(newProps) {
+        if (newProps.field) {
+            this.loadAndDisplayData(newProps.segment, newProps.field, this.state.termsFilter);
+        }
+    }
 
-  setEncoding(encoding) {
-    this.loadAndDisplayData(this.props.segment, this.props.field, this.state.termsFilter, encoding);
-  }
+    setTermsFilter(termsFilter) {
+        this.loadAndDisplayData(this.props.segment, this.props.field, termsFilter, this.state.encoding);
+    }
+
+    setEncoding(encoding) {
+        this.loadAndDisplayData(this.props.segment, this.props.field, this.state.termsFilter, encoding);
+    }
+
+    termsTable() {
+        const s = this.state;
+        const p = this.props;
+        const termEntries = s.termsData.terms.map((term, idx) => (
+                <tr key={idx}>
+                    <td>{term.docFreq}</td>
+                    <td>{term.totalTermFreq}</td>
+                    <td>
+                        <TermItem key={idx} segment={p.segment} field={p.field} term={term.term} showAlert={p.showAlert}/>
+                    </td>
+                </tr>
+            ));
+
+        return(
+            <Table>
+                <thead>
+                <tr><td>docFreq</td><td>totalTermFreq</td><td>term</td></tr>
+                </thead>
+                <tbody>
+                {termEntries}
+                </tbody>
+            </Table>
+        );
+    }
 
   render() {
     const s = this.state;
@@ -89,9 +116,8 @@ class Terms extends React.Component {
         [no terms for field { this.props.field }]
       </div>;
     }
-    const termsList = s.termsData.terms.map((term, idx) =>
-      <TermItem key={idx} segment={p.segment} field={p.field} term={term} showAlert={p.showAlert} />);
 
+    const termsList = this.termsTable();
     const termCount = s.termsData.termCount == -1 ? "not stored" : s.termsData.termCount;
 
     return <div>

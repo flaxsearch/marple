@@ -33,7 +33,7 @@ class TermItem extends React.Component {
     const postings = s.displayPostings ?
       <div style={POSTINGSSTYLE}>
         <Postings segment={p.segment} field={p.field}
-         term={p.term.term} showAlert={p.showAlert} />
+         term={p.term} showAlert={p.showAlert} />
       </div> : null;
 
     const toggle = s.displayPostings ?
@@ -42,7 +42,7 @@ class TermItem extends React.Component {
     return <div>
       <div><a href="#" onClick={ e => { e.preventDefault();
         this.handlePostingsClick() }}>
-        {p.term.term}
+        {p.term}
         <span className={'glyphicon ' + toggle}
               style={{ fontSize: '11px', paddingLeft: '5px', color: 'lightgrey' }}
               aria-hidden="true"></span>
@@ -57,7 +57,7 @@ TermItem.propTypes = {
     PropTypes.string, PropTypes.number
   ]),
   field: PropTypes.string.isRequired,
-  term: PropTypes.object.isRequired
+  term: PropTypes.string.isRequired
 }
 
 export default TermItem;
