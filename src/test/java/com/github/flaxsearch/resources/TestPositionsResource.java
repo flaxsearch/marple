@@ -36,4 +36,11 @@ public class TestPositionsResource extends IndexResourceTestBase {
 
         assertThat(data).isNotNull();
     }
+
+    @Test
+    public void testPayloads() {
+        DocTermData data = resource.client().target("/positions/payload/here/0").request().get(DocTermData.class);
+        assertThat(data.positions).isNotEmpty();
+        assertThat(data.positions.get(0).payload).isNotEmpty();
+    }
 }

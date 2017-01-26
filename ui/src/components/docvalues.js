@@ -1,9 +1,11 @@
 import React, { PropTypes } from 'react';
-import { Form, FormControl, Label, FormGroup, Radio, Table } from 'react-bootstrap';
+import { Form, FormControl, Label, FormGroup, Radio, Table, Button } from 'react-bootstrap';
 import { loadDocValuesByDoc, loadDocValuesByValue,
          getFieldEncoding, setFieldEncoding } from '../data';
 import { parseDoclist } from '../util';
 import { EncodingDropdown } from './misc';
+
+const FETCH_COUNT = 50;
 
 const DocValuesByDocs = props => {
   let keys;
@@ -69,6 +71,18 @@ const DocValuesByDocs = props => {
     });
   }
 
+  if (props.docValues.moreFrom) {
+    dvlist.push(
+      <tr key={'load more'}>
+        <td></td>
+        <td></td>
+        <td>
+          <Button bsStyle="primary" onClick={props.loadMore}>Load more</Button>
+        </td>
+      </tr>
+    );
+  }
+
   return <Table style={{marginTop:'10px'}}>
     <thead>
       <tr>
@@ -86,17 +100,30 @@ const DocValuesByDocs = props => {
 DocValuesByDocs.propTypes = {
   docs: PropTypes.string,
   docValues: PropTypes.object,
-  numDocs: PropTypes.number
+  numDocs: PropTypes.number,
+  loadMore: PropTypes.func.isRequired
 };
 
 
 const DocValuesByValue = props => {
-  const dvlist = props.docValues.values.map(value =>
+  let dvlist = props.docValues.values.map(value =>
     <tr key={value.ord} className='marple-dv-item'>
       <td>{value.ord}</td>
       <td>{value.value}</td>
     </tr>
   );
+
+  if (props.docValues.moreFrom) {
+    dvlist.push(
+      <tr key={'load more'}>
+        <td></td>
+        <td>
+          <Button bsStyle="primary" onClick={props.loadMore}>Load more</Button>
+        </td>
+      </tr>
+    );
+  }
+
   return <Table style={{marginTop:'10px'}}>
     <thead>
       <tr>
@@ -112,7 +139,8 @@ const DocValuesByValue = props => {
 
 DocValuesByValue.propTypes = {
   filter: PropTypes.string,
-  docValues: PropTypes.object
+  docValues: PropTypes.object,
+  loadMore: PropTypes.func.isRequired
 };
 
 
@@ -127,67 +155,77 @@ class DocValues extends React.Component {
       viewBy: 'docs'
     }
 
+    this.onError = this.onError.bind(this);
     this.componentDidMount = this.componentDidMount.bind(this);
     this.componentWillReceiveProps = this.componentWillReceiveProps.bind(this);
     this.setDocs = this.setDocs.bind(this);
     this.setFilter = this.setFilter.bind(this);
     this.setEncoding = this.setEncoding.bind(this);
     this.setViewBy = this.setViewBy.bind(this);
+    this.loadMoreByValue = this.loadMoreByValue.bind(this);
+    this.loadMoreByDocs = this.loadMoreByDocs.bind(this);
+  }
+
+  onError(errmsg) {
+    if (errmsg.includes('No doc values for')) {
+      this.setState({ docValues: { type: 'NONE', values: null }});
+    }
+    else {
+      this.props.showAlert(errmsg, true);
+    }
   }
 
   loadAndDisplayDataByDocs(segment, field, docs, newEncoding) {
     newEncoding = newEncoding || getFieldEncoding(
       this.props.indexData.indexpath, field, 'docvalues');
 
-    loadDocValuesByDoc(segment, field, docs, newEncoding,
-      (docValues, encoding) => {
-        if (encoding != this.state.encoding) {
-          setFieldEncoding(this.props.indexData.indexpath,
-            this.props.field, 'docvalues', encoding);
-        }
-
-        this.setState({ docs, docValues, encoding, viewBy:'docs' });
-        if (encoding != newEncoding) {
-          this.props.showAlert(`${newEncoding} is not a valid encoding for this field`);
-        }
-      },
-      errmsg => {
-        if (errmsg.includes('No doc values for')) {
-          this.setState({ docValues: { type: 'NONE', values: null }});
-        }
-        else {
-          this.props.showAlert(errmsg, true);
-        }
+    const onSuccess = (docValues, encoding) => {
+      if (encoding != this.state.encoding) {
+        setFieldEncoding(this.props.indexData.indexpath,
+          this.props.field, 'docvalues', encoding);
       }
-    );
+
+      if (encoding != newEncoding) {
+        this.props.showAlert(`${newEncoding} is not a valid encoding for this field`);
+      }
+
+      if (docs) {
+        this.setState({ docs, docValues, encoding, viewBy:'docs' });
+      }
+      else {
+        // if the user did not specify 'docs', we might be able to load more
+        const docids = Object.keys(docValues.values);
+        if (docids.length > FETCH_COUNT) {
+          docValues.moreFrom = Math.max(... docids);
+          delete docValues.values[docValues.moreFrom];
+        }
+        this.setState({ docs: '', docValues, encoding, viewBy:'docs' });
+      }
+    };
+
+    const docsToFetch = docs || '0-' + FETCH_COUNT;
+    loadDocValuesByDoc({ segment, field, docs: docsToFetch, encoding: newEncoding,
+                         onSuccess, onError: this.onError });
   }
 
   loadAndDisplayDataByValues(segment, field, filter, newEncoding) {
     newEncoding = newEncoding || getFieldEncoding(
       this.props.indexData.indexpath, field, 'docvalues');
 
-    loadDocValuesByValue(segment, field, filter, newEncoding,
-      (docValues, encoding) => {
-        if (encoding != this.state.encoding) {
-          setFieldEncoding(this.props.indexData.indexpath,
-            this.props.field, 'docvalues', encoding);
-        }
-
-        this.setState({ docValues, encoding, filter, viewBy:'values' });
-        if (encoding != newEncoding) {
-          this.props.showAlert(`${newEncoding} is not a valid encoding for this field`);
-        }
-      },
-      errmsg => {
-        if (errmsg.includes('No doc values for')) {
-          this.setState({ docValues: { type: 'NONE', values: null }});
-        }
-        else {
-          this.props.showAlert(errmsg, true);
-        }
+    const onSuccess = (docValues, encoding) => {
+      if (encoding != this.state.encoding) {
+        setFieldEncoding(this.props.indexData.indexpath,
+          this.props.field, 'docvalues', encoding);
       }
-    );
 
+      this.setState({ docValues, encoding, filter, viewBy:'values' });
+      if (encoding != newEncoding) {
+        this.props.showAlert(`${newEncoding} is not a valid encoding for this field`);
+      }
+    };
+
+    loadDocValuesByValue({ segment, field, valFilter: filter, encoding: newEncoding,
+                           count: FETCH_COUNT, onSuccess, onError: this.onError });
   }
 
   // always open in viewBy:docs state
@@ -240,6 +278,57 @@ class DocValues extends React.Component {
     }
   }
 
+  loadMoreByValue() {
+    const onSuccess = newData => {
+      const docValues = {
+        type: newData.type,
+        values: this.state.docValues.values.concat(newData.values),
+        moreFrom: newData.moreFrom
+      };
+      this.setState({ docValues });
+    };
+
+    loadDocValuesByValue({
+      segment: this.props.segment,
+      field: this.props.field,
+      valFilter: this.state.filter,
+      encoding: this.state.encoding,
+      offset: this.state.docValues.values.length,
+      count: FETCH_COUNT,
+      onSuccess,
+      onError: this.onError });
+  }
+
+  loadMoreByDocs() {
+    const onSuccess = newData => {
+      const newValues = Object.assign({}, this.state.docValues.values, newData.values);
+      let docValues = {
+        type: newData.type,
+        values: newValues
+      };
+
+      // could we get more?
+      const docids = Object.keys(newData.values);
+      if (docids.length > FETCH_COUNT) {
+        docValues.moreFrom = Math.max(... docids);
+        delete docValues.values[docValues.moreFrom];
+      }
+
+      this.setState({ docValues });
+    };
+
+    const from = this.state.docValues.moreFrom;
+    const to = from + FETCH_COUNT;
+
+    loadDocValuesByDoc({
+      segment: this.props.segment,
+      field: this.props.field,
+      docs: `${from}-${to}`,
+      encoding: this.state.encoding,
+      onSuccess,
+      onError: this.onError });
+  }
+
   render() {
     const s = this.state;
     const p = this.props;
@@ -262,11 +351,16 @@ class DocValues extends React.Component {
         dvTable = <h3>[no doc values for field {p.field}]</h3>;
       }
       else if (s.viewBy == 'docs' || disableViewBy) {
-        dvTable = <DocValuesByDocs docs={s.docs} docValues={s.docValues}
-                   numDocs={p.indexData.numDocs} setDocs={this.setDocs} />
+        dvTable = <DocValuesByDocs docs={s.docs}
+                                   docValues={s.docValues}
+                                   numDocs={p.indexData.numDocs}
+                                   loadMore={this.loadMoreByDocs}/>
       }
       else {
-        dvTable = <DocValuesByValue filter={s.filter} docValues={s.docValues}/> ;
+        dvTable = <DocValuesByValue filter={s.filter}
+                                    docValues={s.docValues}
+                                    loadMore={this.loadMoreByValue} />;
+
         filterComp = <FormControl type="text" value={s.filter}
                       placeholder={'Filter by regexp'}
                       onChange={e => this.setFilter(e.target.value)}

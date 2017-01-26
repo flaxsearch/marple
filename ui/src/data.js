@@ -31,10 +31,12 @@ export function loadDocument(segment, docid, onSuccess, onError) {
         .catch(error => onError('error loading document: ' + error));
 }
 
-export function loadTermsData(segment, field, termsFilter, encoding, onSuccess, onError) {
-  // add a wildcard to the end of the filter
-  const filter = termsFilter ? termsFilter + '.*' : '';
-  const url = MARPLE_BASE + `/api/terms/${field}?` + makeQueryStr({ segment, filter, encoding });
+export function loadTermsData({ segment, field, termsFilter, encoding,
+                                from, count, onSuccess, onError }) {
+  const filter = normaliseFilter(termsFilter);
+  const url = MARPLE_BASE + `/api/terms/${field}?` + makeQueryStr({
+    segment, filter, encoding, from, count: count + 1 });
+
   fetch(url)
   .then(response => response.json())
   .then(body => {
@@ -42,14 +44,29 @@ export function loadTermsData(segment, field, termsFilter, encoding, onSuccess, 
     if (body.code) {
       if (body.code == 400 && body.message.includes('cannot be decoded as')) {
         // cope with encoding error by defaulting to utf8
-        loadTermsData(segment, field, termsFilter, 'utf8', onSuccess, onError);
+        loadTermsData({ segment, field, termsFilter, encoding: 'utf8',
+          from, count, onSuccess, onError });
       }
       else {
         onError(body.message);
       }
     }
     else {
-      onSuccess(body, encoding);    // return encoding in case it defaulted
+      // did we get more than 'count' items back?
+      let termsData = {
+        termCount: body.termCount,
+        docCount: body.docCount,
+        minTerm: body.minTerm,
+        maxTerm: body.maxTerm,
+        terms: body.terms
+      };
+
+      if (body.terms.length > count) {
+        termsData.terms = body.terms.slice(0, -1);
+        termsData.moreFrom = body.terms[count].term;
+      }
+
+      onSuccess(termsData, encoding);    // return encoding in case it defaulted
     }
   })
   .catch(error => {
@@ -57,7 +74,7 @@ export function loadTermsData(segment, field, termsFilter, encoding, onSuccess, 
   });
 }
 
-export function loadDocValuesByDoc(segment, field, docs, encoding, onSuccess, onError) {
+export function loadDocValuesByDoc({ segment, field, docs, encoding, onSuccess, onError }) {
   const url = MARPLE_BASE + `/api/docvalues/${field}?`+ makeQueryStr({ segment, docs, encoding });
   fetch(url)
   .then(response => response.json())
@@ -66,7 +83,7 @@ export function loadDocValuesByDoc(segment, field, docs, encoding, onSuccess, on
     if (body.code) {
       if (body.code == 400 && body.message.includes('cannot be decoded as')) {
         // cope with encoding error by defaulting to utf8
-        loadDocValuesByDoc(segment, field, docs, 'utf8', onSuccess, onError);
+        loadDocValuesByDoc({ segment, field, docs, encoding: 'utf8', onSuccess, onError });
       }
       else {
         onError(body.message);
@@ -79,12 +96,12 @@ export function loadDocValuesByDoc(segment, field, docs, encoding, onSuccess, on
   .catch(error => { onError('error loading docvalues: ' + error); });
 }
 
-export function loadDocValuesByValue(segment, field, valFilter, encoding, onSuccess, onError) {
-  // add a wildcard to the end of the filter
-  const filter = valFilter ? valFilter + '.*' : '';
-
+export function loadDocValuesByValue({ segment, field, valFilter, encoding,
+                                       offset, count, onSuccess, onError }) {
+  const filter = normaliseFilter(valFilter);
   const url = MARPLE_BASE + `/api/docvalues/${field}/ordered?`+ makeQueryStr({
-                                                  segment, filter, encoding });
+    offset, count: count + 1, segment, filter, encoding });
+
   fetch(url)
   .then(response => response.json())
   .then(body => {
@@ -92,14 +109,27 @@ export function loadDocValuesByValue(segment, field, valFilter, encoding, onSucc
     if (body.code) {
       if (body.code == 400 && body.message.includes('cannot be decoded as')) {
         // cope with encoding error by defaulting to utf8
-        loadDocValuesByValue(segment, field, filter, 'utf8', onSuccess, onError);
+        loadDocValuesByValue({ segment, field, filter, encoding: 'utf8',
+                               offset, count, onSuccess, onError });
       }
       else {
         onError(body.message);
       }
     }
     else {
-      onSuccess(body, encoding);    // return encoding in case it defaulted
+      // did we get more than 'count' items back?
+      let valuesData = {
+        type: body.type,
+        values: body.values
+      };
+
+      if (body.values.length > count) {
+        valuesData.values = body.values.slice(0, -1);
+        valuesData.moreFrom = body.values[count].value;
+        // (we don't use the value of .moreFrom, just its presence)
+      }
+
+      onSuccess(valuesData, encoding);    // return encoding in case it defaulted
     }
   })
   .catch(error => { onError('error loading docvalues: ' + error); });
@@ -160,4 +190,16 @@ export function loadPositions(segment, field, term, docid, onSuccess, onError) {
 		}
 	})
 	.catch(error => { onError('error loading positions: ' + error); });
+}
+
+function normaliseFilter(filter) {
+  if (filter) {
+    if (filter.endsWith('.*')) {
+      return filter;
+    }
+    else {
+      return filter + '.*';
+    }
+  }
+  return '';
 }

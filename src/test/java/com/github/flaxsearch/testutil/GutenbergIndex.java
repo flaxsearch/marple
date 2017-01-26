@@ -19,7 +19,10 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Random;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -29,6 +32,8 @@ import org.apache.lucene.util.BytesRef;
 
 
 public class GutenbergIndex {
+
+    public static final Random random = new Random();
 
     public static void main(String... args) throws IOException {
 
@@ -50,6 +55,13 @@ public class GutenbergIndex {
                 byte[] data = Files.readAllBytes(file);
                 writer.addDocument(buildDocument(file, data));
                 if (count++ % 7 == 0)
+                    writer.commit();
+            }
+            for (int i = 0; i < 250; i++) {
+                Path p = source.resolve("document_" + i);
+                byte[] data = ("this is document " + i).getBytes(Charset.defaultCharset());
+                writer.addDocument(buildDocument(p, data));
+                if (random.nextInt(25) == 0)
                     writer.commit();
             }
         }
@@ -76,9 +88,25 @@ public class GutenbergIndex {
         document.add(new SortedSetDocValuesField("dv_filename_set", new BytesRef(filepath)));
         document.add(new SortedSetDocValuesField("dv_filename_set", new BytesRef(fileparent)));
 
+        document.add(new Field("payloads",
+                payloadAnalyzer.tokenStream("payloads", "abc|abc def|def"), TextField.TYPE_NOT_STORED));
 
         return document;
     }
+
+    private static Analyzer buildAnalyzer() {
+        try {
+            return CustomAnalyzer.builder()
+                    .withTokenizer("whitespace")
+                    .addTokenFilter("lowercase")
+                    .addTokenFilter("delimitedpayload", "encoder", "identity")
+                    .build();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Analyzer payloadAnalyzer = buildAnalyzer();
 
     public static void clearDirectory(Path path) throws IOException {
         if (Files.exists(path) == false)
