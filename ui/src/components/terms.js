@@ -119,7 +119,7 @@ class Terms extends React.Component {
         <FormControl type="text" value={s.termsFilter}
          placeholder={'Filter by regexp'}
          onChange={ e => this.setTermsFilter(e.target.value) }
-         style={{width:'500px'}} />
+         style={{width:'75%'}} />
         {" "}
         <EncodingDropdown encoding={s.encoding} numeric={true}
                           onSelect={x => this.setEncoding(x)} />
