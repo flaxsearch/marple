@@ -34,9 +34,9 @@ public class TermsData {
 
     public final String maxTerm;
 
-    public final List<String> terms;
+    public final List<TermData> terms;
 
-    public TermsData(Terms terms, List<String> termsList, String encoding) throws IOException {
+    public TermsData(Terms terms, List<TermData> termsList, String encoding) throws IOException {
         this.termCount = terms.size();
         this.docCount = terms.getDocCount();
         this.minTerm = BytesRefUtils.encode(terms.getMin(), encoding);
@@ -49,7 +49,7 @@ public class TermsData {
                      @JsonProperty("docCount") long docCount,
                      @JsonProperty("minTerm") String minTerm,
                      @JsonProperty("maxTerm") String maxTerm,
-                     @JsonProperty("terms") List<String> terms) {
+                     @JsonProperty("terms") List<TermData> terms) {
         this.termCount = termCount;
         this.docCount = docCount;
         this.minTerm = minTerm;

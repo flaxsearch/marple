@@ -16,9 +16,6 @@ package com.github.flaxsearch.api;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.lucene.util.BytesRef;
-
-import java.util.List;
 
 public class TermData {
 
@@ -28,16 +25,12 @@ public class TermData {
 
     public final long totalTermFreq;
 
-    public final int[] postings;
-
     public TermData(@JsonProperty("term") String term,
                     @JsonProperty("docFreq") int docFreq,
-                    @JsonProperty("totalTermFreq") long totalTermFreq,
-                    @JsonProperty("postings") int[] postings) {
+                    @JsonProperty("totalTermFreq") long totalTermFreq) {
         this.term = term;
         this.docFreq = docFreq;
         this.totalTermFreq = totalTermFreq;
-        this.postings = postings;
     }
 
 }
