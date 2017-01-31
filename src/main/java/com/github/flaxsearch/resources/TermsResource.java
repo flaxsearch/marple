@@ -63,9 +63,15 @@ public class TermsResource {
             List<TermData> collected = new ArrayList<>();
 
             if (startTerm != null) {
-                BytesRef start = BytesRefUtils.decode(startTerm, encoding);
-                if (te.seekCeil(start) == TermsEnum.SeekStatus.END)
-                    return new TermsData(terms, Collections.emptyList(), encoding);
+            	while(true) {
+                    if (te.next() == null) {
+                        return new TermsData(terms, Collections.emptyList(), encoding);
+                    }
+                    String term = BytesRefUtils.encode(te.term(), encoding);
+                    if (term.compareTo(startTerm) >= 0) {
+                        break;
+                    }
+                }
             } else {
                 if (te.next() == null) {
                     return new TermsData(terms, Collections.emptyList(), encoding);
