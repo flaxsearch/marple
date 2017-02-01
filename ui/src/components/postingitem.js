@@ -1,48 +1,6 @@
 import React, { PropTypes } from 'react';
 import { loadPositions } from '../data';
 
-// FIXME - put these styles into CSS classes
-
-const TABLESTYLE = {
-  marginLeft: '15px',
-  width: '100%',
-};
-
-const COL1STYLE = {
-  width: '50px',
-  textAlign: 'right'
-};
-
-const COL2STYLE = {
-  width: '100px',
-  textAlign: 'right'
-};
-
-const COL3STYLE = {
-  width: 'auto',
-  textAlign: 'left',
-  paddingLeft: '10px'
-};
-
-const COL1HSTYLE = {
-  width: '50px',
-  textAlign: 'right',
-  color: 'grey'
-};
-
-const COL2HSTYLE = {
-  width: '100px',
-  textAlign: 'right',
-  color: 'grey'
-};
-
-const COL3HSTYLE = {
-  width: 'auto',
-  textAlign: 'left',
-  paddingLeft: '10px',
-  color: 'grey'
-};
-
 
 class PostingItem extends React.Component {
   constructor(props) {
@@ -83,24 +41,24 @@ class PostingItem extends React.Component {
     const p = this.props;
 
     const positions = s.positionsData ?
-      <table style={TABLESTYLE}>
+      <table className="postingitem-table">
         <thead>
           <tr>
-            <td style={COL1HSTYLE}>position</td>
-            <td style={COL2HSTYLE}>offsets</td>
-            <td style={COL3HSTYLE}>payload</td>
+            <td className="postingitem-col1h">position</td>
+            <td className="postingitem-col2h">offsets</td>
+            <td className="postingitem-col3h">payload</td>
           </tr>
         </thead>
         <tbody>{
           s.positionsData.positions.map((pos, idx) => <tr key={idx}>
-            <td style={COL1STYLE}>{
+            <td className="postingitem-col1">{
               pos.position == -1 ? '-' : pos.position
             }</td>
-            <td style={COL2STYLE}>{
+            <td className="postingitem-col2">{
               pos.startOffset == -1 ? '-' :
                 `${pos.startOffset}-${pos.endOffset}`
             }</td>
-            <td style={COL3STYLE}>{pos.payload}</td>
+            <td className="postingitem-col3">{pos.payload}</td>
           </tr>
         )}</tbody></table>
       : null;
@@ -112,8 +70,7 @@ class PostingItem extends React.Component {
       <a href="#" onClick={ e =>
         { e.preventDefault(); this.handlePositionClick(); }}>
         {p.docid}
-        <span className={'glyphicon ' + toggle}
-              style={{ fontSize: '11px', paddingLeft: '5px', color: 'lightgrey' }}
+        <span className={'postingitem-glyph glyphicon ' + toggle}
               aria-hidden="true"></span>
       </a>
       {positions}
