@@ -158,10 +158,10 @@ export function setFieldEncoding(indexpath, field, item, encoding) {
   store.set('marple', local);
 }
 
-export function loadPostings(segment, field, term, onSuccess, onError) {
+export function loadPostings(segment, field, term, offset, count, onSuccess, onError) {
   term = encodeURIComponent(term);
 	const url = MARPLE_BASE + `/api/postings/${field}/${term}?` +
-    makeQueryStr({ segment });
+    makeQueryStr({ segment, offset, count: count + 1 });
 
 	fetch(url)
 	.then(response => response.json())
@@ -169,7 +169,11 @@ export function loadPostings(segment, field, term, onSuccess, onError) {
 		if (body.code) {
 			onError(body.message);
 		} else {
-			onSuccess(body);
+			onSuccess({
+                postings: body,
+                moreFrom: body.length > count ?
+                    offset + body.length : undefined 
+            });
 		}
 	})
 	.catch(error => { onError('error loading postings: ' + error); });
