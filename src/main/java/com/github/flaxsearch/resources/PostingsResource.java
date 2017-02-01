@@ -38,7 +38,8 @@ public class PostingsResource {
     public int[] getPostings(@QueryParam("segment") Integer segment,
                                 @PathParam("field") String field,
                                 @PathParam("term") String term,
-                                @QueryParam("count") @DefaultValue("2147483647") int count) throws IOException {
+                                @QueryParam("offset") @DefaultValue("0") int offset,
+                                @QueryParam("count") @DefaultValue("1000000") int count) throws IOException {
 
         TermsEnum te = readerManager.findTermPostings(segment, field, term);
         Bits liveDocs = readerManager.getLiveDocs(segment);
@@ -46,13 +47,19 @@ public class PostingsResource {
 
         int docFreq = te.docFreq();
 
-        int size = (docFreq < count) ? docFreq : count;
+        int size = ((docFreq - offset) < count) ? (docFreq - offset) : count;
+        if (size < 1) {
+        	return new int[0];
+        }
+        
         int[] postings = new int[size];
         int docId;
         int i = 0;
-        while ((docId = pe.nextDoc()) != PostingsEnum.NO_MORE_DOCS && i < count) {
+        while ((docId = pe.nextDoc()) != PostingsEnum.NO_MORE_DOCS && i < (offset + count)) {
             if (liveDocs != null && liveDocs.get(docId) == false) continue;
-            postings[i] = docId;
+            if (i >= offset) {
+            	postings[i - offset] = docId;
+            }
             i++;
         }
         return postings;
