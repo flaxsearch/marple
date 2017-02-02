@@ -44,6 +44,15 @@ public class TestPostingsResource extends IndexResourceTestBase {
     }
 
     @Test
+    public void testWholeIndexPostingsWithOffset() {
+        int[] postings = resource.client().target("/postings/field3/field?offset=1").request()
+                .get(int[].class);
+
+        assertThat(postings).isNotNull();
+        assertThat(postings).hasSize(0);
+    }
+
+    @Test
     public void testNonExistent() {
         try {
             resource.client().target("/postings/field-thats-not-there/text").request()
