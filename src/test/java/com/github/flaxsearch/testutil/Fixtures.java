@@ -70,6 +70,7 @@ public class Fixtures {
                 doc.add(new TextField("field3", "this is some more text in a different field value1 value11 value12 value21", Field.Store.YES));
                 doc.add(new SortedSetDocValuesField("field4", new BytesRef("hello")));
                 doc.add(new SortedSetDocValuesField("field4", new BytesRef("world")));
+                doc.add(new SortedDocValuesField("field5", new BytesRef("only in doc 1")));
                 writer.addDocument(doc);
             }
 

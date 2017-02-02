@@ -20,14 +20,13 @@ import javax.ws.rs.core.GenericType;
 import java.util.List;
 import java.util.Map;
 
+import com.github.flaxsearch.api.AnyDocValuesResponse;
 import io.dropwizard.testing.junit.ResourceTestRule;
 import org.junit.ClassRule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-
-import com.github.flaxsearch.api.AnyDocValuesResponse;
 
 public class TestDocValuesResource extends IndexResourceTestBase {
 
@@ -61,6 +60,16 @@ public class TestDocValuesResource extends IndexResourceTestBase {
     	Map<String,String> values = (Map<String,String>) response.getValues();
     	assertThat(values.get("0")).isEqualTo("");
     	assertThat(values.get("1")).isEqualTo("some bytes");
+    }
+
+    @Test
+    public void testMissingValues() {
+        AnyDocValuesResponse response = resource.client().target("/docvalues/field5").request()
+                .get(AnyDocValuesResponse.class);
+        assertThat(response.getType()).isEqualTo("SORTED");
+        Map<String,Map<String, Object>> values = (Map<String,Map<String, Object>>) response.getValues();
+        assertThat(values.get("0").get("ord")).isEqualTo(-1);
+        assertThat(values.get("1").get("value")).isEqualTo("only in doc 1");
     }
 
     @Test
