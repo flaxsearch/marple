@@ -45,3 +45,10 @@
   padding-left: 5px;
   color: lightgrey;
 }
+
+.navbar {
+  background-image: url(/img/marple-hat.png);
+  background-size: 45px 45px;
+  background-repeat: no-repeat;
+  background-position: 90px 3px;
+}
