@@ -47,8 +47,8 @@
 }
 
 .navbar {
-  background-image: url(/img/marple-logo.png);
-  background-size: 145px 45px;
+  background-image: url(/img/marple-logo.svg);
+  background-size: 130px 50px;
   background-repeat: no-repeat;
   background-position: 25px 3px;
 }
