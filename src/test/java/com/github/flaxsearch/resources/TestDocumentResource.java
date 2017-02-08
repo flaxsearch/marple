@@ -34,24 +34,25 @@ public class TestDocumentResource extends IndexResourceTestBase {
 
     @Test
     public void testDocumentResource() {
-        String doc = resource.client().target("/document/0").request().get(String.class);
+        DocumentData doc = resource.client().target("/document/0").request().get(DocumentData.class);
         assertThat(doc).isNotNull();
+        assertThat(doc.complete).isTrue();
     }
 
     @Test
     public void testFieldLengthLimit() {
         DocumentData doc = resource.client().target("/document/0?maxFieldLength=8").request().get(DocumentData.class);
-        assertThat(doc).isNotNull();
         Object[] val = doc.fields.get("field2").toArray();
         assertThat(val.length).isEqualTo(1);
         assertThat(val[0]).isEqualTo("here is ...");
+        assertThat(doc.complete).isFalse();
     }
 
     @Test
     public void testFieldsLimit() {
         DocumentData doc = resource.client().target("/document/0?maxFields=1").request().get(DocumentData.class);
-        assertThat(doc).isNotNull();
         assertThat(doc.fields.size()).isEqualTo(1);
+        assertThat(doc.complete).isFalse();
     }
 
     @Test
