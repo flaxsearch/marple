@@ -1,7 +1,10 @@
 import React, { PropTypes } from 'react';
-import { Col, Form, FormControl } from 'react-bootstrap';
+import { Col, Form, FormControl, Button } from 'react-bootstrap';
 
 import { loadDocument } from '../data';
+
+const INITIAL_MAX_FIELDS = 100;
+const INITIAL_MAX_FIELD_LENGTH = 10000;
 
 class DocumentView extends React.Component {
 
@@ -9,21 +12,31 @@ class DocumentView extends React.Component {
         super(props);
         this.state = { selected: '' };
         this.selectDocument = this.selectDocument.bind(this);
+        this.loadAll = this.loadAll.bind(this);
     }
 
     selectDocument(docid) {
         if (docid) {
-            loadDocument(this.props.segment, docid, d => {
-                this.setState({
-                    document: d,
-                    selected: docid
-                })
-            }, e => {
-                this.props.showAlert(e);
-            })
+            loadDocument(this.props.segment, docid,
+                INITIAL_MAX_FIELDS, INITIAL_MAX_FIELD_LENGTH,
+                d => {
+                    this.setState({ document: d, selected: docid })
+                },
+                e => { this.props.showAlert(e); }
+            );
         }
         else {
-            this.setState({ selected: '' })
+            this.setState({ document: null, selected: '' })
+        }
+    }
+
+    loadAll() {
+        if (this.state.selected) {
+            loadDocument(this.props.segment, this.state.selected,
+                undefined, undefined,
+                d => { this.setState({ document: d }) },
+                e => { this.props.showAlert(e); }
+            );
         }
     }
 
@@ -48,6 +61,16 @@ class DocumentView extends React.Component {
 
     render() {
         const document = this.renderDoc();
+        const s = this.state;
+
+        const loadMore = (s.document && !s.document.complete) ?
+            <div>
+                <Button bsStyle="primary" onClick={this.loadAll}>
+                    Load all</Button>
+                {`(${s.document.totalLengthInChars} characters)`}
+            </div>
+            : null;
+
         return <div>
             <Col md={2}>
                 {this.props.viewSelector}
@@ -59,6 +82,7 @@ class DocumentView extends React.Component {
             </Col>
             <Col md={6}>
                 {document}
+                {loadMore}
             </Col>
         </div>
     }
