@@ -22,13 +22,30 @@ import org.apache.lucene.index.IndexableField;
 public class DocumentData {
 
     public final ImmutableMultimap<String, String> fields;
+    public final long totalLengthInChars;
 
-    public DocumentData(Document document) {
-        ImmutableMultimap.Builder<String, String> builder = ImmutableMultimap.builder();
-        for (IndexableField field : document) {
-            builder.put(field.name(), field.stringValue());
-        }
-        this.fields = builder.build();
+    public DocumentData() {
+    	fields = null;
+    	totalLengthInChars = 0;
     }
 
+    public DocumentData(Document document, int maxFieldLength, int maxFields) {
+    	long length = 0;
+    	int fieldCount = 0;
+    	
+        ImmutableMultimap.Builder<String, String> builder = ImmutableMultimap.builder();
+        for (IndexableField field : document) {
+        	String val = field.stringValue();
+        	if (val != null) {
+        		length += val.length();
+        		if (fieldCount < maxFields) {
+        			builder.put(field.name(), val.length() <= maxFieldLength ? val : 
+        								      val.substring(0, maxFieldLength) + "...");
+        		}
+        	}
+        	fieldCount += 1;
+        }
+        this.fields = builder.build();
+        this.totalLengthInChars = length; 
+    }
 }

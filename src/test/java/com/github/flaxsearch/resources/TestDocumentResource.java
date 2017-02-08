@@ -20,6 +20,7 @@ import javax.ws.rs.NotFoundException;
 import io.dropwizard.testing.junit.ResourceTestRule;
 import org.junit.ClassRule;
 import org.junit.Test;
+import com.github.flaxsearch.api.DocumentData;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -35,6 +36,22 @@ public class TestDocumentResource extends IndexResourceTestBase {
     public void testDocumentResource() {
         String doc = resource.client().target("/document/0").request().get(String.class);
         assertThat(doc).isNotNull();
+    }
+
+    @Test
+    public void testFieldLengthLimit() {
+        DocumentData doc = resource.client().target("/document/0?maxFieldLength=8").request().get(DocumentData.class);
+        assertThat(doc).isNotNull();
+        Object[] val = doc.fields.get("field2").toArray();
+        assertThat(val.length).isEqualTo(1);
+        assertThat(val[0]).isEqualTo("here is ...");
+    }
+
+    @Test
+    public void testFieldsLimit() {
+        DocumentData doc = resource.client().target("/document/0?maxFields=1").request().get(DocumentData.class);
+        assertThat(doc).isNotNull();
+        assertThat(doc.fields.size()).isEqualTo(1);
     }
 
     @Test
