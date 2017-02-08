@@ -40,23 +40,24 @@ class DocumentView extends React.Component {
         }
     }
 
+    renderField(field) {
+        return field.length == 1 ? field[0] : JSON.stringify(field);
+    }
+
     renderDoc() {
         if (this.state.selected == '')
             return <div>[ No document selected ]</div>
 
-        const fields = Object.keys(this.state.document.fields).map(k => {
-            return <tr key={k}><td>{k}</td><td>{JSON.stringify(this.state.document.fields[k])}</td></tr>
-        });
+        const fields = Object.keys(this.state.document.fields).map(k =>
+            <div className="marple-doc-field" key={k}>
+                <span className="marple-doc-fieldname">{`${k}: `}</span>
+                <span className="marple-doc-fieldval">
+                    {this.renderField(this.state.document.fields[k])}
+                </span>
+            </div>
+        );
 
-        return <table>
-            <tbody>
-            <tr>
-                <th>Field</th>
-                <th>Value</th>
-            </tr>
-            {fields}
-            </tbody>
-        </table>
+        return <div>{fields}</div>;
     }
 
     render() {
@@ -64,11 +65,9 @@ class DocumentView extends React.Component {
         const s = this.state;
 
         const loadMore = (s.document && !s.document.complete) ?
-            <div>
-                <Button bsStyle="primary" onClick={this.loadAll}>
-                    Load all</Button>
-                {`(${s.document.totalLengthInChars} characters)`}
-            </div>
+            <Button bsStyle="primary" onClick={this.loadAll}>
+                {`Load all (${s.document.totalLengthInChars} characters)`}
+            </Button>
             : null;
 
         return <div>
