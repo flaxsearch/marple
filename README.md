@@ -41,7 +41,29 @@ java -Ddw.server.applicationConnectors[0].port=8888 \
 ```
 
 ## Interacting with the UI
-With Marple running, point your browser to http://localhost:8080/ (or the appropriate port if you have overridden the default).
+### Segments
+With Marple running, point your browser to `http://localhost:8080/` (or the appropriate port if you have overridden the default). Marple uses a basically hierarchical page layout, with increasing levels of specificity from left to right. The leftmost column displays a list of all the *segments* in the index, each with the number of documents and the number of deletions. You can choose to examine a single segment, or all segments.
+
+Once you select a segment (or all) by clicking on it, Marple will display a two-item tabbed display to the right of the segments list. By default this will display a list of *fields* in the selected segment. Click on the *Docs* tab to view *documents* instead.
+
+### Fields
+Marple will display a list of all the fields in the segment/index, sorted alphabetically. To select a field to examine, click on it in the fields list. Marple currently allows you to view the *terms* and/or *doc values* for a selected field. These are displayed to the right on the field list, with tabs for each view. If the field has terms then the terms view will be selected by default, otherwise the doc values view will be selected.
+
+#### Terms
+The terms view has three sections. First, at the top, there is a summary of the terms for the selected field. This shows the total number of terms (if stored; not all Lucene codecs store this), the number of documents which have terms, and the maximum and minimum terms.
+
+Below this is a filter input box. This allows you to find terms by entering a regular expression (or partial term, since it includes an implicit trailing wildcard). For example, entering "luc" will select all terms beginning with that string. Filters are case-sensitive.
+
+To the right of the filter box is a dropdown to select the field encoding. Since terms are just a series of bytes in Lucene they can represent a range of data types. The dropdown allows you to select UTF-8 (by far the most common for text), base64 (useful for arbitrary binary types) and a number of numeric types. If you select a numeric type which is not valid for the field data, Marple will display an error message and default to UTF-8.
+
+FIXME see https://github.com/flaxsearch/marple/issues/39
+
+FIXME list
+
+#### Doc values
+
+
+### Documents
 
 ## API documentation
 FIXME
