@@ -58,5 +58,11 @@
 }
 
 .marple-doc-fieldval {
+}
 
+.navbar {
+  background-image: url(/img/marple-logo.svg);
+  background-size: 130px 50px;
+  background-repeat: no-repeat;
+  background-position: 25px 3px;
 }
