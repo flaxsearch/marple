@@ -36,16 +36,18 @@ public class DocumentResource {
     }
 
     @GET
-    public DocumentData getDocument(@QueryParam("segment") Integer segment, @PathParam("docId") int doc) throws IOException {
-
+    public DocumentData getDocument(@QueryParam("segment") Integer segment, 
+    								@PathParam("docId") int doc,
+    								@QueryParam("maxFieldLength") @DefaultValue("2147483647") int maxFieldLength,
+    								@QueryParam("maxFields") @DefaultValue("2147483647") int maxFields) throws IOException 
+    {
         IndexReader reader = segment == null ? readerManager.getIndexReader() : readerManager.getLeafReader(segment);
+    	if (doc < 0 || doc > reader.maxDoc()) {
+    		throw new WebApplicationException("Unknown document " + doc, Response.Status.NOT_FOUND);
+    	}
 
-        if (doc < 0 || doc > reader.maxDoc()) {
-            throw new WebApplicationException("Unknown document " + doc, Response.Status.NOT_FOUND);
-        }
-
-        Document document = reader.document(doc);
-        return new DocumentData(document);
+    	Document document = reader.document(doc);
+    	return new DocumentData(document, maxFieldLength, maxFields);
     }
 
 }

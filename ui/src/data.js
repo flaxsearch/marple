@@ -24,11 +24,14 @@ export function loadFieldsData(segment, onSuccess, onError) {
   .catch(error => { onError('error loading fields data: ' + error); });
 }
 
-export function loadDocument(segment, docid, onSuccess, onError) {
-    fetch(MARPLE_BASE + "/api/document/" + docid + "?" + makeQueryStr({segment}))
-        .then(response => response.json())
-        .then(data => onSuccess(data))
-        .catch(error => onError('error loading document: ' + error));
+export function loadDocument(segment, docid, maxFields, maxFieldLength,
+                             onSuccess, onError) {
+    const url = MARPLE_BASE + "/api/document/" + docid + "?"
+        + makeQueryStr({ segment, maxFields, maxFieldLength })
+    fetch(url)
+    .then(response => response.json())
+    .then(data => onSuccess(data))
+    .catch(error => onError('error loading document: ' + error));
 }
 
 export function loadTermsData({ segment, field, termsFilter, encoding,
@@ -172,7 +175,7 @@ export function loadPostings(segment, field, term, offset, count, onSuccess, onE
 			onSuccess({
                 postings: body,
                 moreFrom: body.length > count ?
-                    offset + body.length : undefined 
+                    offset + body.length : undefined
             });
 		}
 	})
