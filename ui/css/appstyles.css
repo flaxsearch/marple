@@ -46,6 +46,20 @@
   color: lightgrey;
 }
 
+.marple-doc-field {
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid lightgray;
+}
+
+.marple-doc-fieldname {
+  font-style: italic;
+  color: gray;
+}
+
+.marple-doc-fieldval {
+}
+
 .navbar {
   background-image: url(/img/marple-logo.svg);
   background-size: 130px 50px;
