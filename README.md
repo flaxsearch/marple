@@ -34,11 +34,11 @@ or
 
 e.g. to change both from the defaults:
 
-```
-java -Ddw.server.applicationConnectors[0].port=8888 \
-  -Ddw.server.adminConnectors[0].port=9999 \
-  -Ddw.indexPath=./gutenberg -jar marple-1.0.jar server
-```
+ ```
+ java -Ddw.server.applicationConnectors[0].port=8888 \
+   -Ddw.server.adminConnectors[0].port=9999 \
+   -Ddw.indexPath=./gutenberg -jar marple-1.0.jar server
+ ```
 
 ## Interacting with the UI
 ### Segments
@@ -50,18 +50,35 @@ Once you select a segment (or all) by clicking on it, Marple will display a two-
 Marple will display a list of all the fields in the segment/index, sorted alphabetically. To select a field to examine, click on it in the fields list. Marple currently allows you to view the *terms* and/or *doc values* for a selected field. These are displayed to the right on the field list, with tabs for each view. If the field has terms then the terms view will be selected by default, otherwise the doc values view will be selected.
 
 #### Terms
-The terms view has three sections. First, at the top, there is a summary of the terms for the selected field. This shows the total number of terms (if stored; not all Lucene codecs store this), the number of documents which have terms, and the maximum and minimum terms.
+The terms view has three sections. First, at the top, there is a summary of the terms for the selected field. This shows the total number of terms (this is only available when a single segment has been selected, not when examining all segments), the number of documents which have terms, and the maximum and minimum terms.
 
-Below this is a filter input box. This allows you to find terms by entering a regular expression (or partial term, since it includes an implicit trailing wildcard). For example, entering "luc" will select all terms beginning with that string. Filters are case-sensitive.
+Below this is a filter input box. This allows you to find terms by entering a regular expression (or partial term, since it includes an implicit trailing wildcard). For example, entering "luc" will select all terms beginning with that string. Filters are case-sensitive. Only terms matching the filter will be displayed.
 
 To the right of the filter box is a dropdown to select the field encoding. Since terms are just a series of bytes in Lucene they can represent a range of data types. The dropdown allows you to select UTF-8 (by far the most common for text), base64 (useful for arbitrary binary types) and a number of numeric types. If you select a numeric type which is not valid for the field data, Marple will display an error message and default to UTF-8.
 
-FIXME see https://github.com/flaxsearch/marple/issues/39
+Note that any regexp entered in the filter box is interpreted as UTF-8, no matter what encoding has been selected in the encoding dropdown.
 
-FIXME list
+Terms are displayed below these controls, in standard Lucene terms sort order (which is equivalent to UTF-8 sorting). The *docFreq* (number of documents which contain the term) and *totalTermFreq* (total number of occurrences of the term across all documents) are displayed alongside the term.
+
+Marple will display the first fifty terms in a field. If there are more terms, you can load them in fifty-term batches by clicking the **Load More** button at the bottom of the terms list.
 
 #### Doc values
+Unlike terms, doc values have a type. The currently supported set of types (in Lucene 6) is *binary*, *numeric*, *sorted*, *sorted_numeric* and *sorted_set*. In Marple, the type of doc values for the selected field is displayed at the top left of the doc values display, and the rest of the view adapts appropriately to the type.
 
+Numeric types are displayed as numbers, with no option to change the encoding. Other types can be displayed in one of a range of encodings chosen from a dropdown control, similar to terms display.
+
+With *sorted* and *sorted_set*, you have the option of ordering displayed values by doc ID or by value (sorted the same way as terms). Other types of doc values can only be ordered by doc ID.
+
+Below these controls is an input box. This allows you to restrict the view to a set of documents, identified by doc ID. You can enter several doc IDs, separated by commas, and use '-' to indicate a range, e.g.:
+
+ `3`
+ `10, 13, 15`
+ `20-30`
+ `5, 20-40, 55, 90-110`
+
+When 'view by value' is selected (for appropriate types) the input box changes to support regular expressions, similar to the filter box for terms.
+
+Doc values are displayed with their ord number and doc ID (when available). Like terms, up to fifty doc IDs will be loaded, and if there are more available then a **Load more** button is displayed.
 
 ### Documents
 
