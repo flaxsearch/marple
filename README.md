@@ -93,9 +93,9 @@ The API can be accessed at `http://localhost:8080/api/RESOURCE` where RESOURCE i
 `/index` <br/>
 Returns general information about the index, including a list of segments.
 
-`/fields`
-  Optional query string parameters:
-  `segment`: the segment ordinal. Omit for all segments.
+`/fields` <br/>
+  Optional query string parameters: <br/>
+  `segment`: the segment ordinal. Omit for all segments. <br/>
 Returns a list of fields in the index/segment, including various metadata.
 
   `/fields/<field>`
