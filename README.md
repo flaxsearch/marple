@@ -91,58 +91,54 @@ In order to keep the UI responsive, the number and size of document fields fetch
 The API can be accessed at `http://localhost:8080/api/RESOURCE` where RESOURCE is one of:
 
 #### `/index`
-
 Returns general information about the index, including a list of segments.
 
 #### `/fields`
-
 Optional query string parameters:
   - `segment`: the segment ordinal. Omit for all segments.
 
 Returns a list of fields in the index/segment, including various metadata.
 
-`/fields/<field>`
-
+#### `/fields/<field>`
 Optional query string parameters:
  - `segment`: the segment ordinal. Omit for all segments.
 
 Returns a single item from `/fields`.
 
+#### `/terms/<field>`
+Optional query string parameters:
+  `segment`: (as above)
+  `encoding`
+  `filter`
+  `from`
+  `count`
 
-  `/terms/<field>`
-    Optional query string parameters:
-    `segment`: (as above)
-    `encoding`
-    `filter`
-    `from`
-    `count`
+#### `/postings/<field>/<term>`
+  Optional query string parameters:
+  `segment`: (as above)
+  `offset`
+  `count`
 
-  `/postings/<field>/<term>`
-    Optional query string parameters:
-    `segment`: (as above)
-    `offset`
-    `count`
+#### `/docvalues/<field>`
+  Optional query string parameters:
+  `segment`: (as above)
+  `encoding`
+  `docs`
 
-  `/docvalues/<field>`
-    Optional query string parameters:
-    `segment`: (as above)
-    `encoding`
-    `docs`
+#### `/docvalues/<field>/ordered`
+  Optional query string parameters:
+  `segment`: (as above)
+  `encoding`
+  `filter`
+  `from`
+  `offset`
+  `count`
 
-  `/docvalues/<field>/ordered`
-    Optional query string parameters:
-    `segment`: (as above)
-    `encoding`
-    `filter`
-    `from`
-    `offset`
-    `count`
-
-  `/document/<docid>`
-    Optional query string parameters:
-    `segment`: (as above)
-    `maxFieldLength`
-    `maxFields`
+#### `/document/<docid>`
+  Optional query string parameters:
+  `segment`: (as above)
+  `maxFieldLength`
+  `maxFields`
 
 ## Developing Marple
 This is very much a work in progress, and pull requests are welcomed!
