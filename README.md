@@ -42,7 +42,7 @@ e.g. to change both from the defaults:
 
 ## Interacting with the UI
 ### Segments
-With Marple running, point your browser to http://localhost:8080/ (or the appropriate port if you have overridden the default). Marple uses a basically hierarchical page layout, with increasing levels of specificity from left to right. The leftmost column displays a list of all the *segments* in the index, each with the number of documents and the number of deletions. You can choose to examine a single segment, or all segments.
+With Marple running, point your browser to `http://localhost:8080/` (or the appropriate port if you have overridden the default). Marple uses a basically hierarchical page layout, with increasing levels of specificity from left to right. The leftmost column displays a list of all the *segments* in the index, each with the number of documents and the number of deletions. You can choose to examine a single segment, or all segments.
 
 Once you select a segment (or all) by clicking on it, Marple will display a two-item tabbed display to the right of the segments list. By default this will display a list of *fields* in the selected segment. Click on the *Docs* tab to view *documents* instead.
 
@@ -88,19 +88,24 @@ The documents UI is currently very simple, and lets you view the stored fields o
 In order to keep the UI responsive, the number and size of document fields fetched and displayed is limited by default (to 100 and 10K respectively). If the document size exceeds either of these limits, a **Load all** button will be displayed below the document data.
 
 ## API documentation
-The API can be accessed at http://localhost:8080/api/RESOURCE where RESOURCE is one of:
+The API can be accessed at `http://localhost:8080/api/RESOURCE` where RESOURCE is one of:
 
   `/index`
+
   Returns general information about the index, including a list of segments.
 
   `/fields`
+
     Optional query string parameters:
     `segment`: the segment ordinal. Omit for all segments.
+
   Returns a list of fields in the index/segment, including various metadata.
 
   `/fields/<field>`
+
     Optional query string parameters:
     `segment`: (as above)
+
   Returns a single item from `/fields`.
 
   `/terms/<field>`
