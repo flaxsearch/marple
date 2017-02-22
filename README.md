@@ -42,7 +42,7 @@ e.g. to change both from the defaults:
 
 ## Interacting with the UI
 ### Segments
-With Marple running, point your browser to `http://localhost:8080/` (or the appropriate port if you have overridden the default). Marple uses a basically hierarchical page layout, with increasing levels of specificity from left to right. The leftmost column displays a list of all the *segments* in the index, each with the number of documents and the number of deletions. You can choose to examine a single segment, or all segments.
+With Marple running, point your browser to http://localhost:8080/ (or the appropriate port if you have overridden the default). Marple uses a basically hierarchical page layout, with increasing levels of specificity from left to right. The leftmost column displays a list of all the *segments* in the index, each with the number of documents and the number of deletions. You can choose to examine a single segment, or all segments.
 
 Once you select a segment (or all) by clicking on it, Marple will display a two-item tabbed display to the right of the segments list. By default this will display a list of *fields* in the selected segment. Click on the *Docs* tab to view *documents* instead.
 
@@ -61,6 +61,8 @@ Note that any regexp entered in the filter box is interpreted as UTF-8, no matte
 Terms are displayed below these controls, in standard Lucene terms sort order (which is equivalent to UTF-8 sorting). The *docFreq* (number of documents which contain the term) and *totalTermFreq* (total number of occurrences of the term across all documents) are displayed alongside the term.
 
 Marple will display the first fifty terms in a field. If there are more terms, you can load them in fifty-term batches by clicking the **Load More** button at the bottom of the terms list.
+
+Terms are clickable. When you click a term it will display a list of the documents in which the term occurs. Furthermore, clicking a document ID will display a list of positions where the term occurs in the document, together with the character offsets and payload, if applicable.
 
 #### Doc values
 Unlike terms, doc values have a type. The currently supported set of types (in Lucene 6) is *binary*, *numeric*, *sorted*, *sorted_numeric* and *sorted_set*. In Marple, the type of doc values for the selected field is displayed at the top left of the doc values display, and the rest of the view adapts appropriately to the type.
@@ -81,9 +83,60 @@ When 'view by value' is selected (for appropriate types) the input box changes t
 Doc values are displayed with their ord number and doc ID (when available). Like terms, up to fifty doc IDs will be loaded, and if there are more available then a **Load more** button is displayed.
 
 ### Documents
+The documents UI is currently very simple, and lets you view the stored fields of one document. When you enter a document ID into the *docid* input box, Marple will fetch the fields and display them to the right. Field names are shown in grey italic font, followed by the data in JSON format.
+
+In order to keep the UI responsive, the number and size of document fields fetched and displayed is limited by default (to 100 and 10K respectively). If the document size exceeds either of these limits, a **Load all** button will be displayed below the document data.
 
 ## API documentation
-FIXME
+The API can be accessed at http://localhost:8080/api/RESOURCE where RESOURCE is one of:
+
+  `/index`
+  Returns general information about the index, including a list of segments.
+
+  `/fields`
+    Optional query string parameters:
+    `segment`: the segment ordinal. Omit for all segments.
+  Returns a list of fields in the index/segment, including various metadata.
+
+  `/fields/<field>`
+    Optional query string parameters:
+    `segment`: (as above)
+  Returns a single item from `/fields`.
+
+  `/terms/<field>`
+    Optional query string parameters:
+    `segment`: (as above)
+    `encoding`
+    `filter`
+    `from`
+    `count`
+
+  `/postings/<field>/<term>`
+    Optional query string parameters:
+    `segment`: (as above)
+    `offset`
+    `count`
+
+  `/docvalues/<field>`
+    Optional query string parameters:
+    `segment`: (as above)
+    `encoding`
+    `docs`
+
+  `/docvalues/<field>/ordered`
+    Optional query string parameters:
+    `segment`: (as above)
+    `encoding`
+    `filter`
+    `from`
+    `offset`
+    `count`
+
+  `/document/<docid>`
+    Optional query string parameters:
+    `segment`: (as above)
+    `maxFieldLength`
+    `maxFields`
 
 ## Developing Marple
 This is very much a work in progress, and pull requests are welcomed!
