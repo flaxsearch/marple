@@ -90,16 +90,13 @@ In order to keep the UI responsive, the number and size of document fields fetch
 ## API documentation
 The API can be accessed at `http://localhost:8080/api/RESOURCE` where RESOURCE is one of:
 
-  `/index`
+`/index`
+Returns general information about the index, including a list of segments.
 
-  Returns general information about the index, including a list of segments.
-
-  `/fields`
-
-    Optional query string parameters:
-    `segment`: the segment ordinal. Omit for all segments.
-
-  Returns a list of fields in the index/segment, including various metadata.
+`/fields`
+  Optional query string parameters:
+  `segment`: the segment ordinal. Omit for all segments.
+Returns a list of fields in the index/segment, including various metadata.
 
   `/fields/<field>`
 
