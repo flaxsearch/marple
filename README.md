@@ -90,7 +90,7 @@ In order to keep the UI responsive, the number and size of document fields fetch
 ## API documentation
 The API can be accessed at `http://localhost:8080/api/RESOURCE` where RESOURCE is one of:
 
-`/index`
+`/index` <br/>
 Returns general information about the index, including a list of segments.
 
 `/fields`
