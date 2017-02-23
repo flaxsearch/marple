@@ -25,8 +25,10 @@ import java.util.Locale;
 import com.github.flaxsearch.api.DocTermData;
 import com.github.flaxsearch.api.PositionData;
 import com.github.flaxsearch.util.ReaderManager;
+import com.github.flaxsearch.util.BytesRefUtils;
 import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.TermsEnum;
+import org.apache.lucene.util.BytesRef;
 
 @Path("/positions/{field}/{term}/{docId}")
 @Produces(MediaType.APPLICATION_JSON)
@@ -42,9 +44,11 @@ public class PositionsResource {
     public DocTermData getDocTermData(@QueryParam("segment") Integer segment,
                                       @PathParam("field") String field,
                                       @PathParam("term") String term,
+                                      @QueryParam("encoding") String encoding,
                                       @PathParam("docId") int docId) throws Exception {
 
-        TermsEnum te = readerManager.findTermPostings(segment, field, term);
+    	BytesRef decodedTerm = encoding == null ? new BytesRef(term) : BytesRefUtils.decode(term, encoding);
+        TermsEnum te = readerManager.findTermPostings(segment, field, decodedTerm);
         PostingsEnum pe = te.postings(null, PostingsEnum.ALL);
 
         if (pe.advance(docId) != docId) {

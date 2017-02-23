@@ -90,7 +90,7 @@ public interface ReaderManager {
         return getLeafReader(segment).maxDoc();
     }
 
-    default TermsEnum findTermPostings(Integer segment, String field, String term) throws IOException {
+    default TermsEnum findTermPostings(Integer segment, String field, BytesRef term) throws IOException {
 
         Fields fields = getFields(segment);
         Terms terms = fields.terms(field);
@@ -103,7 +103,7 @@ public interface ReaderManager {
         TermsEnum te = terms.iterator();
 
         assert (term != null);
-        if (!te.seekExact(new BytesRef(term))) {
+        if (!te.seekExact(term)) {
             String msg = String.format("No term %s on field %s", term, field);
             throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
         }

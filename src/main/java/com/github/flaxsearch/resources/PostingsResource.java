@@ -19,10 +19,12 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 
+import com.github.flaxsearch.util.BytesRefUtils;
 import com.github.flaxsearch.util.ReaderManager;
 import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.util.Bits;
+import org.apache.lucene.util.BytesRef;
 
 @Path("/postings/{field}/{term}")
 @Produces(MediaType.APPLICATION_JSON)
@@ -38,10 +40,12 @@ public class PostingsResource {
     public int[] getPostings(@QueryParam("segment") Integer segment,
                                 @PathParam("field") String field,
                                 @PathParam("term") String term,
+                                @QueryParam("encoding") String encoding,
                                 @QueryParam("offset") @DefaultValue("0") int offset,
                                 @QueryParam("count") @DefaultValue("1000000") int count) throws IOException {
 
-        TermsEnum te = readerManager.findTermPostings(segment, field, term);
+    	BytesRef decodedTerm = encoding == null ? new BytesRef(term) : BytesRefUtils.decode(term, encoding);
+        TermsEnum te = readerManager.findTermPostings(segment, field, decodedTerm);
         Bits liveDocs = readerManager.getLiveDocs(segment);
         PostingsEnum pe = te.postings(null, PostingsEnum.NONE);
 

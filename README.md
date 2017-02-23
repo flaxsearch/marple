@@ -121,15 +121,23 @@ Return terms for <field>.
 #### `/postings/<field>/<term>`
   Optional query string parameters:
   - `segment`: (as above)
+  - `encoding`: encoding of <term>
   - `offset`: offset in the postings list from which to return postings
   - `count`: how many postings to return
 
 Return postings for <field> and <term>.
 
+#### `/positions/<field>/<term>/<docid>`
+  Optional query string parameters:
+  - `encoding`: encoding of <term>
+  - `segment`: (as above)
+
+Return positions for <field>, <term> and <docid>.
+
 #### `/docvalues/<field>`
   Optional query string parameters:
   - `segment`: (as above)
-  - `encoding`: (as above)
+  - `encoding`: encoding to return doc values in
   - `docs`: a list of doc IDs and/or ranges to return doc values for
 
 Return doc values ordered by doc ID for <field>.
