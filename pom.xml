@@ -6,7 +6,7 @@
 
     <groupId>com.github.flaxsearch</groupId>
     <artifactId>marple</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
     <build>
         <plugins>
             <plugin>
