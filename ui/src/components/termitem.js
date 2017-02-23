@@ -33,7 +33,8 @@ class TermItem extends React.Component {
     const postings = s.displayPostings ?
       <div style={POSTINGSSTYLE}>
         <Postings segment={p.segment} field={p.field}
-         term={p.term} showAlert={p.showAlert} />
+         term={p.term} showAlert={p.showAlert}
+         encoding={p.encoding} />
       </div> : null;
 
     const toggle = s.displayPostings ?
@@ -57,7 +58,9 @@ TermItem.propTypes = {
     PropTypes.string, PropTypes.number
   ]),
   field: PropTypes.string.isRequired,
-  term: PropTypes.string.isRequired
+  term: PropTypes.string.isRequired,
+  encoding: PropTypes.string.isRequired,
+  showAlert: PropTypes.func.isRequired
 }
 
 export default TermItem;
