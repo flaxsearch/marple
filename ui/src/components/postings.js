@@ -68,7 +68,8 @@ class Postings extends React.Component {
 
         const postingList = s.postings.map((docid, idx) =>
             <PostingItem key={idx} segment={p.segment} field={p.field}
-                term={p.term} docid={docid} showAlert={p.showAlert}/>
+                term={p.term} encoding={p.encoding} docid={docid}
+                showAlert={p.showAlert}/>
         );
         return <div>
             <div style={{ color: 'grey' }}>in docs:</div>
