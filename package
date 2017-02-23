@@ -3,4 +3,4 @@ mvn clean && \
 (cd ui && npm run-script bundle) && \
 mvn package -DskipTests=true && \
 
-echo 'Fat jar written to target/marple-1.0-SNAPSHOT.jar'
+echo 'Fat jar written to target/marple-<version>.jar'

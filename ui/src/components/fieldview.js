@@ -102,7 +102,7 @@ class FieldView extends React.Component {
       return <div>
         <Nav bsStyle="tabs" justified activeKey={s.activePanel} onSelect={this.onSelectPanel}>
           <NavItem eventKey="terms">Terms</NavItem>
-          <NavItem eventKey="docvalues">DocValues</NavItem>
+          <NavItem eventKey="docvalues">Doc values</NavItem>
         </Nav>
         { panel }
       </div>;

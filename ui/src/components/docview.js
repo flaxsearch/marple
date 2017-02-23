@@ -41,7 +41,7 @@ class DocumentView extends React.Component {
     }
 
     renderField(field) {
-        return field.length == 1 ? field[0] : JSON.stringify(field);
+        return JSON.stringify(field.length == 1 ? field[0] : field);
     }
 
     renderDoc() {
