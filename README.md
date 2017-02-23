@@ -14,7 +14,10 @@ This design provides simple platform independence and also means that the data p
 ## Prerequisites
 In order to run Marple you will need a Java 8 JRE installed and a reasonably recent browser.
 
-## Running from a distribution JAR
+## Creating a package from source
+To build marple, run `./package`.
+
+## Running from a JAR
 To run Marple, use the following command:
 
  `java -Ddw.indexPath=<path to lucene index> -jar <marple JAR> server`
@@ -101,61 +104,58 @@ Returns a list of fields in the index/segment, including various metadata.
 
 #### `/fields/<field>`
 Optional query string parameters:
- - `segment`: the segment ordinal. Omit for all segments.
+  - `segment`: (as above)
 
 Returns a single item from `/fields`.
 
 #### `/terms/<field>`
 Optional query string parameters:
-  `segment`: (as above)
-  `encoding`
-  `filter`
-  `from`
-  `count`
+  - `segment`: (as above)
+  - `encoding`: the term encoding (utf8, base64, int, long, float or double)
+  - `filter`: a regexp to filter the terms returned
+  - `from`: a term (or partial term) defining the start point for returned terms
+  - `count`: how many terms to return
+
+Return terms for <field>.
 
 #### `/postings/<field>/<term>`
   Optional query string parameters:
-  `segment`: (as above)
-  `offset`
-  `count`
+  - `segment`: (as above)
+  - `offset`: offset in the postings list from which to return postings
+  - `count`: how many postings to return
+
+Return postings for <field> and <term>.
 
 #### `/docvalues/<field>`
   Optional query string parameters:
-  `segment`: (as above)
-  `encoding`
-  `docs`
+  - `segment`: (as above)
+  - `encoding`: (as above)
+  - `docs`: a list of doc IDs and/or ranges to return doc values for
+
+Return doc values ordered by doc ID for <field>.
 
 #### `/docvalues/<field>/ordered`
   Optional query string parameters:
-  `segment`: (as above)
-  `encoding`
-  `filter`
-  `from`
-  `offset`
-  `count`
+  - `segment`: (as above)
+  - `encoding`: (as above)
+  - `filter`: (as above)
+  - `from`: (as above)
+  - `offset`: (as above)
+  - `count`: (as above)
+
+Return doc values ordered by value for <field>.
 
 #### `/document/<docid>`
   Optional query string parameters:
-  `segment`: (as above)
-  `maxFieldLength`
-  `maxFields`
+  - `segment`: (as above)
+  - `maxFieldLength`: truncate any fields over this length
+  - `maxFields`: don't return more fields than this
+
+Return stored fields for <docid>.
+
+All these endpoints return JSON. The format is hopefully self-explanatory.
 
 ## Developing Marple
 This is very much a work in progress, and pull requests are welcomed!
 
-### Prerequisites
-FIXME
-
-### Backend
-FIXME
-
-### UI
-FIXME
-
-`npm test`
-
-### Creating a package
-To build marple, run `./package`.
-
-To run marple, run `./run-server <path to Lucene index>` and then point a web
-browser to localhost:8080
+If you want to contribute to this project and need some help starting, please contact @romseygeek or @noofherder.
