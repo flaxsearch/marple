@@ -66,3 +66,14 @@
   background-repeat: no-repeat;
   background-position: 25px 3px;
 }
+
+#flaxlogo {
+  position: fixed;
+  bottom: -20px;
+  left: -30px;
+}
+
+#flaxlogo img {
+  height: 150px;
+  width: 220px;
+}
