@@ -16,7 +16,7 @@ class Postings extends React.Component {
 
     componentDidMount() {
         const p = this.props;
-        loadPostings(p.segment, p.field, p.term, 0, FETCH_COUNT,
+        loadPostings(p.segment, p.field, p.term, p.encoding, 0, FETCH_COUNT,
             data => {
 	            this.setState(data);
 	        },
@@ -35,7 +35,7 @@ class Postings extends React.Component {
         const p = this.props;
         const s = this.state;
 
-        loadPostings(p.segment, p.field, p.term, s.moreFrom, FETCH_COUNT,
+        loadPostings(p.segment, p.field, p.term, p.encoding, s.moreFrom, FETCH_COUNT,
             data => {
                 this.setState({
                     postings: this.state.postings.concat(data.postings),
@@ -68,7 +68,8 @@ class Postings extends React.Component {
 
         const postingList = s.postings.map((docid, idx) =>
             <PostingItem key={idx} segment={p.segment} field={p.field}
-                term={p.term} docid={docid} showAlert={p.showAlert}/>
+                term={p.term} encoding={p.encoding} docid={docid}
+                showAlert={p.showAlert}/>
         );
         return <div>
             <div style={{ color: 'grey' }}>in docs:</div>
@@ -76,6 +77,16 @@ class Postings extends React.Component {
             {moreFromLink}
         </div>;
     }
+}
+
+Postings.propTypes = {
+  segment: PropTypes.oneOfType([
+    PropTypes.string, PropTypes.number
+  ]),
+  field: PropTypes.string.isRequired,
+  term: PropTypes.string.isRequired,
+  encoding: PropTypes.string.isRequired,
+  showAlert: PropTypes.func.isRequired
 }
 
 export default Postings;

@@ -92,7 +92,10 @@ class Terms extends React.Component {
         const termEntries = s.termsData.terms.map((term, idx) => (
             <tr key={idx}>
                 <td>
-                    <TermItem key={idx} segment={p.segment} field={p.field} term={term.term} showAlert={p.showAlert}/>
+                    <TermItem key={idx}
+                     segment={p.segment} field={p.field}
+                     term={term.term} encoding={s.encoding}
+                     showAlert={p.showAlert} />
                 </td>
                 <td>{term.docFreq}</td>
                 <td>{term.totalTermFreq}</td>

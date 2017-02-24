@@ -23,7 +23,7 @@ class PostingItem extends React.Component {
       this.setState({ positionsData: undefined });
     }
     else {
-      loadPositions(p.segment, p.field, p.term, p.docid,
+      loadPositions(p.segment, p.field, p.term, p.encoding, p.docid,
         positionsData => this.setState({ positionsData }),
         errmsg => {
           if (errmsg.includes('No document')) {
@@ -84,7 +84,9 @@ PostingItem.propTypes = {
   ]),
   field: PropTypes.string.isRequired,
   term: PropTypes.string.isRequired,
-  docid: PropTypes.number.isRequired
+  encoding: PropTypes.string.isRequired,
+  docid: PropTypes.number.isRequired,
+  showAlert: PropTypes.func.isRequired
 }
 
 export default PostingItem;
