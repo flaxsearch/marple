@@ -45,40 +45,45 @@ public class PointsResource {
             throw new WebApplicationException("You must pass in a segment to access points", Response.Status.BAD_REQUEST);
         }
 
-        LeafReader reader = readerManager.getLeafReader(segment);
-        PointValues points = reader.getPointValues();
-
-        final int numDims = points.getNumDimensions(field);
-        final int bytesPerDim = points.getBytesPerDimension(field);
-
-        AtomicReference<BKDNode> currentNode = new AtomicReference<>();
-        points.intersect(field, new PointValues.IntersectVisitor() {
-            @Override
-            public void visit(int docID) throws IOException {
-
-            }
-
-            @Override
-            public void visit(int docID, byte[] packedValue) throws IOException {
-                currentNode.get().addDoc(docID, packedValue);
-            }
-
-            @Override
-            public PointValues.Relation compare(byte[] minPackedValue, byte[] maxPackedValue) {
-                BKDNode node = new BKDNode(minPackedValue, maxPackedValue);
-                if (currentNode.get() == null) {
-                    currentNode.set(node);
-                }
-                else {
-                    node.setParent(currentNode.get().findParent(node, numDims, bytesPerDim));
-                    currentNode.set(node);
-                }
-                return PointValues.Relation.CELL_CROSSES_QUERY;
-            }
-
-        });
-
-        return new PointsData(numDims, bytesPerDim, BKDNode.findRoot(currentNode.get()));
-
+        try {
+	        LeafReader reader = readerManager.getLeafReader(segment);
+	        PointValues points = reader.getPointValues();
+	
+	        final int numDims = points.getNumDimensions(field);
+	        final int bytesPerDim = points.getBytesPerDimension(field);
+	
+	        AtomicReference<BKDNode> currentNode = new AtomicReference<>();
+	        points.intersect(field, new PointValues.IntersectVisitor() {
+	            @Override
+	            public void visit(int docID) throws IOException {
+	
+	            }
+	
+	            @Override
+	            public void visit(int docID, byte[] packedValue) throws IOException {
+	                currentNode.get().addDoc(docID, packedValue);
+	            }
+	
+	            @Override
+	            public PointValues.Relation compare(byte[] minPackedValue, byte[] maxPackedValue) {
+	                BKDNode node = new BKDNode(minPackedValue, maxPackedValue);
+	                if (currentNode.get() == null) {
+	                    currentNode.set(node);
+	                }
+	                else {
+	                    node.setParent(currentNode.get().findParent(node, numDims, bytesPerDim));
+	                    currentNode.set(node);
+	                }
+	                return PointValues.Relation.CELL_CROSSES_QUERY;
+	            }
+	
+	        });
+	
+	        return new PointsData(numDims, bytesPerDim, BKDNode.findRoot(currentNode.get()));
+        }
+        catch (IllegalArgumentException e) {
+        	String msg = String.format("No points data for field %s", field);
+            throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
+        }
     }
 }
