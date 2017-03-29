@@ -51,7 +51,9 @@ public class PointsResource {
 	
 	        final int numDims = points.getNumDimensions(field);
 	        final int bytesPerDim = points.getBytesPerDimension(field);
-	
+
+	        // FIXME why use an atomic reference?
+
 	        AtomicReference<BKDNode> currentNode = new AtomicReference<>();
 	        points.intersect(field, new PointValues.IntersectVisitor() {
 	            @Override
@@ -71,8 +73,8 @@ public class PointsResource {
 	                    currentNode.set(node);
 	                }
 	                else {
-	                	// FIXME I don't understand this
-	                    node.setParent(currentNode.get().findParent(node, numDims, bytesPerDim));
+                        BKDNode parent = currentNode.get().findParentOf(node, numDims, bytesPerDim);
+	                    node.setParent(parent);
 	                    currentNode.set(node);
 	                }
 	                return PointValues.Relation.CELL_CROSSES_QUERY;
