@@ -19,7 +19,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicReference;
 
 import com.github.flaxsearch.api.BKDNode;
 import com.github.flaxsearch.api.PointsData;
@@ -52,9 +51,9 @@ public class PointsResource {
 	        final int numDims = points.getNumDimensions(field);
 	        final int bytesPerDim = points.getBytesPerDimension(field);
 
-	        // FIXME why use an atomic reference?
+	        // use array to allow assignment in anonymous object below
+            BKDNode[] currentNode = new BKDNode[1];
 
-	        AtomicReference<BKDNode> currentNode = new AtomicReference<>();
 	        points.intersect(field, new PointValues.IntersectVisitor() {
 	            @Override
 	            public void visit(int docID) throws IOException {
@@ -63,26 +62,26 @@ public class PointsResource {
 	
 	            @Override
 	            public void visit(int docID, byte[] packedValue) throws IOException {
-	                currentNode.get().addDoc(docID, packedValue);
+	                currentNode[0].addDoc(docID, packedValue);
 	            }
 	
 	            @Override
 	            public PointValues.Relation compare(byte[] minPackedValue, byte[] maxPackedValue) {
 	                BKDNode node = new BKDNode(minPackedValue, maxPackedValue);
-	                if (currentNode.get() == null) {
-	                    currentNode.set(node);
+	                if (currentNode[0] == null) {
+	                    currentNode[0] = node;
 	                }
 	                else {
-                        BKDNode parent = currentNode.get().findParentOf(node, numDims, bytesPerDim);
+                        BKDNode parent = currentNode[0].findParentOf(node, numDims, bytesPerDim);
 	                    node.setParent(parent);
-	                    currentNode.set(node);
+	                    currentNode[0] = node;
 	                }
 	                return PointValues.Relation.CELL_CROSSES_QUERY;
 	            }
 	
 	        });
 	
-	        return new PointsData(numDims, bytesPerDim, BKDNode.findRoot(currentNode.get()));
+	        return new PointsData(numDims, bytesPerDim, BKDNode.findRoot(currentNode[0]));
         }
         catch (IllegalArgumentException e) {
         	String msg = String.format("No points data for field %s", field);
