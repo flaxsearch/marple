@@ -71,6 +71,7 @@ public class PointsResource {
 	                    currentNode.set(node);
 	                }
 	                else {
+	                	// FIXME I don't understand this
 	                    node.setParent(currentNode.get().findParent(node, numDims, bytesPerDim));
 	                    currentNode.set(node);
 	                }

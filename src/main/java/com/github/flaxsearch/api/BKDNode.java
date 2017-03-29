@@ -60,14 +60,18 @@ public class BKDNode {
 
     public void setParent(BKDNode parent) {
         this.parent = parent;
-        parent.children.add(this);
     }
 
     public BKDNode findParent(BKDNode node, int numDims, int bytesPerDim) {
         // go up the tree until we find a node whose parent
         // contains this node
+        // FIXME - should this return itself if there are no parents?
         BKDNode parent = this;
         while (parent.contains(node, numDims, bytesPerDim) == false) {
+            if (parent.parent == null) {
+                // FIXME - this breaks things: no error, but no data returned
+                return parent;
+            }
             parent = parent.parent;
         }
         return parent;
