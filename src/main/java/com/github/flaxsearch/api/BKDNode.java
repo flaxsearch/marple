@@ -118,6 +118,9 @@ public class BKDNode {
                 childClone.setParent(node);
             }
         }
+        else {
+            node.children = null;
+        }
 
         return node;
     }
@@ -144,9 +147,9 @@ public class BKDNode {
         @Override
         public void serialize(BKDNode bkdNode, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
             jsonGenerator.writeStartObject();
+            jsonGenerator.writeNumberField("id", bkdNode.nodeId);
             jsonGenerator.writeBinaryField("min", bkdNode.minPackedValue);
             jsonGenerator.writeBinaryField("max", bkdNode.maxPackedValue);
-            jsonGenerator.writeNumberField("nodeId", bkdNode.nodeId);
             if (bkdNode.values != null) {
                 // leaf node
                 jsonGenerator.writeFieldName("values");
@@ -158,6 +161,9 @@ public class BKDNode {
                     jsonGenerator.writeEndObject();
                 }
                 jsonGenerator.writeEndArray();
+            }
+            else if (bkdNode.children == null) {
+                jsonGenerator.writeNullField("nodes");
             }
             else {
                 jsonGenerator.writeFieldName("nodes");
