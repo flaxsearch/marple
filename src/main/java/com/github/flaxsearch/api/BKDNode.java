@@ -15,15 +15,16 @@ package com.github.flaxsearch.api;
  *   limitations under the License.
  */
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.io.IOException;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+
 import org.apache.lucene.util.StringHelper;
 
 import javax.xml.bind.DatatypeConverter;
@@ -37,6 +38,7 @@ public class BKDNode {
     public BKDNode parent;
     public List<BKDNode> children = new LinkedList<>();
     public List<Value> values;
+    public final int nodeId;
 
     public static class Value {
 
@@ -49,7 +51,8 @@ public class BKDNode {
         }
     }
 
-    public BKDNode(byte[] minPackedValue, byte[] maxPackedValue) {
+    public BKDNode(int nodeId, byte[] minPackedValue, byte[] maxPackedValue) {
+        this.nodeId = nodeId;
         this.minPackedValue = minPackedValue.clone();
         this.maxPackedValue = maxPackedValue.clone();
     }
@@ -86,6 +89,39 @@ public class BKDNode {
         return true;
     }
 
+    public BKDNode findNodeById(int nodeId) {
+        if (this.nodeId == nodeId) {
+            return this;
+        }
+
+        for (BKDNode child : children) {
+            BKDNode found = child.findNodeById(nodeId);
+            if (found != null) {
+                return found;
+            }
+        }
+
+        return null;
+    }
+
+    public BKDNode cloneToDepth(int depth) {
+        BKDNode node = new BKDNode(this.nodeId, this.minPackedValue, this.maxPackedValue);
+        if (this.values != null) {
+            for (Value value : this.values) {
+                node.addDoc(value.docId, value.value);
+            }
+        }
+
+        if (depth > 0) {
+            for (BKDNode child : children) {
+                BKDNode childClone = child.cloneToDepth(depth - 1);
+                childClone.setParent(node);
+            }
+        }
+
+        return node;
+    }
+
     public String toString() {
         return "BKDNode[" +
                 DatatypeConverter.printHexBinary(minPackedValue) + ":" +
@@ -110,8 +146,9 @@ public class BKDNode {
             jsonGenerator.writeStartObject();
             jsonGenerator.writeBinaryField("min", bkdNode.minPackedValue);
             jsonGenerator.writeBinaryField("max", bkdNode.maxPackedValue);
+            jsonGenerator.writeNumberField("nodeId", bkdNode.nodeId);
             if (bkdNode.values != null) {
-                // lead node
+                // leaf node
                 jsonGenerator.writeFieldName("values");
                 jsonGenerator.writeStartArray();
                 for (Value value : bkdNode.values) {
@@ -123,7 +160,7 @@ public class BKDNode {
                 jsonGenerator.writeEndArray();
             }
             else {
-                jsonGenerator.writeFieldName("cells");
+                jsonGenerator.writeFieldName("nodes");
                 jsonGenerator.writeStartArray();
                 for (BKDNode child : bkdNode.children) {
                     jsonGenerator.writeObject(child);

@@ -38,7 +38,10 @@ public class PointsResource {
 
     @GET
     public PointsData getPointsData(@PathParam("field") String field,
-                                    @QueryParam("segment") Integer segment) throws IOException {
+                                    @QueryParam("segment") Integer segment,
+									@QueryParam("node") Integer nodeId,
+									@DefaultValue("1") @QueryParam("depth") int depth)
+			throws IOException {
 
         if (segment == null) {
             throw new WebApplicationException("You must pass in a segment to access points", Response.Status.BAD_REQUEST);
@@ -51,41 +54,61 @@ public class PointsResource {
 	        final int numDims = points.getNumDimensions(field);
 	        final int bytesPerDim = points.getBytesPerDimension(field);
 
-	        // use array to allow assignment in anonymous object below
-            BKDNode[] currentNode = new BKDNode[1];
+	        BKDNode rootNode = buildBKDTree(points, field, numDims, bytesPerDim);
+	        if (nodeId == null) {
+	            return new PointsData(numDims, bytesPerDim, rootNode.cloneToDepth(depth));
+            }
 
-	        points.intersect(field, new PointValues.IntersectVisitor() {
-	            @Override
-	            public void visit(int docID) throws IOException {
-	
-	            }
-	
-	            @Override
-	            public void visit(int docID, byte[] packedValue) throws IOException {
-	                currentNode[0].addDoc(docID, packedValue);
-	            }
-	
-	            @Override
-	            public PointValues.Relation compare(byte[] minPackedValue, byte[] maxPackedValue) {
-	                BKDNode node = new BKDNode(minPackedValue, maxPackedValue);
-	                if (currentNode[0] == null) {
-	                    currentNode[0] = node;
-	                }
-	                else {
-                        BKDNode parent = currentNode[0].findParentOf(node, numDims, bytesPerDim);
-	                    node.setParent(parent);
-	                    currentNode[0] = node;
-	                }
-	                return PointValues.Relation.CELL_CROSSES_QUERY;
-	            }
-	
-	        });
-	
-	        return new PointsData(numDims, bytesPerDim, BKDNode.findRoot(currentNode[0]));
-        }
+            BKDNode node = rootNode.findNodeById(nodeId);
+	        if (node == null) {
+                throw new WebApplicationException("Unknown node ID", Response.Status.BAD_REQUEST);
+            }
+
+            return new PointsData(numDims, bytesPerDim, node.cloneToDepth(depth));
+		}
         catch (IllegalArgumentException e) {
         	String msg = String.format("No points data for field %s", field);
             throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
         }
     }
+
+    private BKDNode buildBKDTree(PointValues points, String field, int numDims,
+                                 int bytesPerDim) throws IOException {
+		// use arrays to allow assignment in anonymous object below
+		BKDNode[] currentNode = new BKDNode[1];
+		BKDNode[] rootNode = new BKDNode[1];
+
+		points.intersect(field, new PointValues.IntersectVisitor() {
+		    int nodeId = 0;
+
+			@Override
+			public void visit(int docID) throws IOException {
+
+			}
+
+			@Override
+			public void visit(int docID, byte[] packedValue) throws IOException {
+				currentNode[0].addDoc(docID, packedValue);
+			}
+
+			@Override
+			public PointValues.Relation compare(byte[] minPackedValue, byte[] maxPackedValue) {
+				BKDNode node = new BKDNode(nodeId, minPackedValue, maxPackedValue);
+				nodeId++;
+
+				if (currentNode[0] == null) {
+					currentNode[0] = rootNode[0] = node;
+				}
+				else {
+					BKDNode parent = currentNode[0].findParentOf(node, numDims, bytesPerDim);
+					node.setParent(parent);
+					currentNode[0] = node;
+				}
+				return PointValues.Relation.CELL_CROSSES_QUERY;
+			}
+
+		});
+
+		return rootNode[0];
+	}
 }
