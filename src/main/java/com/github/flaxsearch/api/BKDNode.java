@@ -68,7 +68,7 @@ public class BKDNode {
     public BKDNode findParentOf(BKDNode node, int numDims, int bytesPerDim) {
         // go up the tree until we find a node which contains the supplied node
         BKDNode parent = this;
-        while (! parent.contains(node, numDims, bytesPerDim)) {
+        while (parent.contains(node, numDims, bytesPerDim) == false) {
             parent = parent.parent;
         }
         return parent;
