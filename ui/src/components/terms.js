@@ -44,7 +44,6 @@ class Terms extends React.Component {
         }
     }
 
-
     loadAndDisplayData(segment, field, termsFilter, newEncoding) {
         newEncoding = newEncoding || getFieldEncoding(
                 this.props.indexData.indexpath, field, 'terms');
