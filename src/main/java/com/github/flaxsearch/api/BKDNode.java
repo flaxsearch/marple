@@ -106,20 +106,17 @@ public class BKDNode {
 
     public BKDNode cloneToDepth(int depth) {
         BKDNode node = new BKDNode(this.nodeId, this.minPackedValue, this.maxPackedValue);
-        if (this.values != null) {
-            for (Value value : this.values) {
-                node.addDoc(value.docId, value.value);
-            }
-        }
-
         if (depth > 0) {
+            if (this.values != null) {
+                for (Value value : this.values) {
+                    node.addDoc(value.docId, value.value);
+                }
+            }
+
             for (BKDNode child : children) {
                 BKDNode childClone = child.cloneToDepth(depth - 1);
                 childClone.setParent(node);
             }
-        }
-        else {
-            node.children = null;
         }
 
         return node;
@@ -161,9 +158,6 @@ public class BKDNode {
                     jsonGenerator.writeEndObject();
                 }
                 jsonGenerator.writeEndArray();
-            }
-            else if (bkdNode.children == null) {
-                jsonGenerator.writeNullField("nodes");
             }
             else {
                 jsonGenerator.writeFieldName("nodes");
