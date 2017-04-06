@@ -160,7 +160,7 @@ public class BKDNode {
                 jsonGenerator.writeEndArray();
             }
             else if (bkdNode.children.size() > 0){
-                jsonGenerator.writeFieldName("nodes");
+                jsonGenerator.writeFieldName("children");
                 jsonGenerator.writeStartArray();
                 for (BKDNode child : bkdNode.children) {
                     jsonGenerator.writeObject(child);
