@@ -201,9 +201,9 @@ export function loadPositions(segment, field, term, encoding, docid,
 	.catch(error => { onError('error loading positions: ' + error); });
 }
 
-export function loadPointsData(segment, field, onSuccess, onError) {
+export function loadPointsData(segment, field, node, onSuccess, onError) {
     const url = MARPLE_BASE + `/api/points/${field}?` +
-        makeQueryStr({ segment });
+        makeQueryStr({ segment, node });
 
     fetch(url)
     .then(response => response.json())

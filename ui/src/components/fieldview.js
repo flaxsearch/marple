@@ -107,7 +107,7 @@ class FieldView extends React.Component {
                          docValuesType={this.getDocValuesType(s.selectedField)}/>
             : s.activePanel == "points" ?
                 <Points segment={p.segment} field={s.selectedField}
-                        indexData={p.indexData} showAlert={p.showAlert} />
+                        showAlert={p.showAlert} />
             : <div></div>;
 
             return <div>

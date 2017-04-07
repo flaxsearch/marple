@@ -6,18 +6,74 @@ const LABELSTYLE = {
     color: 'gray'
 };
 
+const TREESTYLE = {
+    marginTop: '10px',
+    marginLeft: '15px'
+};
+
+const TOGGLESTYLE = {
+    fontSize: '11px',
+    paddingRight: '5px',
+    color: 'grey'
+};
+
 
 // one node of the points tree (collapsed or expanded)
-class TreeNode extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-        };
+const TreeNode = props => {
+    let content = null;
+    if (props.values && props.values.length > 0) {
+        // it's a leaf node
+        content = props.values.map(v =>
+            <div key={v.doc}>doc: {v.doc} value: {v.bytes}</div>
+        );
+    }
+    else if (props.children && props.children.length > 0) {
+        content = props.children.map(n =>
+            <TreeNode id={n.id} key={n.id} min={n.min} max={n.max}
+                      values={n.values} children={n.children}
+                      toggleTreeNode={props.toggleTreeNode}/>
+        );
     }
 
-    render() {
-        return "";
+    const toggle = content ?
+      'glyphicon-triangle-bottom' : 'glyphicon-triangle-right';
+
+    return <div>
+        <div>
+            <a href="#" onClick={e => {
+                props.toggleTreeNode(props.id, content == null)
+            }}><span className={'glyphicon ' + toggle}
+                    style={TOGGLESTYLE}></span>
+                ({props.id}) [{props.min} - {props.max}]</a>
+        </div>
+        <div style={{ marginLeft: "20px" }}>
+            {content}
+        </div>
+    </div>;
+};
+
+TreeNode.propTypes = {
+    id: PropTypes.number.isRequired,
+    min: PropTypes.string.isRequired,
+    max: PropTypes.string.isRequired,
+    values: PropTypes.array,
+    children: PropTypes.array,
+    toggleTreeNode: PropTypes.func.isRequired
+};
+
+function findNodeWithId(node, id) {
+    if (node.id == id) {
+        return node;
     }
+    if (node.children) {
+        for (let i = 0; i < node.children.length; i++) {
+            const cnode = findNodeWithId(node.children[i], id);
+            if (cnode !== undefined) {
+                return cnode;
+            }
+        }
+    }
+    return undefined;
 }
 
 // the points component
@@ -28,6 +84,9 @@ class Points extends React.Component {
         this.componentDidMount = this.componentDidMount.bind(this);
         this.componentWillReceiveProps = this.componentWillReceiveProps.bind(this);
         this.fetchRootData = this.fetchRootData.bind(this);
+        this.toggleTreeNode = this.toggleTreeNode.bind(this);
+        this.setChildren = this.setChildren.bind(this);
+        this.setValues = this.setValues.bind(this);
         this.onError = this.onError.bind(this);
     }
 
@@ -56,7 +115,7 @@ class Points extends React.Component {
         if (segment === "") {
             this.setState({ data: null });
         } else {
-            loadPointsData(segment, field,
+            loadPointsData(segment, field, 0,
                 data => {
                     this.setState({ data });
                 },
@@ -64,6 +123,55 @@ class Points extends React.Component {
                     this.onError(error);
                 }
             );
+        }
+    }
+
+    toggleTreeNode(nodeId, isCollapsed) {
+        if (isCollapsed) {
+            loadPointsData(this.props.segment, this.props.field, nodeId,
+                data => {
+                    if (data.root.children) {
+                        this.setChildren(nodeId, data.root.children);
+                    }
+                    else {
+                        this.setValues(nodeId, data.root.values);
+                    }
+                },
+                error => {
+                    this.onError(error);
+                }
+            );
+        }
+        else {
+            this.setChildren(nodeId, undefined);
+            this.setValues(nodeId, undefined);
+        }
+    }
+
+    setChildren(nodeId, children) {
+        // clone the state
+        const newData = JSON.parse(JSON.stringify(this.state.data));
+        const node = findNodeWithId(newData.root, nodeId);
+        if (node) {
+            node.children = children;
+            this.setState({ data: newData });
+        }
+        else {
+            console.log('ERROR could not find node with ID ' + nodeId)
+        }
+    }
+
+    setValues(nodeId, values) {
+        // clone the state
+        const newData = JSON.parse(JSON.stringify(this.state.data));
+        const node = findNodeWithId(newData.root, nodeId);
+        if (node) {
+            node.values = values;
+            console.log(newData);
+            this.setState({ data: newData });
+        }
+        else {
+            console.log('ERROR could not find node with ID ' + nodeId)
         }
     }
 
@@ -81,27 +189,37 @@ class Points extends React.Component {
                 Field <em>{ p.field }</em> has no points data</div>;
         }
 
+        if (s.data === null) {
+            return <div></div>;
+        }
+
         return <div>
             <table style={{width:'100%', border:'0px', margin:'7px 0px 7px 14px'}}>
                 <tbody>
                 <tr>
                     <td style={LABELSTYLE}>Dimensions:</td>
-                    <td style={{width:'auto'}}>{s.data && s.data.numDims}</td>
+                    <td style={{width:'auto'}}>{s.data.numDims}</td>
                 </tr>
                 <tr>
                     <td style={LABELSTYLE}>Bytes per dimension:</td>
-                    <td style={{width:'auto'}}>{s.data && s.data.bytesPerDim}</td>
+                    <td style={{width:'auto'}}>{s.data.bytesPerDim}</td>
                 </tr>
                 <tr>
                     <td style={LABELSTYLE}>Min:</td>
-                    <td style={{width:'auto'}}>{s.data && s.data.nodes.min}</td>
+                    <td style={{width:'auto'}}>{s.data.root.min}</td>
                 </tr>
                 <tr>
                     <td style={LABELSTYLE}>Max:</td>
-                    <td style={{width:'auto'}}>{s.data && s.data.nodes.max}</td>
+                    <td style={{width:'auto'}}>{s.data.root.max}</td>
                 </tr>
                 </tbody>
             </table>
+            <div style={TREESTYLE}>
+                <TreeNode id={s.data.root.id}
+                          min={s.data.root.min} max={s.data.root.max}
+                          values={s.data.root.values} children={s.data.root.children}
+                          toggleTreeNode={this.toggleTreeNode}/>
+            </div>
         </div>;
     }
 }
@@ -111,7 +229,6 @@ Points.propTypes = {
         PropTypes.string, PropTypes.number
     ]),
     field: PropTypes.string.isRequired,
-    indexData: PropTypes.object.isRequired,
     showAlert: PropTypes.func.isRequired
 };
 
