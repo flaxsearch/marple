@@ -21,18 +21,23 @@ const TOGGLESTYLE = {
 // one node of the points tree (collapsed or expanded)
 const TreeNode = props => {
     let content = null;
-    if (props.values && props.values.length > 0) {
-        // it's a leaf node
-        content = props.values.map(v =>
-            <div key={v.doc}>doc: {v.doc} value: {v.bytes}</div>
-        );
-    }
-    else if (props.children && props.children.length > 0) {
-        content = props.children.map(n =>
-            <TreeNode id={n.id} key={n.id} min={n.min} max={n.max}
-                      values={n.values} children={n.children}
-                      toggleTreeNode={props.toggleTreeNode}/>
-        );
+    // if this node is collapsed, don't get the content
+    if (props.collapsed.has(props.id) == false) {
+
+        if (props.values && props.values.length > 0) {
+            // it's a leaf node
+            content = props.values.map(v =>
+                <div key={v.doc}>doc: {v.doc} value: {v.bytes}</div>
+            );
+        }
+        else if (props.children && props.children.length > 0) {
+            content = props.children.map(n =>
+                <TreeNode id={n.id} key={n.id} min={n.min} max={n.max}
+                          values={n.values} children={n.children}
+                          toggleTreeNode={props.toggleTreeNode}
+                          collapsed={props.collapsed} />
+            );
+        }
     }
 
     const toggle = content ?
@@ -58,6 +63,7 @@ TreeNode.propTypes = {
     max: PropTypes.string.isRequired,
     values: PropTypes.array,
     children: PropTypes.array,
+    collapsed: PropTypes.object.isRequired,
     toggleTreeNode: PropTypes.func.isRequired
 };
 
@@ -80,7 +86,8 @@ function findNodeWithId(node, id) {
 class Points extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { data: null };
+        this.state = { data: null, collapsed: new Set() };
+
         this.componentDidMount = this.componentDidMount.bind(this);
         this.componentWillReceiveProps = this.componentWillReceiveProps.bind(this);
         this.fetchRootData = this.fetchRootData.bind(this);
@@ -128,23 +135,31 @@ class Points extends React.Component {
 
     toggleTreeNode(nodeId, isCollapsed) {
         if (isCollapsed) {
-            loadPointsData(this.props.segment, this.props.field, nodeId,
-                data => {
-                    if (data.root.children) {
-                        this.setChildren(nodeId, data.root.children);
+            if (this.state.collapsed.has(nodeId)) {
+                const collapsed = new Set(this.state.collapsed);
+                collapsed.delete(nodeId);
+                this.setState({ collapsed });
+            }
+            else {
+                loadPointsData(this.props.segment, this.props.field, nodeId,
+                    data => {
+                        if (data.root.children) {
+                            this.setChildren(nodeId, data.root.children);
+                        }
+                        else {
+                            this.setValues(nodeId, data.root.values);
+                        }
+                    },
+                    error => {
+                        this.onError(error);
                     }
-                    else {
-                        this.setValues(nodeId, data.root.values);
-                    }
-                },
-                error => {
-                    this.onError(error);
-                }
-            );
+                );
+            }
         }
         else {
-            this.setChildren(nodeId, undefined);
-            this.setValues(nodeId, undefined);
+            const collapsed = new Set(this.state.collapsed);
+            collapsed.add(nodeId);
+            this.setState({ collapsed });
         }
     }
 
@@ -167,7 +182,6 @@ class Points extends React.Component {
         const node = findNodeWithId(newData.root, nodeId);
         if (node) {
             node.values = values;
-            console.log(newData);
             this.setState({ data: newData });
         }
         else {
@@ -218,7 +232,7 @@ class Points extends React.Component {
                 <TreeNode id={s.data.root.id}
                           min={s.data.root.min} max={s.data.root.max}
                           values={s.data.root.values} children={s.data.root.children}
-                          toggleTreeNode={this.toggleTreeNode}/>
+                          collapsed={s.collapsed} toggleTreeNode={this.toggleTreeNode} />
             </div>
         </div>;
     }
