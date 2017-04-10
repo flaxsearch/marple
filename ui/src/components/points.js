@@ -46,6 +46,7 @@ const TreeNode = props => {
     return <div>
         <div>
             <a href="#" onClick={e => {
+                e.preventDefault();
                 props.toggleTreeNode(props.id, content == null)
             }}><span className={'glyphicon ' + toggle}
                     style={TOGGLESTYLE}></span>
