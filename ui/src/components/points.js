@@ -1,5 +1,7 @@
 import React, { PropTypes } from 'react';
 import { loadPointsData } from '../data';
+import { Form, DropdownButton, MenuItem } from 'react-bootstrap';
+
 
 const LABELSTYLE = {
     width:'140px',
@@ -27,7 +29,7 @@ const TreeNode = props => {
         if (props.values && props.values.length > 0) {
             // it's a leaf node
             content = props.values.map(v =>
-                <div key={v.doc}>doc: {v.doc} value: {v.bytes}</div>
+                <div key={v.doc}>doc: {v.doc} value: {v.value}</div>
             );
         }
         else if (props.children && props.children.length > 0) {
@@ -50,7 +52,7 @@ const TreeNode = props => {
                 props.toggleTreeNode(props.id, content == null)
             }}><span className={'glyphicon ' + toggle}
                     style={TOGGLESTYLE}></span>
-                ({props.id}) [{props.min} - {props.max}]</a>
+                ({props.id}) [{props.min} to {props.max}]</a>
         </div>
         <div style={{ marginLeft: "20px" }}>
             {content}
@@ -67,6 +69,22 @@ TreeNode.propTypes = {
     collapsed: PropTypes.object.isRequired,
     toggleTreeNode: PropTypes.func.isRequired
 };
+
+export const EncodingDropdown = props => {
+  const types = props.bytesPerDim == 4 ? ['binary', 'int', 'float'] :
+    props.bytesPerDim == 8 ? ['binary', 'long', 'double'] : ['binary'];
+
+  const items = types.map((type, idx) =>
+      <MenuItem key={idx} eventKey={type}>{type}</MenuItem>
+  );
+
+  return <DropdownButton title={`Encoding: ${props.encoding}`}
+                         id={'marple-type-dropdown'}
+                         onSelect={props.onSelect}>
+    {items}
+  </DropdownButton>;
+};
+
 
 function findNodeWithId(node, id) {
     if (node.id == id) {
@@ -87,7 +105,11 @@ function findNodeWithId(node, id) {
 class Points extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { data: null, collapsed: new Set() };
+        this.state = {
+            data: null,
+            collapsed: new Set(),
+            encoding: 'binary'
+        };
 
         this.componentDidMount = this.componentDidMount.bind(this);
         this.componentWillReceiveProps = this.componentWillReceiveProps.bind(this);
@@ -96,6 +118,7 @@ class Points extends React.Component {
         this.setChildren = this.setChildren.bind(this);
         this.setValues = this.setValues.bind(this);
         this.onError = this.onError.bind(this);
+        this.setEncoding = this.setEncoding.bind(this);
     }
 
     onError(errmsg) {
@@ -108,24 +131,24 @@ class Points extends React.Component {
     }
 
     componentDidMount() {
-        this.fetchRootData(this.props.segment, this.props.field);
+        this.fetchRootData(this.props.segment, this.props.field, this.state.encoding);
     }
 
     componentWillReceiveProps(newProps) {
         if (newProps.field !== this.props.field ||
             newProps.segment !== this.props.segment)
         {
-            this.fetchRootData(newProps.segment, newProps.field);
+            this.fetchRootData(newProps.segment, newProps.field, this.state.encoding);
         }
     }
 
-    fetchRootData(segment, field) {
+    fetchRootData(segment, field, encoding) {
         if (segment === "") {
             this.setState({ data: null });
         } else {
-            loadPointsData(segment, field, 0,
+            loadPointsData(segment, field, 0, encoding,
                 data => {
-                    this.setState({ data });
+                    this.setState({ data, encoding });
                 },
                 error => {
                     this.onError(error);
@@ -142,7 +165,7 @@ class Points extends React.Component {
                 this.setState({ collapsed });
             }
             else {
-                loadPointsData(this.props.segment, this.props.field, nodeId,
+                loadPointsData(this.props.segment, this.props.field, nodeId, this.state.encoding,
                     data => {
                         if (data.root.children) {
                             this.setChildren(nodeId, data.root.children);
@@ -190,6 +213,10 @@ class Points extends React.Component {
         }
     }
 
+    setEncoding(encoding) {
+        this.fetchRootData(this.props.segment, this.props.field, encoding);
+    }
+
     render() {
         const s = this.state;
         const p = this.props;
@@ -229,6 +256,11 @@ class Points extends React.Component {
                 </tr>
                 </tbody>
             </table>
+            <Form>
+                <EncodingDropdown encoding={s.encoding}
+                                  bytesPerDim={s.data.bytesPerDim}
+                                  onSelect={x => this.setEncoding(x)} />
+            </Form>
             <div style={TREESTYLE}>
                 <TreeNode id={s.data.root.id}
                           min={s.data.root.min} max={s.data.root.max}
