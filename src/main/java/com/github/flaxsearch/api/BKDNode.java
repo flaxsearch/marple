@@ -16,6 +16,7 @@ package com.github.flaxsearch.api;
  */
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.io.IOException;
@@ -25,6 +26,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
+import org.apache.lucene.util.NumericUtils;
 import org.apache.lucene.util.StringHelper;
 
 import javax.xml.bind.DatatypeConverter;
@@ -34,6 +36,10 @@ public class BKDNode {
 
     public final byte[] minPackedValue;
     public final byte[] maxPackedValue;
+
+    public final int numDims;
+    public final int bytesPerDim;
+    public final String encoding;
 
     public BKDNode parent;
     public List<BKDNode> children = new LinkedList<>();
@@ -51,10 +57,15 @@ public class BKDNode {
         }
     }
 
-    public BKDNode(int nodeId, byte[] minPackedValue, byte[] maxPackedValue) {
+    public BKDNode(int nodeId, byte[] minPackedValue, byte[] maxPackedValue,
+                   int numDims, int bytesPerDim, String encoding) {
         this.nodeId = nodeId;
         this.minPackedValue = minPackedValue.clone();
         this.maxPackedValue = maxPackedValue.clone();
+
+        this.numDims = numDims;
+        this.bytesPerDim = bytesPerDim;
+        this.encoding = encoding;
     }
 
     public void addDoc(int docID, byte[] packedValue) {
@@ -105,7 +116,8 @@ public class BKDNode {
     }
 
     public BKDNode cloneToDepth(int depth) {
-        BKDNode node = new BKDNode(this.nodeId, this.minPackedValue, this.maxPackedValue);
+        BKDNode node = new BKDNode(this.nodeId, this.minPackedValue, this.maxPackedValue,
+                                   this.numDims, this.bytesPerDim, this.encoding);
         if (depth > 0) {
             if (this.values != null) {
                 for (Value value : this.values) {
@@ -145,8 +157,14 @@ public class BKDNode {
         public void serialize(BKDNode bkdNode, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
             jsonGenerator.writeStartObject();
             jsonGenerator.writeNumberField("id", bkdNode.nodeId);
-            jsonGenerator.writeBinaryField("min", bkdNode.minPackedValue);
-            jsonGenerator.writeBinaryField("max", bkdNode.maxPackedValue);
+            jsonGenerator.writeFieldName("min");
+            writeValue(jsonGenerator, bkdNode.minPackedValue,
+                    bkdNode.numDims, bkdNode.bytesPerDim, bkdNode.encoding);
+
+            jsonGenerator.writeFieldName("max");
+            writeValue(jsonGenerator, bkdNode.maxPackedValue,
+                    bkdNode.numDims, bkdNode.bytesPerDim, bkdNode.encoding);
+
             if (bkdNode.values != null) {
                 // leaf node
                 jsonGenerator.writeFieldName("values");
@@ -154,7 +172,14 @@ public class BKDNode {
                 for (Value value : bkdNode.values) {
                     jsonGenerator.writeStartObject();
                     jsonGenerator.writeNumberField("doc", value.docId);
-                    jsonGenerator.writeBinaryField("bytes", value.value);
+                    if (bkdNode.encoding == null) {
+                        jsonGenerator.writeBinaryField("value", value.value);
+                    }
+                    else {
+                        jsonGenerator.writeFieldName("value");
+                        writeValue(jsonGenerator, value.value,
+                                bkdNode.numDims, bkdNode.bytesPerDim, bkdNode.encoding);
+                    }
                     jsonGenerator.writeEndObject();
                 }
                 jsonGenerator.writeEndArray();
@@ -168,6 +193,48 @@ public class BKDNode {
                 jsonGenerator.writeEndArray();
             }
             jsonGenerator.writeEndObject();
+        }
+
+        private void writeValue(JsonGenerator jsonGenerator, byte[] value,
+                                int numDims, int bytesPerDim, String encoding)
+                throws IOException
+        {
+            if (encoding == null) {
+                // if we have no encoding specified, write the raw bytes
+                jsonGenerator.writeBinary(value);
+            }
+            else {
+                // FIXME return an array for 1-dim values for consistency - is this a good idea?
+                jsonGenerator.writeStartArray();
+                for (int d = 0; d < numDims; d++) {
+                    int offset = d * bytesPerDim;
+                    if (bytesPerDim == 4) {
+                        int intval = NumericUtils.sortableBytesToInt(value, offset);
+                        if (encoding.equals("int")) {
+                            jsonGenerator.writeNumber(intval);
+                        } else if (encoding.equals("float")) {
+                            jsonGenerator.writeNumber(NumericUtils.sortableIntToFloat(intval));
+                        } else {
+                            // we shouldn't reach this due to checks in PointsResource
+                            jsonGenerator.writeString("INVALID ENCODING");
+                        }
+                    } else if (bytesPerDim == 8) {
+                        long longval = NumericUtils.sortableBytesToLong(value, offset);
+                        if (encoding.equals("long")) {
+                            jsonGenerator.writeNumber(longval);
+                        } else if (encoding.equals("float")) {
+                            jsonGenerator.writeNumber(NumericUtils.sortableLongToDouble(longval));
+                        } else {
+                            // we shouldn't reach this due to checks in PointsResource
+                            jsonGenerator.writeString("INVALID ENCODING");
+                        }
+                    } else {
+                        // we shouldn't reach this due to checks in PointsResource
+                        jsonGenerator.writeString("INVALID ENCODING");
+                    }
+                }
+                jsonGenerator.writeEndArray();
+            }
         }
     }
 

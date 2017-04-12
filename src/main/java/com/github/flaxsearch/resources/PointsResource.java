@@ -19,6 +19,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.util.Arrays;
 
 import com.github.flaxsearch.api.BKDNode;
 import com.github.flaxsearch.api.PointsData;
@@ -40,7 +41,8 @@ public class PointsResource {
     public PointsData getPointsData(@PathParam("field") String field,
                                     @QueryParam("segment") Integer segment,
 									@QueryParam("node") Integer nodeId,
-									@DefaultValue("1") @QueryParam("depth") int depth)
+									@DefaultValue("1") @QueryParam("depth") int depth,
+									@QueryParam("encoding") String encoding)
 			throws IOException {
 
         if (segment == null) {
@@ -54,7 +56,23 @@ public class PointsResource {
 	        final int numDims = points.getNumDimensions(field);
 	        final int bytesPerDim = points.getBytesPerDimension(field);
 
-	        BKDNode rootNode = buildBKDTree(points, field, numDims, bytesPerDim);
+            if (encoding != null) {
+                // check that the encoding param is valid
+                if ((encoding.equals("int") || encoding.equals("float") ||
+                        encoding.equals("long") || encoding.equals("double")) == false) {
+                    throw new WebApplicationException("'encoding' must be one of 'int', 'float, 'long, or 'double'");
+                }
+
+                if ((encoding.equals("int") || encoding.equals("float")) && bytesPerDim != 4) {
+                    throw new WebApplicationException("int or float encoding is only valid for 4 bytes per dim");
+                }
+
+                if ((encoding.equals("long") || encoding.equals("double")) && bytesPerDim != 8) {
+                    throw new WebApplicationException("long or double encoding is only valid for 8 bytes per dim");
+                }
+            }
+
+            BKDNode rootNode = buildBKDTree(points, field, numDims, bytesPerDim, encoding);
 	        if (nodeId == null) {
 	            return new PointsData(numDims, bytesPerDim, rootNode.cloneToDepth(depth));
             }
@@ -73,7 +91,7 @@ public class PointsResource {
     }
 
     private BKDNode buildBKDTree(PointValues points, String field, int numDims,
-                                 int bytesPerDim) throws IOException {
+                                 int bytesPerDim, String encoding) throws IOException {
 		// use arrays to allow assignment in anonymous object below
 		BKDNode[] currentNode = new BKDNode[1];
 		BKDNode[] rootNode = new BKDNode[1];
@@ -93,7 +111,8 @@ public class PointsResource {
 
 			@Override
 			public PointValues.Relation compare(byte[] minPackedValue, byte[] maxPackedValue) {
-				BKDNode node = new BKDNode(nodeId, minPackedValue, maxPackedValue);
+				BKDNode node = new BKDNode(nodeId, minPackedValue, maxPackedValue,
+                                           numDims, bytesPerDim, encoding);
 				nodeId++;
 
 				if (currentNode[0] == null) {
