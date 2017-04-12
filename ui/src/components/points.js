@@ -29,7 +29,10 @@ const TreeNode = props => {
         if (props.values && props.values.length > 0) {
             // it's a leaf node
             content = props.values.map(v =>
-                <div key={v.doc}>doc: {v.doc} value: {v.value}</div>
+                <div key={v.doc}>
+                    {formatPointValue(v.value)}
+                    {" in doc "} {v.doc}
+                </div>
             );
         }
         else if (props.children && props.children.length > 0) {
@@ -52,7 +55,8 @@ const TreeNode = props => {
                 props.toggleTreeNode(props.id, content == null)
             }}><span className={'glyphicon ' + toggle}
                     style={TOGGLESTYLE}></span>
-                ({props.id}) [{props.min} to {props.max}]</a>
+                BKD tree node: {formatPointValue(props.min)} {" - "}
+                    {formatPointValue(props.max)}</a>
         </div>
         <div style={{ marginLeft: "20px" }}>
             {content}
@@ -62,8 +66,8 @@ const TreeNode = props => {
 
 TreeNode.propTypes = {
     id: PropTypes.number.isRequired,
-    min: PropTypes.string.isRequired,
-    max: PropTypes.string.isRequired,
+    min: PropTypes.any.isRequired,
+    max: PropTypes.any.isRequired,
     values: PropTypes.array,
     children: PropTypes.array,
     collapsed: PropTypes.object.isRequired,
@@ -99,6 +103,15 @@ function findNodeWithId(node, id) {
         }
     }
     return undefined;
+}
+
+function formatPointValue(v) {
+    if (Array.isArray(v) && v.length > 1) {
+        return "[" +  v.join(", ") + "]"
+    }
+    else {
+        return "" + v;
+    }
 }
 
 // the points component
@@ -248,11 +261,11 @@ class Points extends React.Component {
                 </tr>
                 <tr>
                     <td style={LABELSTYLE}>Min:</td>
-                    <td style={{width:'auto'}}>{s.data.root.min}</td>
+                    <td style={{width:'auto'}}>{formatPointValue(s.data.root.min)}</td>
                 </tr>
                 <tr>
                     <td style={LABELSTYLE}>Max:</td>
-                    <td style={{width:'auto'}}>{s.data.root.max}</td>
+                    <td style={{width:'auto'}}>{formatPointValue(s.data.root.max)}</td>
                 </tr>
                 </tbody>
             </table>
