@@ -19,6 +19,12 @@ const TOGGLESTYLE = {
     color: 'grey'
 };
 
+const NODESTYLE = {
+    borderTop: "1px solid lightgray",
+    paddingTop: '5px',
+    marginTop: '5px'
+}
+
 
 // one node of the points tree (collapsed or expanded)
 const TreeNode = props => {
@@ -34,6 +40,7 @@ const TreeNode = props => {
                     {" in doc "} {v.doc}
                 </div>
             );
+            content.unshift(<div key={-1}>Values:</div>);
         }
         else if (props.children && props.children.length > 0) {
             content = props.children.map(n =>
@@ -48,7 +55,7 @@ const TreeNode = props => {
     const toggle = content ?
       'glyphicon-triangle-bottom' : 'glyphicon-triangle-right';
 
-    return <div>
+    return <div style={NODESTYLE}>
         <div>
             <a href="#" onClick={e => {
                 e.preventDefault();
