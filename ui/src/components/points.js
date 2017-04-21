@@ -1,6 +1,7 @@
 import React, { PropTypes } from 'react';
 import { loadPointsData } from '../data';
 import { Form, DropdownButton, MenuItem } from 'react-bootstrap';
+import Waiting from './waiting';
 
 
 const LABELSTYLE = {
@@ -127,6 +128,7 @@ class Points extends React.Component {
         super(props);
         this.state = {
             data: null,
+            waiting: false,
             collapsed: new Set(),
             encoding: 'binary'
         };
@@ -166,11 +168,13 @@ class Points extends React.Component {
         if (segment === "") {
             this.setState({ data: null });
         } else {
+            this.setState({ waiting: true });
             loadPointsData(segment, field, 0, encoding,
                 data => {
-                    this.setState({ data, encoding });
+                    this.setState({ data, encoding, waiting: false });
                 },
                 error => {
+                    this.setState({ waiting: false });
                     this.onError(error);
                 }
             );
@@ -185,6 +189,7 @@ class Points extends React.Component {
                 this.setState({ collapsed });
             }
             else {
+                this.setState({ waiting: true });
                 loadPointsData(this.props.segment, this.props.field, nodeId, this.state.encoding,
                     data => {
                         if (data.root.children) {
@@ -213,7 +218,7 @@ class Points extends React.Component {
         const node = findNodeWithId(newData.root, nodeId);
         if (node) {
             node.children = children;
-            this.setState({ data: newData });
+            this.setState({ data: newData, waiting: false });
         }
         else {
             console.log('ERROR could not find node with ID ' + nodeId)
@@ -226,7 +231,7 @@ class Points extends React.Component {
         const node = findNodeWithId(newData.root, nodeId);
         if (node) {
             node.values = values;
-            this.setState({ data: newData });
+            this.setState({ data: newData, waiting: false });
         }
         else {
             console.log('ERROR could not find node with ID ' + nodeId)
@@ -252,7 +257,7 @@ class Points extends React.Component {
         }
 
         if (s.data === null) {
-            return <div></div>;
+            return s.waiting ? <Waiting/> : null;
         }
 
         return <div>
@@ -287,6 +292,7 @@ class Points extends React.Component {
                           values={s.data.root.values} children={s.data.root.children}
                           collapsed={s.collapsed} toggleTreeNode={this.toggleTreeNode} />
             </div>
+            { s.waiting ? <Waiting/> : null }
         </div>;
     }
 }
