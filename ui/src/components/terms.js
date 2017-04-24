@@ -14,6 +14,10 @@ const LABELSTYLE = {
     color: 'gray'
 };
 
+const RALIGN = {
+    textAlign: 'right'
+};
+
 const FETCH_COUNT = 50;
 
 
@@ -96,8 +100,8 @@ class Terms extends React.Component {
                      term={term.term} encoding={s.encoding}
                      showAlert={p.showAlert} />
                 </td>
-                <td>{term.docFreq}</td>
-                <td>{term.totalTermFreq}</td>
+                <td style={RALIGN}>{term.docFreq}</td>
+                <td style={RALIGN}>{term.totalTermFreq == -1 ? "-" : term.totalTermFreq}</td>
             </tr>
         ));
 
@@ -106,8 +110,8 @@ class Terms extends React.Component {
                 <thead>
                 <tr>
                     <td style={{ width:'80%' }}>term</td>
-                    <td>docFreq</td>
-                    <td>totalTermFreq</td>
+                    <td style={RALIGN}>docFreq</td>
+                    <td style={RALIGN}>totalTermFreq</td>
                 </tr>
                 </thead>
                 <tbody>
