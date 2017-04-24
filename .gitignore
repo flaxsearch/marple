@@ -18,14 +18,7 @@ fuzzy-index
 
 he-index
 
-src/main/resources/assets/bundle.js
-
-src/main/resources/assets/css/bootstrap.min.css
-
-src/main/resources/assets/css/bundle.js
-
-src/main/resources/assets/css/index.html
-
-src/main/resources/assets/index.html
-
 ui/bundle.js
+src/main/resources/assets
+dependency-reduced-pom.xml
+
