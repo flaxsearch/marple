@@ -88,6 +88,11 @@ public class GutenbergIndex {
         document.add(new SortedSetDocValuesField("dv_filename_set", new BytesRef(filepath)));
         document.add(new SortedSetDocValuesField("dv_filename_set", new BytesRef(fileparent)));
 
+        int numPoints = random.nextInt(750);
+        for (int i = 0; i < numPoints; i++) {
+            document.add(new LongPoint("longpoints", random.nextLong(), random.nextLong(), random.nextLong()));
+        }
+
         document.add(new Field("payloads",
                 payloadAnalyzer.tokenStream("payloads", "abc|abc def|def"), TextField.TYPE_NOT_STORED));
 
