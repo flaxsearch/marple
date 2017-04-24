@@ -26,6 +26,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import org.apache.lucene.util.StringHelper;
 
+import javax.xml.bind.DatatypeConverter;
+
 @JsonSerialize(using = BKDNode.Serializer.class)
 public class BKDNode {
 
@@ -63,9 +65,8 @@ public class BKDNode {
         parent.children.add(this);
     }
 
-    public BKDNode findParent(BKDNode node, int numDims, int bytesPerDim) {
-        // go up the tree until we find a node whose parent
-        // contains this node
+    public BKDNode findParentOf(BKDNode node, int numDims, int bytesPerDim) {
+        // go up the tree until we find a node which contains the supplied node
         BKDNode parent = this;
         while (parent.contains(node, numDims, bytesPerDim) == false) {
             parent = parent.parent;
@@ -74,13 +75,21 @@ public class BKDNode {
     }
 
     public boolean contains(BKDNode node, int numDims, int bytesPerDim) {
-        boolean contains = true;
         for (int i = 0; i < numDims; i++) {
             int offset = i * bytesPerDim;
-            contains &= (StringHelper.compare(bytesPerDim, minPackedValue, offset, node.minPackedValue, offset) > 0 &&
-                    StringHelper.compare(bytesPerDim, maxPackedValue, offset, node.maxPackedValue, offset) < 0);
+            int cMin = StringHelper.compare(bytesPerDim, minPackedValue, offset,
+                                            node.minPackedValue, offset);
+            int cMax = StringHelper.compare(bytesPerDim, maxPackedValue, offset,
+                                            node.maxPackedValue, offset);
+            if (cMin > 0 || cMax < 0) return false;
         }
-        return contains;
+        return true;
+    }
+
+    public String toString() {
+        return "BKDNode[" +
+                DatatypeConverter.printHexBinary(minPackedValue) + ":" +
+                DatatypeConverter.printHexBinary(maxPackedValue) + "]";
     }
 
     public static BKDNode findRoot(BKDNode node) {
@@ -121,6 +130,7 @@ public class BKDNode {
                 }
                 jsonGenerator.writeEndArray();
             }
+            jsonGenerator.writeEndObject();
         }
     }
 
