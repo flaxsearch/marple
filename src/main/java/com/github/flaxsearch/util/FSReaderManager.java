@@ -15,7 +15,10 @@ package com.github.flaxsearch.util;
  *   limitations under the License.
  */
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import io.dropwizard.lifecycle.Managed;
@@ -31,7 +34,10 @@ public class FSReaderManager implements ReaderManager, Managed {
     private final IndexReader reader;
 
     public FSReaderManager(String indexPath) throws IOException {
-        this.directory = FSDirectory.open(Paths.get(indexPath));
+        Path path = Paths.get(indexPath);
+        if (Files.exists(path) == false)
+            throw new FileNotFoundException("Path " + path + " does not exist");
+        this.directory = FSDirectory.open(path);
         this.reader = DirectoryReader.open(directory);
     }
 
