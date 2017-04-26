@@ -35,7 +35,7 @@ public class TestBKDNode {
         byte[] bytes2 = new byte[4];
         NumericUtils.intToSortableBytes(vals[1], bytes2, 0);
 
-        return new BKDNode(bytes1, bytes2);
+        return new BKDNode(bytes1, bytes2, 1, 4, null);
     }
 
     @BeforeClass

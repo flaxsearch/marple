@@ -33,14 +33,13 @@ public class TestPointsResource extends IndexResourceTestBase {
     public void testIntEncoding() throws Exception {
         // cannot deserialise to PointsData as the serialisation depends on the encoding
         // rather than creating custom classes to receive the result, test the JSON string
-        String result = resource.client().target("/points/point?segment=0&encoding=int").request()
+        String result = resource.client().target("/points/point/tree?segment=0&encoding=int").request()
                 .get(String.class);
 
         assertThat(result).contains("\"numDims\":2");
         assertThat(result).contains("\"bytesPerDim\":4");
         assertThat(result).contains("\"min\":[0,1]");
         assertThat(result).contains("\"max\":[14,4]");
-        assertThat(result).contains("{\"doc\":0,\"value\":[2,1]}");
     }
 
 }
