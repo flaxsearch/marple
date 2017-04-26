@@ -46,9 +46,19 @@ public class PointsResource {
         b64decoder = Base64.getDecoder();
     }
 
-	public class Value<T> {
+	public static class Value<T> {
     	public int docId;
     	public T value;
+
+    	public Value() {}  // for unit tests
+
+        public void setDocId(int docId) {
+    	    this.docId = docId;
+        }
+
+        public void setValue(T value) {
+    	    this.value = value;
+        }
 
 		public Value(int docId, T value) {
 			this.docId = docId;
