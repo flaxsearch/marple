@@ -201,9 +201,9 @@ export function loadPositions(segment, field, term, encoding, docid,
 	.catch(error => { onError('error loading positions: ' + error); });
 }
 
-export function loadPointsData(segment, field, node, encoding, onSuccess, onError) {
-    const url = MARPLE_BASE + `/api/points/${field}?` + makeQueryStr({
-        segment, node,
+export function loadPointsTree(segment, field, encoding, onSuccess, onError) {
+    const url = MARPLE_BASE + `/api/points/${field}/tree?` + makeQueryStr({
+        segment,
         encoding: (encoding == 'binary') ? null : encoding
     });
 
@@ -216,7 +216,26 @@ export function loadPointsData(segment, field, node, encoding, onSuccess, onErro
             onSuccess(body);
         }
     })
-    .catch(error => { onError('error loading points: ' + error); });
+    .catch(error => { onError('error loading points tree: ' + error); });
+}
+
+export function loadPointsValues(segment, field, encoding, minVal, maxVal,
+                                 onSuccess, onError) {
+    const url = MARPLE_BASE + `/api/points/${field}/values?` + makeQueryStr({
+        segment, min: minVal, max: maxVal,
+        encoding: (encoding == 'binary') ? null : encoding
+    });
+
+    fetch(url)
+    .then(response => response.json())
+    .then(body => {
+        if (body.code) {
+            onError(body.message);
+        } else {
+            onSuccess(body);
+        }
+    })
+    .catch(error => { onError('error loading points values: ' + error); });
 }
 
 function normaliseFilter(filter) {
