@@ -210,10 +210,18 @@ export function loadPointsTree(segment, field, encoding, onSuccess, onError) {
     fetch(url)
     .then(response => response.json())
     .then(body => {
+        // this relies on the error response containing the 'code' property
         if (body.code) {
-            onError(body.message);
-        } else {
-            onSuccess(body);
+            if (body.code == 400 && body.message.includes('encoding')) {
+                // cope with encoding error by defaulting to binary
+                loadPointsTree(segment, field, 'binary', onSuccess, onError);
+            }
+            else {
+                onError(body.message);
+            }
+        }
+        else {
+            onSuccess(body, encoding);
         }
     })
     .catch(error => { onError('error loading points tree: ' + error); });
@@ -229,10 +237,18 @@ export function loadPointsValues(segment, field, encoding, minVal, maxVal,
     fetch(url)
     .then(response => response.json())
     .then(body => {
+        // this relies on the error response containing the 'code' property
         if (body.code) {
-            onError(body.message);
-        } else {
-            onSuccess(body);
+            if (body.code == 400 && body.message.includes('encoding')) {
+                // cope with encoding error by defaulting to binary
+                loadPointsValues(segment, field, 'binary', minVal, maxVal, onSuccess, onError);
+            }
+            else {
+                onError(body.message);
+            }
+        }
+        else {
+            onSuccess(body, encoding);
         }
     })
     .catch(error => { onError('error loading points values: ' + error); });

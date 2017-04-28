@@ -140,18 +140,23 @@ class Points extends React.Component {
         }
     }
 
-    fetchTreeData(segment, field, encoding) {
+    fetchTreeData(segment, field, newEncoding) {
         if (segment === "") {
             this.setState({ data: null });
         } else {
             this.setState({ waiting: true });
-            loadPointsTree(segment, field, encoding,
-                data => {
+            loadPointsTree(segment, field, newEncoding,
+                (data, encoding) => {
+                    if (encoding != newEncoding) {
+                        this.props.showAlert(
+                            `${newEncoding} is not a valid encoding for this field`);
+                    }
+
                     this.expandToDepth(data.root, 3);
                     this.setState({ data, encoding, waiting: false });
                 },
                 error => {
-                    this.setState({ waiting: false });
+                    this.setState({ data: null, waiting: false });
                     this.onError(error);
                 }
             );
@@ -188,11 +193,12 @@ class Points extends React.Component {
                 newState.data = this.state.data;
                 loadPointsValues(this.props.segment, this.props.field,
                     this.state.encoding, node.min, node.max,
-                    data => {
+                    (data, encoding) => {
                         node.values = data;
                         this.setState(newState);    // asynchronous
                     },
                     error => {
+                        this.setState({ data: null, waiting: false });
                         this.onError(error);
                     }
                 );
@@ -206,19 +212,6 @@ class Points extends React.Component {
             this.setState(newState);        // synchronous
         }
     }
-
-    // setValues(nodeId, values) {
-    //     // clone the state
-    //     const newData = JSON.parse(JSON.stringify(this.state.data));
-    //     const node = findNodeWithId(newData.root, nodeId);
-    //     if (node) {
-    //         node.values = values;
-    //         this.setState({ data: newData, waiting: false });
-    //     }
-    //     else {
-    //         console.log('ERROR could not find node with ID ' + nodeId)
-    //     }
-    // }
 
     setEncoding(encoding) {
         this.fetchTreeData(this.props.segment, this.props.field, encoding);
