@@ -217,15 +217,18 @@ public class PointsResource {
 		// check that the encoding param is valid
 		if ((encoding.equals("int") || encoding.equals("float") ||
 				encoding.equals("long") || encoding.equals("double")) == false) {
-			throw new WebApplicationException("'encoding' must be one of 'int', 'float, 'long, or 'double'");
+			throw new WebApplicationException("'encoding' must be one of 'int', 'float, 'long, or 'double'",
+                    Response.Status.BAD_REQUEST);
 		}
 
 		if ((encoding.equals("int") || encoding.equals("float")) && bytesPerDim != 4) {
-			throw new WebApplicationException("int or float encoding is only valid for 4 bytes per dim");
+			throw new WebApplicationException("int or float encoding is only valid for 4 bytes per dim",
+                    Response.Status.BAD_REQUEST);
 		}
 
 		if ((encoding.equals("long") || encoding.equals("double")) && bytesPerDim != 8) {
-			throw new WebApplicationException("long or double encoding is only valid for 8 bytes per dim");
+			throw new WebApplicationException("long or double encoding is only valid for 8 bytes per dim",
+                    Response.Status.BAD_REQUEST);
 		}
 	}
 
@@ -272,7 +275,8 @@ public class PointsResource {
             String[] bits = input.split("[, ]+");
             if (bits.length != numDims) {
                 throw new WebApplicationException("points for this field have " + numDims +
-                        " dimensions but supplied min or max has " + bits.length);
+                        " dimensions but supplied min or max has " + bits.length,
+                        Response.Status.BAD_REQUEST);
             }
 
             byte[] ret = new byte[numDims * bytesPerDim];
@@ -293,13 +297,15 @@ public class PointsResource {
                     long val = NumericUtils.doubleToSortableLong(Double.parseDouble(bits[i]));
                     NumericUtils.longToSortableBytes(val, ret, offset);
                 } else {
-                    throw new WebApplicationException("'encoding' must be one of 'int', 'float, 'long, or 'double'");
+                    throw new WebApplicationException("'encoding' must be one of 'int', 'float, 'long, or 'double'",
+                            Response.Status.BAD_REQUEST);
                 }
             }
             return ret;
         }
         catch (NumberFormatException e) {
-            throw new WebApplicationException("invalid number format \"" + input + "\"");
+            throw new WebApplicationException("invalid number format \"" + input + "\"",
+                    Response.Status.BAD_REQUEST);
         }
     }
 }
