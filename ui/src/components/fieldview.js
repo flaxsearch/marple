@@ -1,22 +1,54 @@
 import React, { PropTypes } from 'react';
-import { Nav, NavItem, Col } from 'react-bootstrap';
+import { Nav, NavItem, Col, FormControl } from 'react-bootstrap';
 
 import Terms from './terms';
 import DocValues from './docvalues';
 
 import { loadFieldsData } from '../data';
 
-export const Fields = props => {
-    const fieldtabs = props.fields.map(function(f, i) {
-        return (<NavItem eventKey={f.name} key={f.name}>{f.name}</NavItem>);
-    });
-    return (
-        <Nav bsStyle="pills" stacked onSelect={props.onSelect}
-             activeKey={props.selected}>
-            {fieldtabs}
-        </Nav>
-    );
+const FILTERSTYLE = {
+    marginTop: "8px",
+    marginBottom: "5px"
 };
+
+
+class Fields extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { filter: '' };
+
+        this.onChange = this.onChange.bind(this);
+    }
+
+    onChange(evt) {
+        this.setState({ filter: evt.target.value });
+    }
+
+    render() {
+        const p = this.props;
+        const s = this.state;
+
+        const fieldtabs = p.fields
+        .filter(f => f.name.startsWith(s.filter))
+        .map((f, i) => <NavItem eventKey={f.name} key={f.name}
+            className="marple-field-item">{f.name}</NavItem>);
+
+        return <div>
+            <div style={FILTERSTYLE}>
+                <FormControl type="text"
+                    value={s.filter}
+                    placeholder={'Filter by name'}
+                    onChange={this.onChange}
+                    style={{width: "100%"}}
+                    className="marple-field-filter-input"/>
+            </div>
+            <Nav bsStyle="pills" stacked onSelect={p.onSelect}
+                activeKey={p.selected}>
+                {fieldtabs}
+            </Nav>
+        </div>;
+    }
+}
 
 Fields.propTypes = {
     fields: PropTypes.arrayOf(PropTypes.object),
