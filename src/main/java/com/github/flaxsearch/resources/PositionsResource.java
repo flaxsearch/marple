@@ -47,7 +47,7 @@ public class PositionsResource {
                                       @QueryParam("encoding") String encoding,
                                       @PathParam("docId") int docId) throws Exception {
 
-    	BytesRef decodedTerm = encoding == null ? new BytesRef(term) : BytesRefUtils.decode(term, encoding);
+        BytesRef decodedTerm = encoding == null ? new BytesRef(term) : BytesRefUtils.decode(term, encoding);
         TermsEnum te = readerManager.findTermPostings(segment, field, decodedTerm);
         PostingsEnum pe = te.postings(null, PostingsEnum.ALL);
 

@@ -61,7 +61,7 @@ public class TermsResource {
             List<TermData> collected = new ArrayList<>();
 
             if (startTerm != null) {
-            	while(true) {
+                while(true) {
                     if (te.next() == null) {
                         return new TermsData(terms, Collections.emptyList(), encoding);
                     }

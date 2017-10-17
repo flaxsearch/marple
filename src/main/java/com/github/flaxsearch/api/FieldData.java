@@ -42,7 +42,7 @@ public class FieldData {
                      @JsonProperty("hasPayloads")  boolean hasPayloads,
                      @JsonProperty("docValuesType") DocValuesType docValuesType,
                      @JsonProperty("pointDimensionCount") int pointDimensionCount,
-    				 @JsonProperty("hasTerms") boolean hasTerms) {
+                     @JsonProperty("hasTerms") boolean hasTerms) {
         this.name = name;
         this.indexOptions = indexOptions;
         this.hasNorms = hasNorms;
