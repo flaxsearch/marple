@@ -44,11 +44,8 @@ public class FieldsResource {
 
         List<FieldData> fieldData = new ArrayList<>();
         FieldInfos fieldInfos = readerManager.getFieldInfos(segment);
-
-        Fields fields = readerManager.getFields(segment);
-
         for (FieldInfo fieldInfo : fieldInfos) {
-            Terms terms = fields.terms(fieldInfo.name);
+            Terms terms = readerManager.getTerms(segment, fieldInfo.name);
             fieldData.add(new FieldData(fieldInfo, (terms != null)));
         }
 
@@ -59,10 +56,8 @@ public class FieldsResource {
     @GET
     @Path("{field}")
     public FieldData getField(@QueryParam("segment") Integer segment, @PathParam("field") String field) throws IOException {
-        FieldInfos fieldInfos = readerManager.getFieldInfos(segment);
-        Fields fields = readerManager.getFields(segment);
-        FieldInfo info = fieldInfos.fieldInfo(field);
-        Terms terms = fields.terms(info.name);
+        FieldInfo info = readerManager.getFieldInfo(segment, field);
+        Terms terms = readerManager.getTerms(segment, field);
         return new FieldData(info, terms != null);
     }
 

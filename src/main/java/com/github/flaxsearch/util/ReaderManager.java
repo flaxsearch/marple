@@ -27,10 +27,10 @@ public interface ReaderManager {
 
     IndexReader getIndexReader();
 
-    default Fields getFields(Integer segment) throws IOException {
+    default Terms getTerms(Integer segment, String field) throws IOException {
         if (segment == null)
-            return MultiFields.getFields(getIndexReader());
-        return getLeafReader(segment).fields();
+            return MultiFields.getFields(getIndexReader()).terms(field);
+        return getLeafReader(segment).terms(field);
     }
 
     default FieldInfos getFieldInfos(Integer segment) throws IOException {
@@ -92,8 +92,7 @@ public interface ReaderManager {
 
     default TermsEnum findTermPostings(Integer segment, String field, BytesRef term) throws IOException {
 
-        Fields fields = getFields(segment);
-        Terms terms = fields.terms(field);
+        Terms terms = getTerms(segment, field);
 
         if (terms == null) {
             String msg = String.format("No field %s", field);

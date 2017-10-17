@@ -44,7 +44,7 @@ public class PostingsResource {
                                 @QueryParam("offset") @DefaultValue("0") int offset,
                                 @QueryParam("count") @DefaultValue("1000000") int count) throws IOException {
 
-    	BytesRef decodedTerm = encoding == null ? new BytesRef(term) : BytesRefUtils.decode(term, encoding);
+        BytesRef decodedTerm = encoding == null ? new BytesRef(term) : BytesRefUtils.decode(term, encoding);
         TermsEnum te = readerManager.findTermPostings(segment, field, decodedTerm);
         Bits liveDocs = readerManager.getLiveDocs(segment);
         PostingsEnum pe = te.postings(null, PostingsEnum.NONE);
@@ -53,7 +53,7 @@ public class PostingsResource {
 
         int size = ((docFreq - offset) < count) ? (docFreq - offset) : count;
         if (size < 1) {
-        	return new int[0];
+            return new int[0];
         }
         
         int[] postings = new int[size];
@@ -62,7 +62,7 @@ public class PostingsResource {
         while ((docId = pe.nextDoc()) != PostingsEnum.NO_MORE_DOCS && i < (offset + count)) {
             if (liveDocs != null && liveDocs.get(docId) == false) continue;
             if (i >= offset) {
-            	postings[i - offset] = docId;
+                postings[i - offset] = docId;
             }
             i++;
         }

@@ -26,35 +26,35 @@ public class DocumentData {
     public final boolean complete;
 
     public DocumentData() {
-    	fields = null;
-    	totalLengthInChars = 0;
-    	complete = false;
+        fields = null;
+        totalLengthInChars = 0;
+        complete = false;
     }
 
     public DocumentData(Document document, int maxFieldLength, int maxFields) {
-    	long length = 0;
-    	int fieldCount = 0;
-    	boolean complete = true;
-    	
+        long length = 0;
+        int fieldCount = 0;
+        boolean complete = true;
+
         ImmutableMultimap.Builder<String, String> builder = ImmutableMultimap.builder();
         for (IndexableField field : document) {
-        	String val = field.stringValue();
-        	if (val != null) {
-        		length += val.length();
-        		if (fieldCount < maxFields) {
-        			if (val.length() <= maxFieldLength) {
-            			builder.put(field.name(), val);         				
-        			}
-        			else {
-            			builder.put(field.name(), val.substring(0, maxFieldLength) + "...");
-        				complete = false;
-        			}
-        		}
-        		else {
-        			complete = false;
-        		}
-        	}
-        	fieldCount += 1;
+            String val = field.stringValue();
+            if (val != null) {
+                length += val.length();
+                if (fieldCount < maxFields) {
+                    if (val.length() <= maxFieldLength) {
+                        builder.put(field.name(), val);
+                    }
+                    else {
+                        builder.put(field.name(), val.substring(0, maxFieldLength) + "...");
+                        complete = false;
+                    }
+                }
+                else {
+                    complete = false;
+                }
+            }
+            fieldCount += 1;
         }
         this.fields = builder.build();
         this.totalLengthInChars = length;
