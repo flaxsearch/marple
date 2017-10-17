@@ -53,9 +53,7 @@ public class TermsResource {
                                  @QueryParam("count") @DefaultValue("50") int count) throws IOException {
 
         try {
-            Fields fields = readerManager.getFields(segment);
-            Terms terms = fields.terms(field);
-
+            Terms terms = readerManager.getTerms(segment, field);
             if (terms == null)
                 throw new WebApplicationException("No such field " + field, Response.Status.NOT_FOUND);
 

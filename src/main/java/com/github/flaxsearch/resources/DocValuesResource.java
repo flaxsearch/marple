@@ -19,12 +19,8 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import com.github.flaxsearch.util.ReaderManager;
 import com.github.flaxsearch.api.AnyDocValuesResponse;
@@ -63,7 +59,11 @@ public class DocValuesResource {
                                             throws IOException {
     	AnyDocValuesResponse response = null;
         int maxDoc = readerManager.getMaxDoc(segment);
-        Set<Integer> docset = parseDocSet(docs, maxDoc);
+
+
+        List<Integer> sortedDocIds = new ArrayList<>(parseDocSet(docs, maxDoc));
+        Collections.sort(sortedDocIds);
+
         FieldInfo fieldInfo = readerManager.getFieldInfo(segment, field);
 
         if (fieldInfo == null) {
@@ -74,29 +74,35 @@ public class DocValuesResource {
         DocValuesType dvtype = fieldInfo.getDocValuesType();
         try {
 	        if (dvtype == DocValuesType.BINARY) {
+	        	// TODO: Sort docIds and use advanceExact
 	            BinaryDocValues dv = readerManager.getBinaryDocValues(segment, field);
-	            Map<Integer,String> values = new HashMap<>(docset.size());
-	            for (int docid : docset) {
-	                values.put(docid, BytesRefUtils.encode(dv.get(docid), encoding));
+	            Map<Integer,String> values = new HashMap<>(sortedDocIds.size());
+	            for (int docid : sortedDocIds) {
+					if (!dv.advanceExact(docid)) continue;
+	                values.put(docid, BytesRefUtils.encode(dv.binaryValue(), encoding));
 	            }
 	            response = new AnyDocValuesResponse("BINARY", values);
 	        }
 	        else if (dvtype == DocValuesType.NUMERIC) {
 	            NumericDocValues dv = readerManager.getNumericDocValues(segment, field);
-	            Map<Integer,Long> values = new HashMap<>(docset.size());
-	            for (int docid : docset) {
-	                values.put(docid, dv.get(docid));
+	            Map<Integer,Long> values = new HashMap<>(sortedDocIds.size());
+	            for (int docid : sortedDocIds) {
+					if (!dv.advanceExact(docid)) continue;
+
+					values.put(docid, dv.longValue());
 	            }
 	            response = new AnyDocValuesResponse("NUMERIC", values);
 	        }
 	        else if (dvtype == DocValuesType.SORTED_NUMERIC) {
 	            SortedNumericDocValues dv = readerManager.getSortedNumericDocValues(segment, field);
-	            Map<Integer,List<Long>> values = new HashMap<>(docset.size());
-	            for (int docid : docset) {
-	                dv.setDocument(docid);
-	                List<Long> perDocValues = new ArrayList<>(dv.count());
-	                for (int index = 0; index < dv.count(); ++index) {
-	                    perDocValues.add(dv.valueAt(index));
+	            Map<Integer,List<Long>> values = new HashMap<>(sortedDocIds.size());
+	            for (int docid : sortedDocIds) {
+	            	if (!dv.advanceExact(docid)) continue;
+
+					int count = dv.docValueCount();
+					List<Long> perDocValues = new ArrayList<>(count);
+	                for (int index = 0; index < count; ++index) {
+						perDocValues.add(dv.nextValue());
 	                }
 	                values.put(docid, perDocValues);
 	            }
@@ -104,17 +110,19 @@ public class DocValuesResource {
 	        }
 	        else if (dvtype == DocValuesType.SORTED) {
 	            SortedDocValues dv = readerManager.getSortedDocValues(segment, field);
-	            Map<Integer,ValueWithOrd> values = new HashMap<>(docset.size());
-	            for (int docid : docset) {
-	                values.put(docid, new ValueWithOrd(BytesRefUtils.encode(dv.get(docid), encoding), dv.getOrd(docid)));
+	            Map<Integer,ValueWithOrd> values = new HashMap<>(sortedDocIds.size());
+	            for (int docid : sortedDocIds) {
+					if (!dv.advanceExact(docid)) continue;
+	                values.put(docid, new ValueWithOrd(BytesRefUtils.encode(dv.binaryValue(), encoding), dv.ordValue()));
 	            }
 	            response = new AnyDocValuesResponse("SORTED", values);
 	        }
 	        else if (dvtype == DocValuesType.SORTED_SET) {
 	            SortedSetDocValues dv = readerManager.getSortedSetDocValues(segment, field);
-	            Map<Integer,List<ValueWithOrd>> values = new HashMap<>(docset.size());
-	            for (int docid : docset) {
-	                dv.setDocument(docid);
+	            Map<Integer,List<ValueWithOrd>> values = new HashMap<>(sortedDocIds.size());
+	            for (int docid : sortedDocIds) {
+					if (!dv.advanceExact(docid)) continue;
+
 	                List<ValueWithOrd> perDocValues = new ArrayList<>((int)dv.getValueCount());
 	                long ord;
 	                while ((ord = dv.nextOrd()) != SortedSetDocValues.NO_MORE_ORDS) {
@@ -245,7 +253,8 @@ public class DocValuesResource {
         }
 
         for (int i = 0; i < count && i < maxDoc; i++) {
-            values.add(dv.get(fromDoc + i).utf8ToString());
+        	if (!dv.advanceExact(fromDoc + i)) continue;
+            values.add(dv.binaryValue().utf8ToString());
         }
 
         return values;
@@ -267,7 +276,8 @@ public class DocValuesResource {
         }
 
         for (int i = 0; i < count && i < maxDoc; i++) {
-            values.add(Long.toString(dv.get(fromDoc + i)));
+        	if (!dv.advanceExact(fromDoc + i)) continue;
+            values.add(Long.toString(dv.longValue()));
         }
 
         return values;
@@ -289,10 +299,10 @@ public class DocValuesResource {
         }
 
         for (int i = 0; i < count && i < maxDoc; i++) {
-            dv.setDocument(fromDoc + i);
-            List<String> perDocValues = new ArrayList<>(dv.count());
-            for (int index = 0; index < dv.count(); ++index) {
-                perDocValues.add(Long.toString(dv.valueAt(index)));
+            if (!dv.advanceExact(fromDoc + i)) continue;
+            List<String> perDocValues = new ArrayList<>(dv.docValueCount());
+            for (int index = 0; index < dv.docValueCount(); ++index) {
+                perDocValues.add(Long.toString(dv.nextValue()));
             }
             values.add(perDocValues);
         }
@@ -316,7 +326,8 @@ public class DocValuesResource {
         }
 
         for (int i = 0; i < count && i < maxDoc; i++) {
-            values.add(dv.get(fromDoc + i).utf8ToString());
+        	if (!dv.advanceExact(fromDoc + i)) continue;
+            values.add(dv.binaryValue().utf8ToString());
         }
 
         return values;
@@ -338,8 +349,8 @@ public class DocValuesResource {
         }
 
         for (int i = 0; i < count && i < maxDoc; i++) {
-            dv.setDocument(fromDoc + i);
-            List<String> perDocValues = new ArrayList<String>((int)dv.getValueCount());
+        	if (!dv.advanceExact(fromDoc +i)) continue;
+            List<String> perDocValues = new ArrayList<>((int)dv.getValueCount());
             long ord;
             while ((ord = dv.nextOrd()) != SortedSetDocValues.NO_MORE_ORDS) {
                 perDocValues.add(dv.lookupOrd(ord).utf8ToString());

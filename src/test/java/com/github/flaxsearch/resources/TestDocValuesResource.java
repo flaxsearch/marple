@@ -40,7 +40,7 @@ public class TestDocValuesResource extends IndexResourceTestBase {
         List<String> docValues = resource.client().target("/docvalues/field1/binary").request()
                 .get(new GenericType<List<String>>() {});
 
-        assertThat(docValues).containsExactly("", "some bytes");
+        assertThat(docValues).containsExactly("some bytes");
 
         try {
             resource.client().target("/docvalues/field-thats-not-there/binary").request()
@@ -58,7 +58,7 @@ public class TestDocValuesResource extends IndexResourceTestBase {
     	assertThat(response.getType()).isEqualTo("BINARY");
     	assertThat(response.getValues()).isInstanceOf(Map.class);
     	Map<String,String> values = (Map<String,String>) response.getValues();
-    	assertThat(values.get("0")).isEqualTo("");
+    	assertThat(values.get("0")).isNull();
     	assertThat(values.get("1")).isEqualTo("some bytes");
     }
 
@@ -68,7 +68,7 @@ public class TestDocValuesResource extends IndexResourceTestBase {
                 .get(AnyDocValuesResponse.class);
         assertThat(response.getType()).isEqualTo("SORTED");
         Map<String,Map<String, Object>> values = (Map<String,Map<String, Object>>) response.getValues();
-        assertThat(values.get("0").get("ord")).isEqualTo(-1);
+        assertThat(values.get("0")).isNull();
         assertThat(values.get("1").get("value")).isEqualTo("only in doc 1");
     }
 
@@ -79,7 +79,7 @@ public class TestDocValuesResource extends IndexResourceTestBase {
     	assertThat(response.getType()).isEqualTo("BINARY");
     	assertThat(response.getValues()).isInstanceOf(Map.class);
     	Map<String,String> values = (Map<String,String>) response.getValues();
-    	assertThat(values.get("0")).isEqualTo("");
+    	assertThat(values.get("0")).isNull();
     	assertThat(values.get("1")).isEqualTo("c29tZSBieXRlcw==");
     }
 

@@ -23,7 +23,7 @@ import java.util.function.Function;
 
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.BytesRefBuilder;
-import org.apache.lucene.util.LegacyNumericUtils;
+import org.apache.solr.legacy.LegacyNumericUtils;
 import org.apache.lucene.util.NumericUtils;
 
 public class BytesRefUtils {

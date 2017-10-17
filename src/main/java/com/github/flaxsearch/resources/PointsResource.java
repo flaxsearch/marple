@@ -46,15 +46,15 @@ public class PointsResource {
 
         try {
 	        LeafReader reader = readerManager.getLeafReader(segment);
-	        PointValues points = reader.getPointValues();
+	        PointValues points = reader.getPointValues(field);
 	
-	        final int numDims = points.getNumDimensions(field);
-	        final int bytesPerDim = points.getBytesPerDimension(field);
+	        final int numDims = points.getNumDimensions();
+	        final int bytesPerDim = points.getBytesPerDimension();
 
 	        // use array to allow assignment in anonymous object below
             BKDNode[] currentNode = new BKDNode[1];
 
-	        points.intersect(field, new PointValues.IntersectVisitor() {
+	        points.intersect(new PointValues.IntersectVisitor() {
 	            @Override
 	            public void visit(int docID) throws IOException {
 	
