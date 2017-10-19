@@ -30,11 +30,11 @@ public class SegmentData {
         ord = ctx.ord;
         maxDoc = ctx.reader().maxDoc();
         numDocs = ctx.reader().numDocs();
-        if (ctx.reader().getIndexSort() == null) {
+        if (ctx.reader().getMetaData().getSort() == null) {
             sort = "none";
         }
         else {
-            sort = ctx.reader().getIndexSort().toString();
+            sort = ctx.reader().getMetaData().getSort().toString();
         }
     }
 

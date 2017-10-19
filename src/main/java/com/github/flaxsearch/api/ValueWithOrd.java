@@ -17,19 +17,19 @@ package com.github.flaxsearch.api;
  */
 
 public class ValueWithOrd {
-	private String value;
-	private long ord;	
+    private String value;
+    private long ord;
 
-	public ValueWithOrd(String value, long ord) {
-		this.value = value;
-		this.ord = ord;
-	}
-	
-	public String getValue() {
-		return value;
-	}
-	
-	public long getOrd() {
-		return ord;
-	}
+    public ValueWithOrd(String value, long ord) {
+        this.value = value;
+        this.ord = ord;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public long getOrd() {
+        return ord;
+    }
 }
