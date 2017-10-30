@@ -39,3 +39,15 @@ export function parseDoclist(doclist, numDocs) {
   }
   return ret;
 }
+
+/**
+ * Check that regExp compiles to a valid regular expression
+ */
+export function isValidRegExp(regExp) {
+  try {
+    new RegExp(regExp);
+  } catch (e){
+    return false;
+  }
+  return true;
+}
