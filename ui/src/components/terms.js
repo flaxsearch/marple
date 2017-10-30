@@ -3,6 +3,7 @@ import { Nav, NavItem, FormGroup, FormControl, Radio, Form, Button, Table } from
 import { loadTermsData, getFieldEncoding, setFieldEncoding } from '../data';
 import { EncodingDropdown } from './misc';
 import TermItem from './termitem'
+import { isValidRegExp } from '../util';
 
 const TERMSLISTSTYLE = {
     marginTop: '10px',
@@ -48,6 +49,15 @@ class Terms extends React.Component {
         }
     }
 
+    getValidationState() {
+        if (!this.state.termsFilter) {
+            return null;
+        } else if (isValidRegExp(this.state.termsFilter)) {
+            return "success";
+        } else {
+            return "error";
+        }
+    }
 
     loadAndDisplayData(segment, field, termsFilter, newEncoding) {
         newEncoding = newEncoding || getFieldEncoding(
@@ -66,8 +76,12 @@ class Terms extends React.Component {
             }
         };
 
-        loadTermsData({ segment, field, termsFilter, encoding: newEncoding,
-            count: FETCH_COUNT, onSuccess, onError: this.onError });
+        if (isValidRegExp(termsFilter)) {
+            loadTermsData({ segment, field, termsFilter, encoding: newEncoding,
+                count: FETCH_COUNT, onSuccess, onError: this.onError });
+        } else {
+            this.setState({ termsFilter });
+        }
     }
 
     componentDidMount() {
@@ -187,11 +201,12 @@ class Terms extends React.Component {
                 </tbody>
             </table>
             <Form inline onSubmit={ e => e.preventDefault() }>
-                <FormControl type="text" value={s.termsFilter}
-                             placeholder={'Filter by regexp'}
-                             onChange={ e => this.setTermsFilter(e.target.value) }
-                             style={{width:'75%'}} />
-                {" "}
+                <FormGroup  validationState={ this.getValidationState() }>
+                    <FormControl type="text" value={s.termsFilter}
+                                 placeholder={'Filter by regexp'}
+                                 onChange={ e => this.setTermsFilter(e.target.value) }
+                                 style={{width:'90%'}} />
+                </FormGroup>
                 <EncodingDropdown encoding={s.encoding} numeric={true}
                                   onSelect={x => this.setEncoding(x)} />
             </Form>
