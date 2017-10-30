@@ -52,6 +52,10 @@ public class PointsResource {
         try {
 	        LeafReader reader = readerManager.getLeafReader(segment);
 	        PointValues points = reader.getPointValues();
+	        if (points == null) {
+	        	    String msg = String.format("No points data for field %s", field);
+                throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
+	        }
 	
 	        final int numDims = points.getNumDimensions(field);
 	        final int bytesPerDim = points.getBytesPerDimension(field);
@@ -85,7 +89,7 @@ public class PointsResource {
             return new PointsData(numDims, bytesPerDim, node.cloneToDepth(depth));
 		}
         catch (IllegalArgumentException e) {
-        	String msg = String.format("No points data for field %s", field);
+        	    String msg = String.format("No points data for field %s", field);
             throw new WebApplicationException(msg, Response.Status.NOT_FOUND);
         }
     }

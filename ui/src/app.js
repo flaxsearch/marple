@@ -54,7 +54,7 @@ class MarpleContent extends React.Component {
     return (<div>
       <MarpleNav indexData={s.indexData}/>
       { alert }
-      <Col md={2}>
+      <Col md={2} style={{ paddingBottom: "80px" }}>
         <Segments segments={s.indexData.segments}
                   onSelect={this.selectSegment}
                   selected={s.selectedSegment}/>
