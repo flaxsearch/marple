@@ -1,4 +1,7 @@
 #!/bin/bash
 
 java -Ddw.indexPath=$1 -jar target/marple-*.jar server
+<<<<<<< HEAD
+=======
 
+>>>>>>> master

@@ -18,6 +18,9 @@ package com.github.flaxsearch.resources;
 import io.dropwizard.testing.junit.ResourceTestRule;
 import org.junit.ClassRule;
 import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+
+
 
 public class TestPointsResource extends IndexResourceTestBase {
 
@@ -27,9 +30,17 @@ public class TestPointsResource extends IndexResourceTestBase {
             .build();
 
     @Test
-    public void testBasicJson() throws Exception {
-        String result = resource.client().target("/points/point?segment=0").request().get(String.class);
-        System.out.println(result);
+    public void testIntEncoding() throws Exception {
+        // cannot deserialise to PointsData as the serialisation depends on the encoding
+        // rather than creating custom classes to receive the result, test the JSON string
+        String result = resource.client().target("/points/point?segment=0&encoding=int").request()
+                .get(String.class);
+
+        assertThat(result).contains("\"numDims\":2");
+        assertThat(result).contains("\"bytesPerDim\":4");
+        assertThat(result).contains("\"min\":[0,1]");
+        assertThat(result).contains("\"max\":[14,4]");
+        assertThat(result).contains("{\"doc\":0,\"value\":[2,1]}");
     }
 
 }

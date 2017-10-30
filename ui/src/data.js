@@ -201,6 +201,24 @@ export function loadPositions(segment, field, term, encoding, docid,
 	.catch(error => { onError('error loading positions: ' + error); });
 }
 
+export function loadPointsData(segment, field, node, encoding, onSuccess, onError) {
+    const url = MARPLE_BASE + `/api/points/${field}?` + makeQueryStr({
+        segment, node,
+        encoding: (encoding == 'binary') ? null : encoding
+    });
+
+    fetch(url)
+    .then(response => response.json())
+    .then(body => {
+        if (body.code) {
+            onError(body.message);
+        } else {
+            onSuccess(body);
+        }
+    })
+    .catch(error => { onError('error loading points: ' + error); });
+}
+
 function normaliseFilter(filter) {
   if (filter) {
     if (filter.endsWith('.*')) {
