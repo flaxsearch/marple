@@ -76,16 +76,24 @@ public class PointsResource {
 		if (segment == null) {
 			throw new WebApplicationException("You must pass in a segment to access points", Response.Status.BAD_REQUEST);
 		}
-
-        LeafReader reader = readerManager.getLeafReader(segment);
-        PointValues points = reader.getPointValues();
-
-        final int numDims = points.getNumDimensions(field);
-        final int bytesPerDim = points.getBytesPerDimension(field);
-        checkEncoding(encoding, bytesPerDim);
-
-        BKDNode rootNode = buildBKDTree(points, field, numDims, bytesPerDim, encoding);
-        return new PointsData(numDims, bytesPerDim, rootNode);
+		
+		try {
+			LeafReader reader = readerManager.getLeafReader(segment);
+			PointValues points = reader.getPointValues();
+	        if (points == null) {
+				throw new WebApplicationException("No points data for field", Response.Status.NOT_FOUND);
+	        }
+	
+	        final int numDims = points.getNumDimensions(field);
+	        final int bytesPerDim = points.getBytesPerDimension(field);
+	        checkEncoding(encoding, bytesPerDim);
+	
+	        BKDNode rootNode = buildBKDTree(points, field, numDims, bytesPerDim, encoding);
+	        return new PointsData(numDims, bytesPerDim, rootNode);
+		}
+		catch (java.lang.IllegalArgumentException e) {
+			throw new WebApplicationException("No points data for field", Response.Status.NOT_FOUND);			
+		}
 	}
 
 	@Path("/values")
