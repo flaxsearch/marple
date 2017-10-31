@@ -15,10 +15,8 @@ ui/node_modules
 *.log
 
 fuzzy-index
-
 he-index
-
-ui/bundle.js
 src/main/resources/assets
+ui/bundle.js
+/bin/
 dependency-reduced-pom.xml
-

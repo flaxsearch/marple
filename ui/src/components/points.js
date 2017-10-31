@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import { loadPointsData } from '../data';
+import { loadPointsTree, loadPointsValues } from '../data';
 import { Form, DropdownButton, MenuItem } from 'react-bootstrap';
 import Waiting from './waiting';
 
@@ -30,41 +30,41 @@ const NODESTYLE = {
 // one node of the points tree (collapsed or expanded)
 const TreeNode = props => {
     let content = null;
-    // if this node is collapsed, don't get the content
-    if (props.collapsed.has(props.id) == false) {
-
-        if (props.values && props.values.length > 0) {
+    if (props.node.expanded) {
+        if (props.node.values && props.node.values.length > 0) {
             // it's a leaf node
-            content = props.values.map(v =>
-                <div key={v.doc}>
+            content = props.node.values.map(v =>
+                <div key={v.docId}>
                     {formatPointValue(v.value)}
-                    {" in doc "} {v.doc}
+                    {" in doc "} {v.docId}
                 </div>
             );
-            content.unshift(<div key={-1}>Values:</div>);
         }
-        else if (props.children && props.children.length > 0) {
-            content = props.children.map(n =>
-                <TreeNode id={n.id} key={n.id} min={n.min} max={n.max}
-                          values={n.values} children={n.children}
-                          toggleTreeNode={props.toggleTreeNode}
-                          collapsed={props.collapsed} />
+        else if (props.node.children && props.node.children.length > 0) {
+            content = props.node.children.map((n, idx) =>
+                <TreeNode node={n} key={idx}
+                          toggleTreeNode={props.toggleTreeNode} />
             );
         }
     }
 
-    const toggle = content ?
+    const toggle = props.node.expanded ?
       'glyphicon-triangle-bottom' : 'glyphicon-triangle-right';
+
+    const label = props.node.valueCount ? 'Leaf node' : 'Tree node';
 
     return <div style={NODESTYLE}>
         <div>
             <a href="#" onClick={e => {
                 e.preventDefault();
-                props.toggleTreeNode(props.id, content == null)
+                props.toggleTreeNode(props.node, content == null)
             }}><span className={'glyphicon ' + toggle}
                     style={TOGGLESTYLE}></span>
-                BKD tree node: {formatPointValue(props.min)} {" - "}
-                    {formatPointValue(props.max)}</a>
+                {label}: {formatPointValue(props.node.min)} {" - "}
+                    {formatPointValue(props.node.max)}
+                    {props.node.valueCount ?
+                        " (" + props.node.valueCount + " values)" : ""}
+            </a>
         </div>
         <div style={{ marginLeft: "20px" }}>
             {content}
@@ -73,12 +73,7 @@ const TreeNode = props => {
 };
 
 TreeNode.propTypes = {
-    id: PropTypes.number.isRequired,
-    min: PropTypes.any.isRequired,
-    max: PropTypes.any.isRequired,
-    values: PropTypes.array,
-    children: PropTypes.array,
-    collapsed: PropTypes.object.isRequired,
+    node: PropTypes.object.isRequired,
     toggleTreeNode: PropTypes.func.isRequired
 };
 
@@ -97,22 +92,6 @@ export const EncodingDropdown = props => {
   </DropdownButton>;
 };
 
-
-function findNodeWithId(node, id) {
-    if (node.id == id) {
-        return node;
-    }
-    if (node.children) {
-        for (let i = 0; i < node.children.length; i++) {
-            const cnode = findNodeWithId(node.children[i], id);
-            if (cnode !== undefined) {
-                return cnode;
-            }
-        }
-    }
-    return undefined;
-}
-
 function formatPointValue(v) {
     if (Array.isArray(v) && v.length > 1) {
         return "[" +  v.join(", ") + "]"
@@ -129,16 +108,13 @@ class Points extends React.Component {
         this.state = {
             data: null,
             waiting: false,
-            collapsed: new Set(),
             encoding: 'binary'
         };
 
         this.componentDidMount = this.componentDidMount.bind(this);
         this.componentWillReceiveProps = this.componentWillReceiveProps.bind(this);
-        this.fetchRootData = this.fetchRootData.bind(this);
+        this.fetchTreeData = this.fetchTreeData.bind(this);
         this.toggleTreeNode = this.toggleTreeNode.bind(this);
-        this.setChildren = this.setChildren.bind(this);
-        this.setValues = this.setValues.bind(this);
         this.onError = this.onError.bind(this);
         this.setEncoding = this.setEncoding.bind(this);
     }
@@ -153,93 +129,92 @@ class Points extends React.Component {
     }
 
     componentDidMount() {
-        this.fetchRootData(this.props.segment, this.props.field, this.state.encoding);
+        this.fetchTreeData(this.props.segment, this.props.field, this.state.encoding);
     }
 
     componentWillReceiveProps(newProps) {
         if (newProps.field !== this.props.field ||
             newProps.segment !== this.props.segment)
         {
-            this.fetchRootData(newProps.segment, newProps.field, this.state.encoding);
+            this.fetchTreeData(newProps.segment, newProps.field, this.state.encoding);
         }
     }
 
-    fetchRootData(segment, field, encoding) {
+    fetchTreeData(segment, field, newEncoding) {
         if (segment === "") {
             this.setState({ data: null });
         } else {
             this.setState({ waiting: true });
-            loadPointsData(segment, field, 0, encoding,
-                data => {
+            loadPointsTree(segment, field, newEncoding,
+                (data, encoding) => {
+                    if (encoding != newEncoding) {
+                        this.props.showAlert(
+                            `${newEncoding} is not a valid encoding for this field`);
+                    }
+
+                    this.expandToDepth(data.root, 3);
                     this.setState({ data, encoding, waiting: false });
                 },
                 error => {
-                    this.setState({ waiting: false });
+                    this.setState({ data: null, waiting: false });
                     this.onError(error);
                 }
             );
         }
     }
 
-    toggleTreeNode(nodeId, isCollapsed) {
-        if (isCollapsed) {
-            if (this.state.collapsed.has(nodeId)) {
-                const collapsed = new Set(this.state.collapsed);
-                collapsed.delete(nodeId);
-                this.setState({ collapsed });
+    expandToDepth(root, openLevels) {
+        function visit(node, level) {
+            node.expanded = true;
+            if (level < openLevels && node.children) {
+                node.children.forEach(n => {
+                    visit(n, level + 1);
+                });
             }
-            else {
+        }
+
+        visit(root, 1);
+    }
+
+    toggleTreeNode(node) {
+        const newState = {
+            waiting: false,
+            // Mutating existing state. Possibly dodgy.
+            data: this.state.data
+        };
+
+        if (node.expanded != true) {
+            node.expanded = true;
+
+            // do we need to fetch values from server?
+            if (node.valueCount && node.values === undefined) {
                 this.setState({ waiting: true });
-                loadPointsData(this.props.segment, this.props.field, nodeId, this.state.encoding,
-                    data => {
-                        if (data.root.children) {
-                            this.setChildren(nodeId, data.root.children);
-                        }
-                        else {
-                            this.setValues(nodeId, data.root.values);
-                        }
+
+                newState.data = this.state.data;
+                loadPointsValues(this.props.segment, this.props.field,
+                    this.state.encoding, node.min, node.max,
+                    (data, encoding) => {
+                        node.values = data;
+                        this.setState(newState);    // asynchronous
                     },
                     error => {
+                        this.setState({ data: null, waiting: false });
                         this.onError(error);
                     }
                 );
             }
+            else {
+                this.setState(newState);    // synchronous
+            }
         }
         else {
-            const collapsed = new Set(this.state.collapsed);
-            collapsed.add(nodeId);
-            this.setState({ collapsed });
-        }
-    }
-
-    setChildren(nodeId, children) {
-        // clone the state
-        const newData = JSON.parse(JSON.stringify(this.state.data));
-        const node = findNodeWithId(newData.root, nodeId);
-        if (node) {
-            node.children = children;
-            this.setState({ data: newData, waiting: false });
-        }
-        else {
-            console.log('ERROR could not find node with ID ' + nodeId)
-        }
-    }
-
-    setValues(nodeId, values) {
-        // clone the state
-        const newData = JSON.parse(JSON.stringify(this.state.data));
-        const node = findNodeWithId(newData.root, nodeId);
-        if (node) {
-            node.values = values;
-            this.setState({ data: newData, waiting: false });
-        }
-        else {
-            console.log('ERROR could not find node with ID ' + nodeId)
+            node.expanded = false;
+            this.setState(newState);        // synchronous
         }
     }
 
     setEncoding(encoding) {
-        this.fetchRootData(this.props.segment, this.props.field, encoding);
+        this.fetchTreeData(this.props.segment, this.props.field, encoding);
     }
 
     render() {
@@ -287,10 +262,8 @@ class Points extends React.Component {
                                   onSelect={x => this.setEncoding(x)} />
             </Form>
             <div style={TREESTYLE}>
-                <TreeNode id={s.data.root.id}
-                          min={s.data.root.min} max={s.data.root.max}
-                          values={s.data.root.values} children={s.data.root.children}
-                          collapsed={s.collapsed} toggleTreeNode={this.toggleTreeNode} />
+                <TreeNode node={s.data.root}
+                          toggleTreeNode={this.toggleTreeNode} />
             </div>
             { s.waiting ? <Waiting/> : null }
         </div>;

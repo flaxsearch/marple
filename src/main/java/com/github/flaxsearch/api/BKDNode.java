@@ -15,8 +15,6 @@ package com.github.flaxsearch.api;
  *   limitations under the License.
  */
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.io.IOException;
@@ -43,35 +41,16 @@ public class BKDNode {
 
     public BKDNode parent;
     public List<BKDNode> children = new LinkedList<>();
-    public List<Value> values;
-    public final int nodeId;
+    public int valueCount = 0;
 
-    public static class Value {
-
-        final int docId;
-        final byte[] value;
-
-        public Value(int docId, byte[] value) {
-            this.docId = docId;
-            this.value = value;
-        }
-    }
-
-    public BKDNode(int nodeId, byte[] minPackedValue, byte[] maxPackedValue,
+    public BKDNode(byte[] minPackedValue, byte[] maxPackedValue,
                    int numDims, int bytesPerDim, String encoding) {
-        this.nodeId = nodeId;
         this.minPackedValue = minPackedValue.clone();
         this.maxPackedValue = maxPackedValue.clone();
 
         this.numDims = numDims;
         this.bytesPerDim = bytesPerDim;
         this.encoding = encoding;
-    }
-
-    public void addDoc(int docID, byte[] packedValue) {
-        if (values == null)
-            values = new ArrayList<>();
-        values.add(new Value(docID, packedValue.clone()));
     }
 
     public void setParent(BKDNode parent) {
@@ -100,39 +79,6 @@ public class BKDNode {
         return true;
     }
 
-    public BKDNode findNodeById(int nodeId) {
-        if (this.nodeId == nodeId) {
-            return this;
-        }
-
-        for (BKDNode child : children) {
-            BKDNode found = child.findNodeById(nodeId);
-            if (found != null) {
-                return found;
-            }
-        }
-
-        return null;
-    }
-
-    public BKDNode cloneToDepth(int depth) {
-        BKDNode node = new BKDNode(this.nodeId, this.minPackedValue, this.maxPackedValue,
-                                   this.numDims, this.bytesPerDim, this.encoding);
-        if (depth > 0) {
-            if (this.values != null) {
-                for (Value value : this.values) {
-                    node.addDoc(value.docId, value.value);
-                }
-            }
-
-            for (BKDNode child : children) {
-                BKDNode childClone = child.cloneToDepth(depth - 1);
-                childClone.setParent(node);
-            }
-        }
-
-        return node;
-    }
 
     public String toString() {
         return "BKDNode[" +
@@ -156,7 +102,6 @@ public class BKDNode {
         @Override
         public void serialize(BKDNode bkdNode, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
             jsonGenerator.writeStartObject();
-            jsonGenerator.writeNumberField("id", bkdNode.nodeId);
             jsonGenerator.writeFieldName("min");
             writeValue(jsonGenerator, bkdNode.minPackedValue,
                     bkdNode.numDims, bkdNode.bytesPerDim, bkdNode.encoding);
@@ -165,24 +110,9 @@ public class BKDNode {
             writeValue(jsonGenerator, bkdNode.maxPackedValue,
                     bkdNode.numDims, bkdNode.bytesPerDim, bkdNode.encoding);
 
-            if (bkdNode.values != null) {
+            if (bkdNode.valueCount > 0) {
                 // leaf node
-                jsonGenerator.writeFieldName("values");
-                jsonGenerator.writeStartArray();
-                for (Value value : bkdNode.values) {
-                    jsonGenerator.writeStartObject();
-                    jsonGenerator.writeNumberField("doc", value.docId);
-                    if (bkdNode.encoding == null) {
-                        jsonGenerator.writeBinaryField("value", value.value);
-                    }
-                    else {
-                        jsonGenerator.writeFieldName("value");
-                        writeValue(jsonGenerator, value.value,
-                                bkdNode.numDims, bkdNode.bytesPerDim, bkdNode.encoding);
-                    }
-                    jsonGenerator.writeEndObject();
-                }
-                jsonGenerator.writeEndArray();
+                jsonGenerator.writeNumberField("valueCount", bkdNode.valueCount);
             }
             else if (bkdNode.children.size() > 0){
                 jsonGenerator.writeFieldName("children");
