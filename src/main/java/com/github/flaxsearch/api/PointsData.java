@@ -19,12 +19,12 @@ public class PointsData {
 
     public final int numDims;
     public final int bytesPerDim;
-    public final BKDNode cells;
+    public final BKDNode root;
 
-    public PointsData(int numDims, int bytesPerDim, BKDNode rootNode) {
+    public PointsData(int numDims, int bytesPerDim, BKDNode root) {
         this.numDims = numDims;
         this.bytesPerDim = bytesPerDim;
-        this.cells = rootNode;
+        this.root = root;
     }
 
 }

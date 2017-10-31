@@ -201,6 +201,59 @@ export function loadPositions(segment, field, term, encoding, docid,
 	.catch(error => { onError('error loading positions: ' + error); });
 }
 
+export function loadPointsTree(segment, field, encoding, onSuccess, onError) {
+    const url = MARPLE_BASE + `/api/points/${field}/tree?` + makeQueryStr({
+        segment,
+        encoding: (encoding == 'binary') ? null : encoding
+    });
+
+    fetch(url)
+    .then(response => response.json())
+    .then(body => {
+        // this relies on the error response containing the 'code' property
+        if (body.code) {
+            if (body.code == 400 && body.message.includes('encoding')) {
+                // cope with encoding error by defaulting to binary
+                loadPointsTree(segment, field, 'binary', onSuccess, onError);
+            }
+            else {
+                onError(body.message);
+            }
+        }
+        else {
+            onSuccess(body, encoding);
+        }
+    })
+    .catch(error => { onError('error loading points tree: ' + error); });
+}
+
+export function loadPointsValues(segment, field, encoding, minVal, maxVal,
+                                 onSuccess, onError) {
+    const url = MARPLE_BASE + `/api/points/${field}/values?` + makeQueryStr({
+        segment, min: minVal, max: maxVal,
+        encoding: (encoding == 'binary') ? null : encoding
+    });
+
+    fetch(url)
+    .then(response => response.json())
+    .then(body => {
+        // this relies on the error response containing the 'code' property
+        if (body.code) {
+            if (body.code == 400 && body.message.includes('encoding')) {
+                // cope with encoding error by defaulting to binary
+                loadPointsValues(segment, field, 'binary', minVal, maxVal, onSuccess, onError);
+            }
+            else {
+                onError(body.message);
+            }
+        }
+        else {
+            onSuccess(body, encoding);
+        }
+    })
+    .catch(error => { onError('error loading points values: ' + error); });
+}
+
 function normaliseFilter(filter) {
   if (filter) {
     if (filter.endsWith('.*')) {
