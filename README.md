@@ -11,7 +11,10 @@ Marple is an app for exploring Lucene indexes. It is implemented as two main com
 
 This design provides simple platform independence and also means that the data provided by the API could be used by alternative UIs or other consumers.
 
-Read a blog post about the first release of Marple here: http://www.flax.co.uk/blog/2017/02/24/release-1-0-marple-lucene-index-detective/ 
+Read a blog post about the first release of Marple here: http://www.flax.co.uk/blog/2017/02/24/release-1-0-marple-lucene-index-detective/
+
+*Please note that due to API changes, Marple master no longer supports indexes created with Lucene 7 or earlier.
+There is a lucene-7 branch for this.*
 
 ## Prerequisites
 In order to run Marple you will need a Java 8 JRE installed and a reasonably recent browser.
