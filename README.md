@@ -13,8 +13,7 @@ This design provides simple platform independence and also means that the data p
 
 Read a blog post about the first release of Marple here: http://www.flax.co.uk/blog/2017/02/24/release-1-0-marple-lucene-index-detective/
 
-*Please note that due to API changes, Marple master no longer supports indexes created with Lucene 7 or earlier.
-There is a lucene-7 branch for this.*
+*Please note that the master branch currently targets Lucene version 6. There is a lucene-7 branch for version 7.*
 
 ## Prerequisites
 In order to run Marple you will need a Java 8 JRE installed and a reasonably recent browser.
