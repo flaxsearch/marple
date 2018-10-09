@@ -28,6 +28,7 @@ class SegmentView extends React.Component {
                 <Nav bsStyle="tabs" activeKey={this.state.activeView} onSelect={this.selectView}>
                     <NavItem eventKey="fields">Fields</NavItem>
                     <NavItem eventKey="docs">Docs</NavItem>
+                    <NavItem eventKey="query">Query</NavItem>
                 </Nav>
             </div>
         );
