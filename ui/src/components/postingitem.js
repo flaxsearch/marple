@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import { loadPositions } from '../data';
+import { loadPositions, loadDocument } from '../data';
 
 
 class PostingItem extends React.Component {
@@ -19,6 +19,22 @@ class PostingItem extends React.Component {
 
   handlePositionClick() {
     const p = this.props;
+
+    if (this.state.document) {
+      this.setState({ document: undefined });
+    }
+    else {
+      loadDocument(p.segment, p.docid, undefined, undefined,
+        d => {
+          this.setState({ document: d })
+        } , errmsg => {
+          if (errmsg.includes('No document')) {
+            this.setState({ document: undefined });
+          }
+          p.showAlert(errmsg, true);
+      });
+    }
+
     if (this.state.positionsData) {
       this.setState({ positionsData: undefined });
     }
@@ -33,6 +49,31 @@ class PostingItem extends React.Component {
             p.showAlert(errmsg, true);
         }
       });
+    }
+  }
+
+  renderField(field) {
+    return JSON.stringify(field.length == 1 ? field[0] : field);
+  }
+
+  renderDoc() {
+    if (this.state.selected == '') {
+      return <div>[ No document selected ]</div>
+    }
+    const document = this.state.document;
+
+    if ( document ) {
+      const fields = Object.keys(this.state.document.fields).map(k =>
+        <div className="marple-doc-field" key={k}>
+          <span className="marple-doc-fieldname">{`${k}: `}</span>
+          <span className="marple-doc-fieldval">
+            {this.renderField(this.state.document.fields[k])}
+          </span>
+        </div>
+      );
+      return <div>{fields}</div>;
+    } else {
+      return null;
     }
   }
 
@@ -63,6 +104,8 @@ class PostingItem extends React.Component {
         )}</tbody></table>
       : null;
 
+    const doc = this.renderDoc();
+
     const toggle = s.positionsData ?
       'glyphicon-triangle-bottom' : 'glyphicon-triangle-right';
 
@@ -74,6 +117,7 @@ class PostingItem extends React.Component {
               aria-hidden="true"></span>
       </a>
       {positions}
+      { doc }
     </div>;
   }
 }
